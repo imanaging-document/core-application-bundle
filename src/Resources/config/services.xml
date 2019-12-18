@@ -17,8 +17,14 @@
             <tag name="console.command" command="core:declaration" />
         </service>
 
+        <service id="imanaging_core_application.synchronisation_utilisateurs_core_command" class="Imanaging\CoreApplicationBundle\Command\SynchronisationUtilisateursCoreCommand">
+            <argument type="service" id="imanaging_core_application.core_application" />
+            <tag name="console.command" command="core:synchronisation:utilisateurs" />
+        </service>
+
         <service id="Imanaging\CoreApplicationBundle\CoreApplication" alias="imanaging_core_application.core_application" />
         <service id="Imanaging\CoreApplicationBundle\Command\DeclarationCoreCommand" alias="imanaging_core_application.core_declaration_command" />
+        <service id="Imanaging\CoreApplicationBundle\Command\SynchronisationUtilisateursCoreCommand" alias="imanaging_core_application.synchronisation_utilisateurs_core_command" />
 
     </services>
 </container>

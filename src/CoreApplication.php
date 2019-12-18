@@ -112,10 +112,10 @@ class CoreApplication
   public function getMenuApplications(User $user)
   {
     $keyMenu = 'menu_applications';
-    $applications = $this->session->get($keyMenu);
-    if (!is_null($applications)) {
-      return json_decode($applications, true);
-    }
+//    $applications = $this->session->get($keyMenu);
+//    if (!is_null($applications)) {
+//      return json_decode($applications, true);
+//    }
 
 
     $tokenAndDate = $this->getCoreTokenAndDate();
@@ -123,12 +123,12 @@ class CoreApplication
     $tokenCoreDate = $tokenAndDate['date'];
 
     // on va récupèrer directement sur le CORE les applications disponibles pour cet utilisateur
-    $url = '/application-hqmc?token='.$tokenCoreHashed.'&token_date'.$tokenCoreDate.'&client_traitement='.getenv('CLIENT_TRAITEMENT');
+    $url = '/application?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&type_application='.getenv('CORE_API_TYPE_APPLICATION').'&client_traitement='.getenv('CLIENT_TRAITEMENT');
     $response = $this->apiCoreCommunication->sendGetRequest($url);
     if ($response->getHttpCode() == 200) {
       $data = json_decode($response->getData());
       $applicationId = $data->id;
-      $url = '/applications-utilisateur?token='.$tokenCoreHashed.'&token_date'.$tokenCoreDate.'&application='.$applicationId.'&login='.$user->getLogin();
+      $url = '/applications-utilisateur?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&application='.$applicationId.'&login='.$user->getLogin();
       $resultRequest = $this->apiCoreCommunication->sendGetRequest($url);
       if ($resultRequest->getHttpCode() == 200) {
         $applications = json_decode($resultRequest->getData(), true);
