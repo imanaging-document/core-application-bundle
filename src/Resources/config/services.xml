@@ -11,6 +11,14 @@
             <argument type="service" id="session" />
         </service>
 
+        <service id="imanaging_core_application.core_declaration_command" class="Imanaging\CoreApplicationBundle\Command\DeclarationCoreCommand">
+            <argument type="service" id="doctrine.orm.default_entity_manager" />
+            <argument type="service" id="imanaging_core_application.core_application" />
+            <tag name="console.command" command="core:declaration" />
+        </service>
+
         <service id="Imanaging\CoreApplicationBundle\CoreApplication" alias="imanaging_core_application.core_application" />
+        <service id="Imanaging\CoreApplicationBundle\Command\DeclarationCoreCommand" alias="imanaging_core_application.core_declaration_command" />
+
     </services>
 </container>
