@@ -38,6 +38,7 @@ class CoreApplication
     $json_data->url = getenv('OWN_URL');
     $json_data->url_api = getenv('OWN_URL_API');
     $json_data->client_traitement = getenv('CLIENT_TRAITEMENT');
+    $json_data->type_application = getenv('CORE_API_TYPE_APPLICATION');
 
     // Generating post data
     $postData = array(
@@ -45,7 +46,7 @@ class CoreApplication
       'token_date' => $tokenCoreDate,
       'json_data' => json_encode($json_data)
     );
-    $url = '/application-hqmc/ajout';
+    $url = '/application/ajout';
     return $this->apiCoreCommunication->sendPostRequest($url, $postData);
   }
 
@@ -56,7 +57,7 @@ class CoreApplication
     $tokenAndDate = $this->getCoreTokenAndDate();
     $tokenCoreHashed = $tokenAndDate['token'];
     $tokenCoreDate = $tokenAndDate['date'];
-    $url = '/application-hqmc?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&client_traitement='.getenv('CLIENT_TRAITEMENT');
+    $url = '/application?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&type_application='.getenv('CORE_API_TYPE_APPLICATION').'&client_traitement='.getenv('CLIENT_TRAITEMENT');
     $response = $this->apiCoreCommunication->sendGetRequest($url);
 
     if ($response->getHttpCode() == 200) {
