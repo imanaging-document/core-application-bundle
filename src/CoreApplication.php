@@ -112,10 +112,10 @@ class CoreApplication
   public function getMenuApplications(User $user)
   {
     $keyMenu = 'menu_applications';
-//    $applications = $this->session->get($keyMenu);
-//    if (!is_null($applications)) {
-//      return json_decode($applications, true);
-//    }
+    $applications = $this->session->get($keyMenu);
+    if (!is_null($applications)) {
+      return json_decode($applications, true);
+    }
 
 
     $tokenAndDate = $this->getCoreTokenAndDate();

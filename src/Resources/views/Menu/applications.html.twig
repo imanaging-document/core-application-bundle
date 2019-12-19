@@ -1,0 +1,18 @@
+{# Affichage des applications disponible pour cet utilisateur #}
+{% set applications = getApplications(app.user) %}
+{% if applications|length > 0 %}
+  <li class="nav-item dropdown">
+    <a href="#" class="nav-link main-menu-nav-link dropdown-toggle" data-toggle="dropdown">
+      Applications
+    </a>
+    <ul class="dropdown-menu">
+      {% for application in applications %}
+        <li>
+          <a href="{{ application.url }}" class="dropdown-item">
+            {{ application.nom }}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  </li>
+{% endif %}
