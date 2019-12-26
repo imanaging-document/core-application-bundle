@@ -56,8 +56,9 @@ class CoreApplication
     $tokenAndDate = $this->getCoreTokenAndDate();
     $tokenCoreHashed = $tokenAndDate['token'];
     $tokenCoreDate = $tokenAndDate['date'];
-    $url = '/application-hqmc?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&client_traitement='.getenv('CLIENT_TRAITEMENT');
+    $url = '/application?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&type_application='.getenv('CORE_API_TYPE_APPLICATION').'&client_traitement='.getenv('CLIENT_TRAITEMENT');
     $response = $this->apiCoreCommunication->sendGetRequest($url);
+
 
     if ($response->getHttpCode() == 200) {
       $data = json_decode($response->getData());
@@ -65,6 +66,7 @@ class CoreApplication
 
       $url = '/synchronisation-utlisateurs?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&application='.$applicationId;
       $response = $this->apiCoreCommunication->sendGetRequest($url);
+
       if ($response->getHttpCode() == 200){
         $utilisateursLocauxCore = $this->em->getRepository(User::class)->findBy(['utilisateurCore' => true]);
         foreach ($utilisateursLocauxCore as $user) {

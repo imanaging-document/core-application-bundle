@@ -31,5 +31,6 @@
         <service id="Imanaging\CoreApplicationBundle\Command\DeclarationCoreCommand" alias="imanaging_core_application.core_declaration_command" />
         <service id="Imanaging\CoreApplicationBundle\Command\SynchronisationUtilisateursCoreCommand" alias="imanaging_core_application.synchronisation_utilisateurs_core_command" />
 
+
     </services>
 </container>
