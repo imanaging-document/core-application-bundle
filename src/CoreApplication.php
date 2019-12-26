@@ -38,6 +38,7 @@ class CoreApplication
     $json_data->url = getenv('OWN_URL');
     $json_data->url_api = getenv('OWN_URL_API');
     $json_data->client_traitement = getenv('CLIENT_TRAITEMENT');
+    $json_data->type_application = getenv('CORE_API_TYPE_APPLICATION');
 
     // Generating post data
     $postData = array(
@@ -45,7 +46,7 @@ class CoreApplication
       'token_date' => $tokenCoreDate,
       'json_data' => json_encode($json_data)
     );
-    $url = '/application-hqmc/ajout';
+    $url = '/application/ajout';
     return $this->apiCoreCommunication->sendPostRequest($url, $postData);
   }
 
