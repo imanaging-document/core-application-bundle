@@ -167,7 +167,7 @@ class CoreApplication
     return false;
   }
 
-  private function getCoreTokenAndDate() {
+  public function getCoreTokenAndDate() {
     $now = new DateTime();
     $nowFormat = $now->format('YmdHis');
     return [
