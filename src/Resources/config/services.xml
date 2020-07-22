@@ -35,5 +35,10 @@
             <argument type="service" id="doctrine.orm.default_entity_manager" />
             <argument type="service" id="imanaging_core_application.core_application" />
         </service>
+
+        <service id="imanaging_core_application.role_controller" class="Imanaging\CoreApplicationBundle\Controller\RoleController" public="true">
+            <argument type="service" id="doctrine.orm.default_entity_manager" />
+            <argument type="service" id="imanaging_core_application.core_application" />
+        </service>
     </services>
 </container>

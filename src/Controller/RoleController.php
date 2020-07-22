@@ -4,13 +4,13 @@
 namespace Imanaging\CoreApplicationBundle\Controller;
 
 use Imanaging\CoreApplicationBundle\CoreApplication;
-use Imanaging\ZeusUserBundle\Interfaces\UserInterface;
+use Imanaging\ZeusUserBundle\Interfaces\RoleInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
-class UserController extends AbstractController
+class RoleController extends AbstractController
 {
   private $em;
   private $coreApplication;
@@ -29,9 +29,23 @@ class UserController extends AbstractController
   public function indexAction(Request $request)
   {
     $params = $request->request->all();
-    return $this->render("@ImanagingCoreApplication/Role/index.html.twig", [
-      'utilisateurs' => $this->em->getRepository(UserInterface::class)->findAll(),
+    return $this->render("@ImanagingCoreApplication/User/index.html.twig", [
+      'roles' => $this->em->getRepository(RoleInterface::class)->findAll(),
       'basePath' => $params['basePath']
     ]);
+  }
+
+  public function addRoleAction(Request $request)
+  {
+    $params = $request->request->all();
+
+    $className = $this->em->getRepository(RoleInterface::class)->getClassName();
+    $role = new $className();
+    if ($role instanceof RoleInterface){
+      $role->setLibelle($params['libelle']);
+      $this->em->persist($role);
+      $this->em->flush();
+    }
+    return $this->redirectToRoute('core_application_role');
   }
 }
