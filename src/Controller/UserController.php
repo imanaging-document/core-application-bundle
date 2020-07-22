@@ -34,4 +34,15 @@ class UserController extends AbstractController
       'basePath' => $params['basePath']
     ]);
   }
+
+  public function synchroniserAction(CoreApplication $coreApplication)
+  {
+    $res = $coreApplication->synchroniserUsers();
+    if ($res['success']){
+      $this->addFlash('success', 'Les utilisateurs ont bien été synchronisés.');
+    } else {
+      $this->addFlash('error', $res['error_message']);
+    }
+    return $this->redirectToRoute('hephaistos_administration_utilisateurs');
+  }
 }

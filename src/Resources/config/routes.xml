@@ -7,4 +7,7 @@
     <route id="core_application_user" path="/user" controller="imanaging_core_application.user_controller:indexAction">
     </route>
 
+    <route id="core_application_user_synchroniser" path="/user/synchroniser" controller="imanaging_core_application.user_controller:synchroniserAction">
+    </route>
+
 </routes>
