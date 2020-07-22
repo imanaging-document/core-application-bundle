@@ -10,7 +10,7 @@
     <route id="core_application_user_synchroniser" path="/user/synchroniser" controller="imanaging_core_application.user_controller:synchroniserAction">
     </route>
 
-    <route id="core_application_role" path="/role" controller="imanaging_core_application.role_controller:synchroniserAction">
+    <route id="core_application_role" path="/role" controller="imanaging_core_application.role_controller:index">
     </route>
 
     <route id="core_application_role_add" path="/role/add" controller="imanaging_core_application.role_controller:addRoleAction">

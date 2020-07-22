@@ -29,9 +29,20 @@ class UserController extends AbstractController
   public function indexAction(Request $request)
   {
     $params = $request->request->all();
-    return $this->render("@ImanagingCoreApplication/Role/index.html.twig", [
+    return $this->render("@ImanagingCoreApplication/User/index.html.twig", [
       'utilisateurs' => $this->em->getRepository(UserInterface::class)->findAll(),
       'basePath' => $params['basePath']
     ]);
+  }
+
+  public function synchroniserAction()
+  {
+    $res = $this->coreApplication->synchroniserUsers();
+    if ($res['success']){
+      $this->addFlash('success', 'Les utilisateurs ont bien été synchronisés.');
+    } else {
+      $this->addFlash('error', $res['error_message']);
+    }
+    return $this->redirectToRoute('core_application_user');
   }
 }

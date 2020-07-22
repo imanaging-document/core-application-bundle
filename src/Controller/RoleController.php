@@ -29,7 +29,7 @@ class RoleController extends AbstractController
   public function indexAction(Request $request)
   {
     $params = $request->request->all();
-    return $this->render("@ImanagingCoreApplication/User/index.html.twig", [
+    return $this->render("@ImanagingCoreApplication/Role/index.html.twig", [
       'roles' => $this->em->getRepository(RoleInterface::class)->findAll(),
       'basePath' => $params['basePath']
     ]);
