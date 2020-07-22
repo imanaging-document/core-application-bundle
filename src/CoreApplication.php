@@ -6,6 +6,7 @@ use App\Entity\User;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Imanaging\ApiCommunicationBundle\ApiCoreCommunication;
+use Imanaging\ZeusUserBundle\Interfaces\RoleInterface;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 class CoreApplication
