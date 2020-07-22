@@ -35,9 +35,9 @@ class UserController extends AbstractController
     ]);
   }
 
-  public function synchroniserAction(CoreApplication $coreApplication)
+  public function synchroniserAction()
   {
-    $res = $coreApplication->synchroniserUsers();
+    $res = $this->coreApplication->synchroniserUsers();
     if ($res['success']){
       $this->addFlash('success', 'Les utilisateurs ont bien été synchronisés.');
     } else {
