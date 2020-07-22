@@ -71,7 +71,7 @@ class CoreApplication
       if ($response->getHttpCode() == 200){
         $utilisateursLocauxCore = $this->em->getRepository(User::class)->findBy(['utilisateurCore' => true]);
         foreach ($utilisateursLocauxCore as $user) {
-          $user->setActif = false;
+          $user->setActif(false);
           $this->em->persist($user);
         }
         $utilisateurs = json_decode($response->getData());
@@ -89,6 +89,10 @@ class CoreApplication
 
             }
           }
+          
+          // Mise à jour du role
+          $role = $this->em->getRepository(RoleInterface::class)->find($utilisateur->role_id);
+          $utilisateurLocalCore->setRole($role);
 
           $utilisateurLocalCore->setActif(true);
           $utilisateurLocalCore->setPrenom($utilisateur->prenom);
