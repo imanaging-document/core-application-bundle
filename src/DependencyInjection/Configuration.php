@@ -11,8 +11,8 @@ class Configuration implements ConfigurationInterface
 {
   public function getConfigTreeBuilder()
   {
-    $treeBuilder = new TreeBuilder();
-    $rootNode = $treeBuilder->root('imanaging_core_application');
+    $treeBuilder = new TreeBuilder('imanaging_core_application');
+    $rootNode = $treeBuilder->getRootNode();
     $rootNode
       ->children()
         ->booleanNode('bar')->defaultTrue()->info('Test parameter')->end()
