@@ -43,6 +43,6 @@ class UserController extends AbstractController
     } else {
       $this->addFlash('error', $res['error_message']);
     }
-    return $this->redirectToRoute('hephaistos_administration_utilisateurs');
+    return $this->redirectToRoute('core_application_user');
   }
 }
