@@ -22,7 +22,7 @@
               <td>{{ role.id }}</td>
               <td>{{ role.libelle }}</td>
               <td>
-                {% if role.id >= 50 %}
+                {% if role.id >= 1000 %}
                   <b>Local</b>
                 {% else %}
                   <b>Dashboard</b>
@@ -34,9 +34,11 @@
                 </a>
               </td>
               <td>
-                <a href="{{ path('core_application_role_remove', {id: role.id}) }}" class="btn btn-danger">
-                  <i class="fa fa-times fa-fw"></i>Supprimer
-                </a>
+                {% if role.id >= 1000 %}
+                  <a href="{{ path('core_application_role_remove', {id: role.id}) }}" class="btn btn-danger">
+                    <i class="fa fa-times fa-fw"></i>Supprimer
+                  </a>
+                {% endif %}
               </td>
             </tr>
           {% endfor %}

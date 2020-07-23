@@ -64,17 +64,22 @@ class RoleController extends AbstractController
 
   public function removeRoleAction($id)
   {
-    $role = $this->em->getRepository(RoleInterface::class)->find($id);
-    if ($role instanceof RoleInterface){
-      try {
-        $this->em->remove($role);
-        $this->em->flush();
-        $this->addFlash('success', 'Rôle supprimé avec succès');
+    if ($id >= 1000){
+      $role = $this->em->getRepository(RoleInterface::class)->find($id);
+      if ($role instanceof RoleInterface){
+        try {
+          $this->em->remove($role);
+          $this->em->flush();
+          $this->addFlash('success', 'Rôle supprimé avec succès');
 
-      } catch (Exception $e){
-        $this->addFlash('error', 'Une erreur est survenue lors de la suppression de ce rôle : '.$e->getMessage());
+        } catch (Exception $e){
+          $this->addFlash('error', 'Une erreur est survenue lors de la suppression de ce rôle : '.$e->getMessage());
+        }
       }
+    } else {
+      $this->addFlash('error', 'Seuls les rôles locaux sont supprimables');
     }
+
     return $this->redirectToRoute('core_application_role');
   }
 }
