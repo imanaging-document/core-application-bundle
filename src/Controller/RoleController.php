@@ -3,6 +3,7 @@
 
 namespace Imanaging\CoreApplicationBundle\Controller;
 
+use Exception;
 use Imanaging\CoreApplicationBundle\CoreApplication;
 use Imanaging\ZeusUserBundle\Interfaces\RoleInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -31,7 +32,7 @@ class RoleController extends AbstractController
     $params = $request->request->all();
     return $this->render("@ImanagingCoreApplication/Role/index.html.twig", [
       'roles' => $this->em->getRepository(RoleInterface::class)->findAll(),
-      'basePath' => $params['basePath']
+      'basePath' => 'base.html.twig'
     ]);
   }
 
@@ -57,6 +58,22 @@ class RoleController extends AbstractController
       $role->setLibelle($params['libelle']);
       $this->em->persist($role);
       $this->em->flush();
+    }
+    return $this->redirectToRoute('core_application_role');
+  }
+
+  public function removeRoleAction($id)
+  {
+    $role = $this->em->getRepository(RoleInterface::class)->find($id);
+    if ($role instanceof RoleInterface){
+      try {
+        $this->em->remove($role);
+        $this->em->flush();
+        $this->addFlash('success', 'Rôle supprimé avec succès');
+
+      } catch (Exception $e){
+        $this->addFlash('error', 'Une erreur est survenue lors de la suppression de ce rôle : '.$e->getMessage());
+      }
     }
     return $this->redirectToRoute('core_application_role');
   }

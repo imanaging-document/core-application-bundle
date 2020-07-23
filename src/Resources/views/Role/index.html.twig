@@ -11,7 +11,9 @@
           <tr>
             <th>#</th>
             <th>Nom</th>
+            <th>Type de rôle</th>
             <th><i class="fa fa-pencil"></i></th>
+            <th><i class="fa fa-times"></i></th>
           </tr>
           </thead>
           <tbody>
@@ -20,8 +22,20 @@
               <td>{{ role.id }}</td>
               <td>{{ role.libelle }}</td>
               <td>
+                {% if role.id >= 50 %}
+                  <b>Local</b>
+                {% else %}
+                  <b>Dashboard</b>
+                {% endif %}
+              </td>
+              <td>
                 <a href="" class="btn btn-primary">
-                  <i class="fa fa-pencil-square-o"></i>
+                  <i class="fa fa-pencil-square-o fa-fw"></i>Modifier ce rôle
+                </a>
+              </td>
+              <td>
+                <a href="{{ path('core_application_role_remove', {id: role.id}) }}" class="btn btn-danger">
+                  <i class="fa fa-times fa-fw"></i>Supprimer
                 </a>
               </td>
             </tr>
@@ -33,6 +47,8 @@
 
         <h5>Ajouter un rôle</h5>
         <form action="{{ path('core_application_role_add') }}" method="post">
+          <input type="hidden" name="basePath" value="{{ basePath }}">
+
           <div class="form-group">
             <label for="libelle">Nom du rôle</label>
             <input type="text" class="form-control" name="libelle" id="libelle">
