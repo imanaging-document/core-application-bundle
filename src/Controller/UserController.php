@@ -26,13 +26,47 @@ class UserController extends AbstractController
     $this->coreApplication = $coreApplication;
   }
 
-  public function indexAction(Request $request)
+  public function indexAction()
   {
-    $params = $request->request->all();
     return $this->render("@ImanagingCoreApplication/User/index.html.twig", [
       'utilisateurs' => $this->em->getRepository(UserInterface::class)->findAll(),
-      'basePath' => $params['basePath']
+      'basePath' => 'base.html.twig'
     ]);
+  }
+
+  public function editAction($id)
+  {
+    $user = $this->em->getRepository(UserInterface::class)->find($id);
+    if ($user instanceof UserInterface){
+      return $this->render("@ImanagingCoreApplication/User/edit.html.twig", [
+        'user' => $user,
+        'roles' => $this->em->getRepository(RoleInterface::class)->findAll(),
+        'basePath' => 'base.html.twig'
+      ]);
+    } else {
+      $this->addFlash('Error', 'Utilisateur introuvable : '.$id);
+      return $this->redirectToRoute('core_application_user');
+    }
+  }
+
+  public function saveAction($id, Request $request)
+  {
+    $params = $request->request->all();
+
+    $user = $this->em->getRepository(UserInterface::class)->find($id);
+    if ($user instanceof UserInterface) {
+      $role = $this->em->getRepository(RoleInterface::class)->find($params['role']);
+      if ($role instanceof RoleInterface){
+        $user->setRole($role);
+        $this->em->persist($user);
+        $this->em->flush();
+      } else {
+        $this->addFlash('Error', 'Rôle introuvable : '.$params['role']);
+      }
+    } else {
+      $this->addFlash('Error', 'Utilisateur introuvable : '.$id);
+    }
+    return $this->redirectToRoute('core_application_user');
   }
 
   public function synchroniserAction()

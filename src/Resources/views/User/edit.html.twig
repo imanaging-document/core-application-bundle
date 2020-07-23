@@ -1,0 +1,28 @@
+{% extends basePath %}
+
+{% block body %}
+  <div class="container container-90 mt-4 mb-4">
+    <h2 class="text-center">Modifier un utilisateur - {{ user.login }}</h2>
+
+    <div class="card mt-2">
+      <div class="card-body">
+        <form action="{{ path('core_application_user_save') }}" method="post">
+          <div class="form-group">
+            <label for="role">Rôle</label>
+            <select name="role" id="role">
+              {% for role in roles %}
+                <option value="{{ role.id }}" {% if role == user.role %}selected{% endif %}>
+                  {{ role.libelle }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="text-center">
+            <button type="submit" class="btn btn-success">Enregistrer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -7,6 +7,12 @@
     <route id="core_application_user" path="/user" controller="imanaging_core_application.user_controller:indexAction">
     </route>
 
+    <route id="core_application_user_edit" path="/user/{id}/edit" controller="imanaging_core_application.user_controller:editAction">
+    </route>
+
+    <route id="core_application_user_save" path="/user/{id}/save" controller="imanaging_core_application.user_controller:saveAction">
+    </route>
+
     <route id="core_application_user_synchroniser" path="/user/synchroniser" controller="imanaging_core_application.user_controller:synchroniserAction">
     </route>
 
