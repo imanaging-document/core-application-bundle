@@ -1,6 +1,8 @@
 {% extends basePath %}
 
 {% block body %}
+  {% import _self as macros %}
+
   <div class="container container-90 mt-4 mb-4">
     <h2 class="text-center">Edition d'un rôle - {{ role.libelle }}</h2>
 
@@ -8,16 +10,11 @@
       <div class="card-body">
         <h5 class="display-5">Modules / Fonctions</h5>
 
-        {% if fonctions_without_module|length > 0 %}
-          <ul class="ul-no-indent">
-            <li class="list-style-none">
-              <div class="checkbox">
-                <label>
-                  <input type="checkbox" checked disabled>
-                  <b>Fonctions globales</b>
-                </label>
-              </div>
-            </li>
+        <form action="{{ path('core_application_role_save', {id: role.id}) }}" method="post">
+          {% if fonctions_without_module|length > 0 %}
+            <label>
+              <b>Fonctions globales</b>
+            </label>
             <ul>
               {% for fonction in fonctions_without_module %}
                 <li class="list-style-none">
@@ -30,11 +27,79 @@
                 </li>
               {% endfor %}
             </ul>
-          </ul>
-        {% endif %}
+          {% endif %}
+
+          {% for module in modules %}
+            {% if module.parent is null %}
+              <ul class="ul-no-indent">
+                <li class="list-style-none">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" class="cbx-module" name="modules[]" value="{{ module.id }}" {% if role.canAccess(module.id) %}checked{% endif %}>
+                      <b>{{ module.libelle }}</b>
+                    </label>
+                  </div>
+                </li>
+
+                {% if module.enfants is not empty %}
+                  {% for sousModule in module.enfants %}
+                    {{ _self.showSousModules(sousModule, role) }}
+                  {% endfor %}
+                {% endif %}
+              </ul>
+            {% endif %}
+          {% endfor %}
+
+          <div class="text-center">
+            <button type="submit" class="btn btn-primary">
+              <i class="fa fa-save fa-fw"></i>Enregistrer
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
+
+  {% macro showSousModules(module, role) %}
+    <ul class="ul-no-indent">
+      <li class="list-style-none">
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" class="cbx-module" name="modules[]" data-id="{{ module.id }}" data-parent-id="{{ module.parent.id }}" value="{{ module.id }}" {% if role.canAccess(module.id) %}checked{% endif %}>
+            <b>{{ module.libelle }}</b>
+          </label>
+        </div>
+      </li>
+
+      {% if module.fonctions|length > 0 %}
+        {% for fonction in module.fonctions %}
+          <ul>
+            <li class="list-style-none">
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" name="fonctions[]" value="{{ fonction.id }}" {% if role.canDo(fonction.code) %}checked{% endif %}>
+                  <i class="text-info">{{ fonction.libelle }} (<i>fonction</i>)</i>
+                </label>
+              </div>
+            </li>
+          </ul>
+        {% endfor %}
+      {% endif %}
+
+
+      {% if module.enfants is not empty %}
+        {% for sousModule in module.enfants %}
+          {{ _self.showSousModules(sousModule, role) }}
+        {% endfor %}
+      {% endif %}
+    </ul>
+  {% endmacro %}
+
+  <style>
+    .list-style-none{
+      list-style-type: none;
+    }
+  </style>
 
   <script>
 

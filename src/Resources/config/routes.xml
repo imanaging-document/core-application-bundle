@@ -22,4 +22,6 @@
     <route id="core_application_role_edit" path="/role/{id}/edit" controller="imanaging_core_application.role_controller:editRoleAction">
     </route>
 
+    <route id="core_application_role_save" path="/role/{id}/save" controller="imanaging_core_application.role_controller:saveRoleAction">
+    </route>
 </routes>

@@ -107,4 +107,42 @@ class RoleController extends AbstractController
     }
     return $this->redirectToRoute('core_application_role');
   }
+
+  public function saveRoleAction($id, Request $request)
+  {
+    $params = $request->request->all();
+    if ($id >= 1000){
+      $role = $this->em->getRepository(RoleInterface::class)->find($id);
+      if ($role instanceof RoleInterface){
+        $modules = [];
+        $fonctions = [];
+        if (isset($params['modules'])){
+          $queryBuilder = $this->em->createQueryBuilder()
+            ->select('hm')
+            ->from("App:ModuleInterface", 'module')
+            ->where('module.id IN (:ids)')
+            ->setParameter('ids', $params['modules'])
+          ;
+          $query = $queryBuilder->getQuery();
+          $modules = $query->getResult();
+        }
+        if (isset($params['fonctions'])){
+          $queryBuilder = $this->em->createQueryBuilder()
+            ->select('hm')
+            ->from("App:FonctionInterface", 'fonction')
+            ->where('interface.id IN (:ids)')
+            ->setParameter('ids', $params['fonctions'])
+          ;
+          $query = $queryBuilder->getQuery();
+          $fonctions = $query->getResult();
+        }
+        $role->setModules($modules);
+        $role->setFonctions($fonctions);
+
+        $this->em->persist($role);
+        $this->em->flush();
+      }
+    }
+    return $this->redirectToRoute('core_application_role');
+  }
 }
