@@ -7,6 +7,8 @@ use Exception;
 use Imanaging\CoreApplicationBundle\CoreApplication;
 use Imanaging\ZeusUserBundle\Interfaces\RoleInterface;
 use Imanaging\ZeusUserBundle\Interfaces\ModuleInterface;
+use Imanaging\ZeusUserBundle\Interfaces\NotificationInterface;
+use Imanaging\ZeusUserBundle\Interfaces\FonctionInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -91,7 +93,7 @@ class RoleController extends AbstractController
       if ($role instanceof RoleInterface){
 
         $modules = $this->em->getRepository(ModuleInterface::class)->findAll();
-        $notifications = $this->em->getRepository(NotificationInterface::classe)->findAll();
+        $notifications = $this->em->getRepository(NotificationInterface::class)->findAll();
         $fonctionsWithoutModule = $this->em->getRepository(FonctionInterface::class)->findBy(['module' => null]);
 
         return $this->render("@ImanagingCoreApplication/Role/edit.html.twig", [
@@ -114,30 +116,37 @@ class RoleController extends AbstractController
     if ($id >= 1000){
       $role = $this->em->getRepository(RoleInterface::class)->find($id);
       if ($role instanceof RoleInterface){
+
         $modules = [];
         $fonctions = [];
+        $notifications = [];
         if (isset($params['modules'])){
-          $queryBuilder = $this->em->createQueryBuilder()
-            ->select('hm')
-            ->from("App:ModuleInterface", 'module')
-            ->where('module.id IN (:ids)')
-            ->setParameter('ids', $params['modules'])
-          ;
-          $query = $queryBuilder->getQuery();
-          $modules = $query->getResult();
+          foreach ($params['modules'] as $moduleId){
+            $module = $this->em->getRepository(ModuleInterface::class)->find($moduleId);
+            if ($module instanceof ModuleInterface){
+              $modules[] = $module;
+            }
+          }
         }
         if (isset($params['fonctions'])){
-          $queryBuilder = $this->em->createQueryBuilder()
-            ->select('hm')
-            ->from("App:FonctionInterface", 'fonction')
-            ->where('interface.id IN (:ids)')
-            ->setParameter('ids', $params['fonctions'])
-          ;
-          $query = $queryBuilder->getQuery();
-          $fonctions = $query->getResult();
+          foreach ($params['fonctions'] as $fonctionId){
+            $fonction = $this->em->getRepository(FonctionInterface::class)->find($fonctionId);
+            if ($fonction instanceof FonctionInterface){
+              $fonctions[] = $fonction;
+            }
+          }
+        }
+        if (isset($params['notifications'])){
+          foreach ($params['notifications'] as $notificationId){
+            $notification = $this->em->getRepository(NotificationInterface::class)->find($notificationId);
+            if ($notification instanceof NotificationInterface){
+              $notifications[] = $notification;
+            }
+          }
         }
         $role->setModules($modules);
         $role->setFonctions($fonctions);
+        $role->setNotifications($notifications);
 
         $this->em->persist($role);
         $this->em->flush();

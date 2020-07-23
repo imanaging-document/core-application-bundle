@@ -8,49 +8,96 @@
 
     <div class="card mt-2">
       <div class="card-body">
-        <h5 class="display-5">Modules / Fonctions</h5>
-
         <form action="{{ path('core_application_role_save', {id: role.id}) }}" method="post">
-          {% if fonctions_without_module|length > 0 %}
-            <label>
-              <b>Fonctions globales</b>
-            </label>
-            <ul>
-              {% for fonction in fonctions_without_module %}
-                <li class="list-style-none">
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" name="fonctions[]" value="{{ fonction.id }}" {% if role.canDo(fonction.code) %}checked{% endif %}>
-                      <i class="text-info">{{ fonction.libelle }} (<i>fonction</i>)</i>
-                    </label>
-                  </div>
-                </li>
-              {% endfor %}
-            </ul>
-          {% endif %}
+          <div class="row">
+            <div class="col">
+              <h4 class="text-center">Modules / Fonctions</h4>
+              <p><i class="fa fa-info-circle fa-fw"></i>Gestion de la visibilité des modules, sous modules et fonctions associées.</p>
 
-          {% for module in modules %}
-            {% if module.parent is null %}
-              <ul class="ul-no-indent">
-                <li class="list-style-none">
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" class="cbx-module" name="modules[]" value="{{ module.id }}" {% if role.canAccess(module.id) %}checked{% endif %}>
-                      <b>{{ module.libelle }}</b>
-                    </label>
-                  </div>
-                </li>
+              <div class="btn-group w-100 mb-4" role="group">
+                <button id="toutCocherModules" class="btn btn-success btn-sm" type="button">
+                  <i class="fa fa-check-circle fa-fw"></i>Tout cocher
+                </button>
+                <button id="toutDecocherModules" class="btn btn-warning btn-sm" type="button">
+                  <i class="fa fa-times-circle fa-fw"></i>Tout décocher
+                </button>
+              </div>
 
-                {% if module.enfants is not empty %}
-                  {% for sousModule in module.enfants %}
-                    {{ _self.showSousModules(sousModule, role) }}
+              {% if fonctions_without_module|length > 0 %}
+                <h5 class="text-primary">
+                  <b>Fonctions globales</b>
+                </h5>
+                <ul>
+                  {% for fonction in fonctions_without_module %}
+                    <li class="list-style-none">
+                      <div class="checkbox">
+                        <label>
+                          <input type="checkbox" name="fonctions[]" value="{{ fonction.id }}" {% if role.canDo(fonction.code) %}checked{% endif %}>
+                          <i class="text-info">{{ fonction.libelle }} (<i>fonction</i>)</i>
+                        </label>
+                      </div>
+                    </li>
                   {% endfor %}
-                {% endif %}
-              </ul>
-            {% endif %}
-          {% endfor %}
+                </ul>
+              {% endif %}
 
-          <div class="text-center">
+              <h5 class="text-primary">
+                <b>Modules & sous-modules</b>
+              </h5>
+              {% for module in modules %}
+                {% if module.parent is null %}
+                  <ul class="ul-no-indent">
+                    <li class="list-style-none">
+                      <div class="checkbox">
+                        <label>
+                          <input type="checkbox" class="cbx-module" name="modules[]" value="{{ module.id }}" {% if role.canAccess(module.id) %}checked{% endif %}>
+                          <b>{{ module.libelle }}</b>
+                        </label>
+                      </div>
+                    </li>
+
+                    {% if module.enfants is not empty %}
+                      {% for sousModule in module.enfants %}
+                        {{ _self.showSousModules(sousModule, role) }}
+                      {% endfor %}
+                    {% endif %}
+                  </ul>
+                {% endif %}
+              {% endfor %}
+            </div>
+            <div class="col border-left border-dark">
+              <h4 class="text-center">Notifications (messages oranges)</h4>
+              <p><i class="fa fa-info-circle fa-fw"></i>Gestion de la visibilité des notifications</p>
+
+              <div class="btn-group w-100 mb-4" role="group">
+                <button id="toutCocherNotifications" class="btn btn-success btn-sm" type="button">
+                  <i class="fa fa-check-circle fa-fw"></i>Tout cocher
+                </button>
+                <button id="toutDecocherNotifications" class="btn btn-warning btn-sm" type="button">
+                  <i class="fa fa-times-circle fa-fw"></i>Tout décocher
+                </button>
+              </div>
+
+              <h5 class="text-primary">
+                <b>Types de notification</b>
+              </h5>
+
+              <ul>
+                {% for notification in notifications %}
+                  <li class="list-style-none">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" class="" name="notifications[]" value="{{ notification.id }}" {% if role.canSeeNotification(notification.code) %}checked{% endif %}>
+                        {{ notification.libelle }}
+                      </label>
+                    </div>
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+
+          <div class="text-center mt-4">
             <button type="submit" class="btn btn-primary">
               <i class="fa fa-save fa-fw"></i>Enregistrer
             </button>
@@ -102,6 +149,22 @@
   </style>
 
   <script>
+    $("#toutCocherModules").click(function(){
+      $( "input[name='modules[]']").prop('checked', true);
+      $( "input[name='fonctions[]']").prop('checked', true);
+    });
 
+    $("#toutDecocherModules").click(function(){
+      $( "input[name='modules[]']").prop('checked', false);
+      $( "input[name='fonctions[]']").prop('checked', false);
+    });
+
+    $("#toutCocherNotifications").click(function(){
+      $( "input[name='notifications[]']").prop('checked', true);
+    });
+
+    $("#toutDecocherNotifications").click(function(){
+      $( "input[name='notifications[]']").prop('checked', false);
+    });
   </script>
 {% endblock %}
