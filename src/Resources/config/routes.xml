@@ -19,4 +19,7 @@
     <route id="core_application_role_remove" path="/role/{id}/remove" controller="imanaging_core_application.role_controller:removeRoleAction">
     </route>
 
+    <route id="core_application_role_edit" path="/role/{id}/edit" controller="imanaging_core_application.role_controller:editRoleAction">
+    </route>
+
 </routes>

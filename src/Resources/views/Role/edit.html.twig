@@ -1,0 +1,42 @@
+{% extends basePath %}
+
+{% block body %}
+  <div class="container container-90 mt-4 mb-4">
+    <h2 class="text-center">Edition d'un rôle - {{ role.libelle }}</h2>
+
+    <div class="card mt-2">
+      <div class="card-body">
+        <h5 class="display-5">Modules / Fonctions</h5>
+
+        {% if fonctions_without_module|length > 0 %}
+          <ul class="ul-no-indent">
+            <li class="list-style-none">
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" checked disabled>
+                  <b>Fonctions globales</b>
+                </label>
+              </div>
+            </li>
+            <ul>
+              {% for fonction in fonctions_without_module %}
+                <li class="list-style-none">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="fonctions[]" value="{{ fonction.id }}" {% if role.canDo(fonction.code) %}checked{% endif %}>
+                      <i class="text-info">{{ fonction.libelle }} (<i>fonction</i>)</i>
+                    </label>
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+          </ul>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+  </script>
+{% endblock %}

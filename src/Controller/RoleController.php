@@ -6,6 +6,7 @@ namespace Imanaging\CoreApplicationBundle\Controller;
 use Exception;
 use Imanaging\CoreApplicationBundle\CoreApplication;
 use Imanaging\ZeusUserBundle\Interfaces\RoleInterface;
+use Imanaging\ZeusUserBundle\Interfaces\ModuleInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -80,6 +81,30 @@ class RoleController extends AbstractController
       $this->addFlash('error', 'Seuls les rôles locaux sont supprimables');
     }
 
+    return $this->redirectToRoute('core_application_role');
+  }
+
+  public function editRoleAction($id)
+  {
+    if ($id >= 1000){
+      $role = $this->em->getRepository(RoleInterface::class)->find($id);
+      if ($role instanceof RoleInterface){
+
+        $modules = $this->em->getRepository(ModuleInterface::class)->findAll();
+        $notifications = $this->em->getRepository(NotificationInterface::classe)->findAll();
+        $fonctionsWithoutModule = $this->em->getRepository(FonctionInterface::class)->findBy(['module' => null]);
+
+        return $this->render("@ImanagingCoreApplication/Role/edit.html.twig", [
+          'role' => $role,
+          'modules' => $modules,
+          'notifications' => $notifications,
+          'fonctions_without_module' => $fonctionsWithoutModule,
+          'basePath' => 'base.html.twig'
+        ]);
+      }
+    } else {
+      $this->addFlash('error', 'Seuls les rôles locaux sont éditables');
+    }
     return $this->redirectToRoute('core_application_role');
   }
 }
