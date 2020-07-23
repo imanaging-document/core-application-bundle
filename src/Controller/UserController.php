@@ -39,10 +39,9 @@ class UserController extends AbstractController
   {
     $res = $this->coreApplication->synchroniserUsers();
     if ($res['success']){
-      $this->addFlash('success', 'Les utilisateurs ont bien été synchronisés.');
+      return new JsonResponse();
     } else {
-      $this->addFlash('error', $res['error_message']);
+      return new JsonResponse(['error_message' => $res['error_message']], 500);
     }
-    return $this->redirectToRoute('core_application_user');
   }
 }

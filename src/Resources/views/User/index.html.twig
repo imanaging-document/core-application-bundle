@@ -5,7 +5,10 @@
     <h2 class="text-center">Liste des utilisateurs</h2>
 
     <div class="text-right">
-      <a href="{{ path('core_application_user_synchroniser') }}" class="btn btn-primary">Synchroniser les utilisateurs</a>
+      <button id="btn-synchroniser-users" class="btn btn-primary">Synchroniser les utilisateurs</button>
+    </div>
+
+    <div id="resultat-synchro">
     </div>
 
     <div class="card mt-2">
@@ -74,5 +77,19 @@
     $(document).ready(function () {
       $("#table-utilisateurs").dataTable({})
     })
+
+    $("#btn-synchroniser-users").click(function(){
+      $.ajax({
+        url: "{{ path('core_application_user_synchroniser') }}",
+        type: 'GET',
+        success: function(){
+          $("#resultat-synchro").html('<h4 class="text-success">Les utilisateurs ont été synchronisés avec succès</h4>');
+          toastr.success('Les utilisateurs ont été synchronisés avec succès');
+        },
+        error: function(data){
+          $("#resultat-synchro").html('<h4 class="danger">Une erreur est survenue lors de la synchronisation des utilisateurs</h4>');
+        }
+      });
+    });
   </script>
 {% endblock %}
