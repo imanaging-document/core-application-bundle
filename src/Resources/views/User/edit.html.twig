@@ -6,10 +6,25 @@
 
     <div class="card mt-2">
       <div class="card-body">
-        <form action="{{ path('core_application_user_save') }}" method="post">
+        <form action="{{ path('core_application_user_save', {id: user.id}) }}" method="post">
+          <div class="form-group">
+            <label for="nom">Nom</label>
+            <input type="text" class="form-control" id="nom" name="nom" value="{{ user.nom }}">
+          </div>
+
+          <div class="form-group">
+            <label for="prenom">Prénom</label>
+            <input type="text" class="form-control" id="prenom" name="prenom" value="{{ user.prenom }}">
+          </div>
+
+          <div class="form-group">
+            <label for="mail">Mail</label>
+            <input type="text" class="form-control" id="mail" name="mail" value="{{ user.mail }}">
+          </div>
+
           <div class="form-group">
             <label for="role">Rôle</label>
-            <select name="role" id="role">
+            <select name="role" id="role" class="form-control">
               {% for role in roles %}
                 <option value="{{ role.id }}" {% if role == user.role %}selected{% endif %}>
                   {{ role.libelle }}

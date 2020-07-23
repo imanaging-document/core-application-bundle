@@ -5,6 +5,7 @@ namespace Imanaging\CoreApplicationBundle\Controller;
 
 use Imanaging\CoreApplicationBundle\CoreApplication;
 use Imanaging\ZeusUserBundle\Interfaces\UserInterface;
+use Imanaging\ZeusUserBundle\Interfaces\RoleInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -57,6 +58,9 @@ class UserController extends AbstractController
     if ($user instanceof UserInterface) {
       $role = $this->em->getRepository(RoleInterface::class)->find($params['role']);
       if ($role instanceof RoleInterface){
+        $user->setNom($params['nom']);
+        $user->setPrenom($params['prenom']);
+        $user->setMail($params['mail']);
         $user->setRole($role);
         $this->em->persist($user);
         $this->em->flush();
