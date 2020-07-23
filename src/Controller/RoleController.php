@@ -39,9 +39,21 @@ class RoleController extends AbstractController
   {
     $params = $request->request->all();
 
+    $roles = $this->em->getRepository(RoleInterface::class)->findAll();
+    $maxRoleLocalId = 999;
+    foreach ($roles as $role){
+      if ($role instanceof RoleInterface){
+        if ($role->getId() > $maxRoleLocalId){
+          $maxRoleLocalId = $role->getId();
+        }
+      }
+    }
+    $maxRoleLocalId += 1;
+
     $className = $this->em->getRepository(RoleInterface::class)->getClassName();
     $role = new $className();
     if ($role instanceof RoleInterface){
+      $role->setId($maxRoleLocalId);
       $role->setLibelle($params['libelle']);
       $this->em->persist($role);
       $this->em->flush();
