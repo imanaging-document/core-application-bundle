@@ -9,6 +9,7 @@
             <argument type="service" id="doctrine.orm.default_entity_manager" />
             <argument type="service" id="imanaging_api_communication.api_core_communication" />
             <argument type="service" id="session" />
+            <argument />
         </service>
 
         <service id="imanaging_core_application.core_declaration_command" class="Imanaging\CoreApplicationBundle\Command\DeclarationCoreCommand">

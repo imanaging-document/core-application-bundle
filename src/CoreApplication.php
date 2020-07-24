@@ -14,17 +14,24 @@ class CoreApplication
   private $em;
   private $apiCoreCommunication;
   private $session;
+  private $basePath;
 
   /**
    * @param EntityManagerInterface $em
    * @param ApiCoreCommunication $apiCoreCommunication
    * @param SessionInterface $session
    */
-  public function __construct(EntityManagerInterface $em, ApiCoreCommunication $apiCoreCommunication, SessionInterface $session)
+  public function __construct(EntityManagerInterface $em, ApiCoreCommunication $apiCoreCommunication, SessionInterface $session, $basePath)
   {
     $this->em = $em;
     $this->apiCoreCommunication = $apiCoreCommunication;
     $this->session = $session;
+    $this->basePath = $basePath;
+  }
+
+  public function getBasePath()
+  {
+    return $this->basePath;
   }
 
   public function declaration()
@@ -90,7 +97,7 @@ class CoreApplication
 
             }
           }
-          
+
           // Mise à jour du role
           $role = $this->em->getRepository(RoleInterface::class)->find($utilisateur->role_id);
           $utilisateurLocalCore->setRole($role);

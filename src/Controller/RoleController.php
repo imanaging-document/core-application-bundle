@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Imanaging\CoreApplicationBundle\Controller;
 
 use Exception;
@@ -35,7 +34,7 @@ class RoleController extends AbstractController
     $params = $request->request->all();
     return $this->render("@ImanagingCoreApplication/Role/index.html.twig", [
       'roles' => $this->em->getRepository(RoleInterface::class)->findAll(),
-      'basePath' => 'base.html.twig'
+      'basePath' => $this->coreApplication->getBasePath()
     ]);
   }
 
@@ -101,7 +100,7 @@ class RoleController extends AbstractController
           'modules' => $modules,
           'notifications' => $notifications,
           'fonctions_without_module' => $fonctionsWithoutModule,
-          'basePath' => 'base.html.twig'
+          'basePath' => $this->coreApplication->getBasePath()
         ]);
       }
     } else {

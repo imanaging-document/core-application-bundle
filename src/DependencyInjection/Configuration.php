@@ -3,7 +3,6 @@
 
 namespace Imanaging\CoreApplicationBundle\DependencyInjection;
 
-
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
@@ -15,7 +14,7 @@ class Configuration implements ConfigurationInterface
     $rootNode = $treeBuilder->getRootNode();
     $rootNode
       ->children()
-        ->booleanNode('bar')->defaultTrue()->info('Test parameter')->end()
+      ->variableNode('base_path')->defaultValue('base.html.twig')->info('En général base.html.twig')->end()
       ->end()
     ;
 

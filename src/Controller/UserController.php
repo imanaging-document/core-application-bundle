@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Imanaging\CoreApplicationBundle\Controller;
 
 use Imanaging\CoreApplicationBundle\CoreApplication;
@@ -31,7 +30,7 @@ class UserController extends AbstractController
   {
     return $this->render("@ImanagingCoreApplication/User/index.html.twig", [
       'utilisateurs' => $this->em->getRepository(UserInterface::class)->findAll(),
-      'basePath' => 'base.html.twig'
+      'basePath' => $this->coreApplication->getBasePath()
     ]);
   }
 
@@ -42,7 +41,7 @@ class UserController extends AbstractController
       return $this->render("@ImanagingCoreApplication/User/edit.html.twig", [
         'user' => $user,
         'roles' => $this->em->getRepository(RoleInterface::class)->findAll(),
-        'basePath' => 'base.html.twig'
+        'basePath' => $this->coreApplication->getBasePath()
       ]);
     } else {
       $this->addFlash('Error', 'Utilisateur introuvable : '.$id);

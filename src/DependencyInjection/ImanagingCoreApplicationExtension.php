@@ -23,6 +23,8 @@ class ImanagingCoreApplicationExtension extends Extension
     $config = $this->processConfiguration($configuration, $configs);
 
     $definition = $container->getDefinition('imanaging_core_application.core_application');
+    $definition->setArgument(3, $config['base_path']);
+
   }
 
   public function getAlias()
