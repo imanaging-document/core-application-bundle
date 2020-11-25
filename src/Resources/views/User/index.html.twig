@@ -26,45 +26,41 @@
               <th>Utilisateur Zeus</th>
               <th>Utilisateur Core</th>
               <th>Actif</th>
-              <th>Action</th>
             </tr>
             </thead>
             <tbody>
             {% for utilisateur in utilisateurs %}
-              <tr data-utilisateur-id="{{ utilisateur.id }}">
-                <td>{{ utilisateur.nom }}</td>
-                <td>{{ utilisateur.prenom }}</td>
-                <td>{{ utilisateur.login }}</td>
-                <td>{{ utilisateur.username }}</td>
-                <td>{{ utilisateur.mail }}</td>
-                <td>{% if utilisateur.role != null %} {{ utilisateur.role.libelle }} {% endif %}</td>
-                <td>
-                  {% if utilisateur.utilisateurZeus %}
-                    <span class="text-success">&check;</span>
-                  {% else %}
-                    <span class="text-danger">&times;</span>
-                  {% endif %}
-                </td>
-                <td>
-                  {% if utilisateur.utilisateurCore %}
-                    <span class="text-success">&check;</span>
-                  {% else %}
-                    <span class="text-danger">&times;</span>
-                  {% endif %}
-                </td>
-                <td>
-                  {% if utilisateur.actif %}
-                    <span class="text-success">&check;</span>
-                  {% else %}
-                    <span class="text-danger">&times;</span>
-                  {% endif %}
-                </td>
-                <td>
-                  {% if not utilisateur.utilisateurZeus %}
-                    <a href="{{ path('core_application_user_edit', {id: utilisateur.id}) }}" class="btn btn-primary"><i class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
-                  {% endif %}
-                </td>
-              </tr>
+              {% if app.user.role.zeusOnly or not utilisateur.utilisateurZeus %}
+                <tr data-utilisateur-id="{{ utilisateur.id }}">
+                  <td>{{ utilisateur.nom }}</td>
+                  <td>{{ utilisateur.prenom }}</td>
+                  <td>{{ utilisateur.login }}</td>
+                  <td>{{ utilisateur.username }}</td>
+                  <td>{{ utilisateur.mail }}</td>
+                  <td>{% if utilisateur.role != null %} {{ utilisateur.role.libelle }} {% endif %}</td>
+                  <td>
+                    {% if utilisateur.utilisateurZeus %}
+                      <span class="text-success"><i class="fa fa-check-circle"></i></span>
+                    {% else %}
+                      <span class="text-danger"><i class="fa fa-times-circle"></i></span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if utilisateur.utilisateurCore %}
+                      <span class="text-success"><i class="fa fa-check-circle"></i></span>
+                    {% else %}
+                      <span class="text-danger"><i class="fa fa-times-circle"></i></span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if utilisateur.actif %}
+                      <span class="text-success"><i class="fa fa-check-circle"></i></span>
+                    {% else %}
+                      <span class="text-danger"><i class="fa fa-times-circle"></i></span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endif %}
             {% endfor %}
             </tbody>
           </table>

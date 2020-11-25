@@ -24,6 +24,9 @@ class ImanagingCoreApplicationExtension extends Extension
 
     $definition = $container->getDefinition('imanaging_core_application.core_application');
     $definition->setArgument(3, $config['base_path']);
+    $definition->setArgument(4, $config['url_logout']);
+    $definition->setArgument(5, $config['url_profile']);
+    $definition->setArgument(6, $config['url_homepage']);
 
   }
 

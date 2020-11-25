@@ -8,6 +8,24 @@
 
     <div class="card mt-2">
       <div class="card-body">
+        <form action="{{ path('core_application_role_save_libelle', {id: role.id}) }}" method="post">
+          <div class="form-group">
+            <label for="libelle">Nom du rôle</label>
+            <input type="text" class="form-control" id="libelle" name="libelle" value="{{ role.libelle }}">
+          </div>
+
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="par-defaut" name="par-defaut" {% if role.parDefaut %}checked{% endif %}>
+            <label class="form-check-label" for="par-defaut">Définir ce rôle par défaut aux nouveaux utilisateurs</label>
+          </div>
+
+          <div class="text-center">
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+          </div>
+        </form>
+
+        <hr>
+
         <form action="{{ path('core_application_role_save', {id: role.id}) }}" method="post">
           <div class="row">
             <div class="col">
@@ -29,14 +47,16 @@
                 </h5>
                 <ul>
                   {% for fonction in fonctions_without_module %}
-                    <li class="list-style-none">
-                      <div class="checkbox">
-                        <label>
-                          <input type="checkbox" name="fonctions[]" value="{{ fonction.id }}" {% if role.canDo(fonction.code) %}checked{% endif %}>
-                          <i class="text-info">{{ fonction.libelle }} (<i>fonction</i>)</i>
-                        </label>
-                      </div>
-                    </li>
+                    {% if not fonction.zeusOnly %}
+                      <li class="list-style-none">
+                        <div class="checkbox">
+                          <label>
+                            <input type="checkbox" name="fonctions[]" value="{{ fonction.id }}" {% if role.canDo(fonction.code) %}checked{% endif %}>
+                            <i class="text-info">{{ fonction.libelle }} (<i>fonction</i>)</i>
+                          </label>
+                        </div>
+                      </li>
+                    {% endif %}
                   {% endfor %}
                 </ul>
               {% endif %}
@@ -45,23 +65,34 @@
                 <b>Modules & sous-modules</b>
               </h5>
               {% for module in modules %}
-                {% if module.parent is null %}
-                  <ul class="ul-no-indent">
-                    <li class="list-style-none">
-                      <div class="checkbox">
-                        <label>
-                          <input type="checkbox" class="cbx-module" name="modules[]" value="{{ module.id }}" {% if role.canAccess(module.id) %}checked{% endif %}>
-                          <b>{{ module.libelle }}</b>
-                        </label>
-                      </div>
-                    </li>
+                {% if not module.zeusOnly %}
+                  {% if module.parent is null %}
+                    <ul class="ul-no-indent">
+                      <li class="list-style-none">
+                        <div class="checkbox">
+                          <label>
+                            <input type="checkbox" class="cbx-module" name="modules[]" value="{{ module.id }}" {% if role.canAccess(module.id) %}checked{% endif %}>
+                            <b>{{ module.libelle }}</b> {% if module.typeApplication != 'module' %} <i>(Redirection SSO vers une autre application)</i> {% endif %}
+                          </label>
 
-                    {% if module.enfants is not empty %}
-                      {% for sousModule in module.enfants %}
-                        {{ _self.showSousModules(sousModule, role) }}
-                      {% endfor %}
-                    {% endif %}
-                  </ul>
+                          {% if role.canAccess(module.id) %}
+                            <small>Traduction : <b class="text-primary">{{ role.getLibelleForModule(module.id) }}</b> (n°{{ role.getOrdreForModule(module.id) }})</small>
+                          {% endif %}
+                          <i class="fa fa-pencil-square-o fa-fw text-primary edit-role-module"
+                             data-role-id="{{ role.id }}" data-module-id="{{ module.id }}" style="cursor: pointer;"></i>
+                        </div>
+
+                      </li>
+
+                      {% if module.enfants is not empty %}
+                        {% for sousModule in module.enfants %}
+                          {% if not sousModule.zeusOnly %}
+                            {{ _self.showSousModules(sousModule, role) }}
+                          {% endif %}
+                        {% endfor %}
+                      {% endif %}
+                    </ul>
+                  {% endif %}
                 {% endif %}
               {% endfor %}
             </div>
@@ -84,14 +115,16 @@
 
               <ul>
                 {% for notification in notifications %}
-                  <li class="list-style-none">
-                    <div class="checkbox">
-                      <label>
-                        <input type="checkbox" class="" name="notifications[]" value="{{ notification.id }}" {% if role.canSeeNotification(notification.code) %}checked{% endif %}>
-                        {{ notification.libelle }}
-                      </label>
-                    </div>
-                  </li>
+                  {% if not notification.zeusOnly %}
+                    <li class="list-style-none">
+                      <div class="checkbox">
+                        <label>
+                          <input type="checkbox" class="" name="notifications[]" value="{{ notification.id }}" {% if role.canSeeNotification(notification.code) %}checked{% endif %}>
+                          {{ notification.libelle }}
+                        </label>
+                      </div>
+                    </li>
+                  {% endif %}
                 {% endfor %}
               </ul>
             </div>
@@ -120,27 +153,32 @@
 
       {% if module.fonctions|length > 0 %}
         {% for fonction in module.fonctions %}
-          <ul>
-            <li class="list-style-none">
-              <div class="checkbox">
-                <label>
-                  <input type="checkbox" name="fonctions[]" value="{{ fonction.id }}" {% if role.canDo(fonction.code) %}checked{% endif %}>
-                  <i class="text-info">{{ fonction.libelle }} (<i>fonction</i>)</i>
-                </label>
-              </div>
-            </li>
-          </ul>
+          {% if not fonction.zeusOnly %}
+            <ul>
+              <li class="list-style-none">
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" name="fonctions[]" value="{{ fonction.id }}" {% if role.canDo(fonction.code) %}checked{% endif %}>
+                    <i class="text-info">{{ fonction.libelle }} (<i>fonction</i>)</i>
+                  </label>
+                </div>
+              </li>
+            </ul>
+          {% endif %}
         {% endfor %}
       {% endif %}
 
-
       {% if module.enfants is not empty %}
         {% for sousModule in module.enfants %}
-          {{ _self.showSousModules(sousModule, role) }}
+          {% if not sousModule.zeusOnly %}
+            {{ _self.showSousModules(sousModule, role) }}
+          {% endif %}
         {% endfor %}
       {% endif %}
     </ul>
   {% endmacro %}
+
+  <div id="divModalEditRoleModule"></div>
 
   <style>
     .list-style-none{
@@ -149,6 +187,25 @@
   </style>
 
   <script>
+    $(".edit-role-module").click(function(){
+      let roleId = $(this).data('role-id');
+      let moduleId = $(this).data('module-id');
+
+      let data = {role_id: roleId, module_id: moduleId};
+      $.ajax({
+        url: "{{ path('core_application_role_edit_role_module') }}",
+        type: 'POST',
+        data: data,
+        success: function(data){
+          $("#divModalEditRoleModule").html(data);
+          $("#modalEditRoleModule").modal();
+        },
+        error: function(){
+          alert('Une erreur est survenue. Veuillez réessayer plus tard.');
+        }
+      });
+    });
+
     $("#toutCocherModules").click(function(){
       $( "input[name='modules[]']").prop('checked', true);
       $( "input[name='fonctions[]']").prop('checked', true);

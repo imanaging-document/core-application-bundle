@@ -3,6 +3,7 @@
 namespace Imanaging\CoreApplicationBundle\Controller;
 
 use Imanaging\CoreApplicationBundle\CoreApplication;
+use Imanaging\ZeusUserBundle\Controller\ImanagingController;
 use Imanaging\ZeusUserBundle\Interfaces\UserInterface;
 use Imanaging\ZeusUserBundle\Interfaces\RoleInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -10,7 +11,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
-class UserController extends AbstractController
+class UserController extends ImanagingController
 {
   private $em;
   private $coreApplication;
@@ -28,52 +29,22 @@ class UserController extends AbstractController
 
   public function indexAction()
   {
+    if (!$this->userCanAccess($this->getUser(), ['core_application_user'])){
+      return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
+    }
+    
     return $this->render("@ImanagingCoreApplication/User/index.html.twig", [
       'utilisateurs' => $this->em->getRepository(UserInterface::class)->findAll(),
       'basePath' => $this->coreApplication->getBasePath()
     ]);
   }
 
-  public function editAction($id)
-  {
-    $user = $this->em->getRepository(UserInterface::class)->find($id);
-    if ($user instanceof UserInterface){
-      return $this->render("@ImanagingCoreApplication/User/edit.html.twig", [
-        'user' => $user,
-        'roles' => $this->em->getRepository(RoleInterface::class)->findAll(),
-        'basePath' => $this->coreApplication->getBasePath()
-      ]);
-    } else {
-      $this->addFlash('Error', 'Utilisateur introuvable : '.$id);
-      return $this->redirectToRoute('core_application_user');
-    }
-  }
-
-  public function saveAction($id, Request $request)
-  {
-    $params = $request->request->all();
-
-    $user = $this->em->getRepository(UserInterface::class)->find($id);
-    if ($user instanceof UserInterface) {
-      $role = $this->em->getRepository(RoleInterface::class)->find($params['role']);
-      if ($role instanceof RoleInterface){
-        $user->setNom($params['nom']);
-        $user->setPrenom($params['prenom']);
-        $user->setMail($params['mail']);
-        $user->setRole($role);
-        $this->em->persist($user);
-        $this->em->flush();
-      } else {
-        $this->addFlash('Error', 'Rôle introuvable : '.$params['role']);
-      }
-    } else {
-      $this->addFlash('Error', 'Utilisateur introuvable : '.$id);
-    }
-    return $this->redirectToRoute('core_application_user');
-  }
-
   public function synchroniserAction()
   {
+    if (!$this->userCanAccess($this->getUser(), ['core_application_user'])){
+      return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
+    }
+
     $res = $this->coreApplication->synchroniserUsers();
     if ($res['success']){
       return new JsonResponse();

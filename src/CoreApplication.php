@@ -6,7 +6,9 @@ use App\Entity\User;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Imanaging\ApiCommunicationBundle\ApiCoreCommunication;
+use Imanaging\ZeusUserBundle\Interfaces\ModuleInterface;
 use Imanaging\ZeusUserBundle\Interfaces\RoleInterface;
+use Imanaging\ZeusUserBundle\Interfaces\RoleModuleInterface;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 class CoreApplication
@@ -15,18 +17,25 @@ class CoreApplication
   private $apiCoreCommunication;
   private $session;
   private $basePath;
+  private $urlLogout;
+  private $urlProfile;
+  private $urlHomepage;
 
   /**
    * @param EntityManagerInterface $em
    * @param ApiCoreCommunication $apiCoreCommunication
    * @param SessionInterface $session
    */
-  public function __construct(EntityManagerInterface $em, ApiCoreCommunication $apiCoreCommunication, SessionInterface $session, $basePath)
+  public function __construct(EntityManagerInterface $em, ApiCoreCommunication $apiCoreCommunication, SessionInterface $session,
+                              $basePath, $urlLogout, $urlProfile, $urlHomepage)
   {
     $this->em = $em;
     $this->apiCoreCommunication = $apiCoreCommunication;
     $this->session = $session;
     $this->basePath = $basePath;
+    $this->urlLogout = $urlLogout;
+    $this->urlProfile = $urlProfile;
+    $this->urlHomepage = $urlHomepage;
   }
 
   public function getBasePath()
@@ -156,6 +165,113 @@ class CoreApplication
     }
 
     return $applications;
+  }
+
+  public function getApplicationInformation($moduleId){
+    $module = $this->em->getRepository(ModuleInterface::class)->find($moduleId);
+    if ($module instanceof ModuleInterface){
+      $tokenAndDate = $this->getCoreTokenAndDate();
+      $tokenCoreHashed = $tokenAndDate['token'];
+      $tokenCoreDate = $tokenAndDate['date'];
+
+      switch ($module->getTypeApplication()){
+        case 'dossier_locataire':
+          $url = '/application?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&type_application=dossier-locataire';
+          $response = $this->apiCoreCommunication->sendGetRequest($url);
+          if ($response->getHttpCode() == 200) {
+            return json_decode($response->getData(), true);
+          }
+          break;
+        case 'portail_extranet':
+          $url = '/application?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&type_application=portail-extranet';
+          $response = $this->apiCoreCommunication->sendGetRequest($url);
+          if ($response->getHttpCode() == 200) {
+            return json_decode($response->getData(), true);
+          }
+          break;
+        default:
+          return [
+            'success' => 'false',
+            'error_message' => 'type d\'application non géré par les modules'
+          ];
+      }
+    }
+    return [
+      'success' => 'false',
+      'error_message' => 'Une erreur est survenue'
+    ];
+  }
+
+  /**
+   * @param User $user
+   * @param bool $isDroite
+   * @return array|mixed|null
+   */
+  public function getTopLevelModules(User $user, bool $isDroite)
+  {
+    $key = 'menu_'.($isDroite ? 1: 0);
+    $topLevelModules = $this->session->get($key);
+    if (!is_null($topLevelModules)) {
+      return json_decode($topLevelModules);
+    }
+
+    $modules = $this->em->getRepository(ModuleInterface::class)->findBy(['parent' => null, 'droite' => $isDroite]);
+    $role = $user->getRole();
+    $topLevelModules = [];
+    foreach ($modules as $module) {
+      if ($module instanceof ModuleInterface) {
+        $roleModule = $role->getRoleModule($module);
+        if ($roleModule instanceof RoleModuleInterface){
+          $topLevelModules[] = [
+            'id' => $module->getId(),
+            'libelle' => $roleModule->getLibelle(),
+            'type' => $module->getTypeApplication(),
+            'data_application' => json_decode($module->getDataApplication()),
+            'route' => $module->getRoute(),
+            'children' => $this->getChildren($module, $role)
+          ];
+        }
+      }
+    }
+    $this->session->get($key, json_encode($topLevelModules));
+    return $topLevelModules;
+  }
+
+  /**
+   * @param ModuleInterface $module
+   * @param RoleInterface $role
+   * @return array
+   */
+  private function getChildren(ModuleInterface $module, RoleInterface $role)
+  {
+    $children = [];
+    foreach ($module->getEnfants() as $enfant) {
+      if ($enfant instanceof ModuleInterface){
+        if ($role->hasModule($enfant)) {
+          $children[] = [
+            'id' => $enfant->getId(),
+            'libelle' => $enfant->getLibelle(),
+            'type' => $module->getTypeApplication(),
+            'data_application' => json_decode($module->getDataApplication()),
+            'route' => $enfant->getRoute(),
+            'children' => $this->getChildren($enfant, $role)
+          ];
+        }
+      }
+    }
+    return $children;
+  }
+
+  public function getUrlLogout(){
+    return $this->urlLogout;
+  }
+
+  public function getUrlProfile(){
+    return $this->urlProfile;
+  }
+
+  public function getUrlHomepage(){
+    return $this->urlHomepage;
   }
 
   public function canLog(User $user, $password)

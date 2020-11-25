@@ -11,38 +11,56 @@
           <tr>
             <th>#</th>
             <th>Nom</th>
-            <th>Type de rôle</th>
+            {% if app.user.role.zeusOnly %}
+              <th>Code</th>
+              <th>Type de rôle</th>
+            {% endif %}
+            <th>Rôle par défaut</th>
             <th><i class="fa fa-pencil"></i></th>
-            <th><i class="fa fa-times"></i></th>
+            <th><i class="fa fa-trash-o"></i></th>
           </tr>
           </thead>
           <tbody>
           {% for role in roles %}
-            <tr>
-              <td>{{ role.id }}</td>
-              <td>{{ role.libelle }}</td>
-              <td>
-                {% if role.id >= 1000 %}
-                  <b>Local</b>
+            {% if app.user.role.zeusOnly or not role.zeusOnly %}
+              <tr>
+                <td>{{ role.id }}</td>
+                <td>{{ role.libelle }}</td>
+                {% if app.user.role.zeusOnly %}
+                  <td>{{ role.code }}</td>
+                  <td>
+                    {% if role.zeusOnly %}
+                      <b><i class="fa fa-bolt fa-fw text-warning"></i>Rôle zeus</b>
+                    {% else %}
+                      <b>Rôle non zeus</b>
+                    {% endif %}
+                  </td>
+                {% endif %}
+                <td>
+                  {% if role.parDefaut %}
+                    <i class="fa fa-check fa-fw text-success"></i>Oui
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                {% if not role.zeusOnly %}
+                  <td>
+                    <a href="{{ path('core_application_role_edit', {id: role.id}) }}">
+                        <i class="fa fa-pencil text-primary"></i>
+                      </a>
+                    </td>
+                  <td>
+                    <a href="{{ path('core_application_role_remove', {id: role.id}) }}">
+                      <i class="fa fa-trash-o text-danger"></i>
+                    </a>
+                  </td>
                 {% else %}
-                  <b>Dashboard</b>
+                  <td></td>
+                  <td></td>
                 {% endif %}
-              </td>
-              <td>
-                {% if role.id >= 1000 %}
-                  <a href="{{ path('core_application_role_edit', {id: role.id}) }}" class="btn btn-primary">
-                    <i class="fa fa-pencil-square-o fa-fw"></i>Modifier ce rôle
-                  </a>
-                {% endif %}
-              </td>
-              <td>
-                {% if role.id >= 1000 %}
-                  <a href="{{ path('core_application_role_remove', {id: role.id}) }}" class="btn btn-danger">
-                    <i class="fa fa-times fa-fw"></i>Supprimer
-                  </a>
-                {% endif %}
-              </td>
-            </tr>
+
+              </tr>
+            {% endif %}
           {% endfor %}
           </tbody>
         </table>
@@ -56,6 +74,11 @@
           <div class="form-group">
             <label for="libelle">Nom du rôle</label>
             <input type="text" class="form-control" name="libelle" id="libelle">
+          </div>
+
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="par-defaut" name="par-defaut">
+            <label class="form-check-label" for="par-defaut">Définir ce rôle par défaut aux nouveaux utilisateurs</label>
           </div>
 
           <div class="text-center">

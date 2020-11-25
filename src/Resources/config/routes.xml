@@ -7,12 +7,6 @@
     <route id="core_application_user" path="/user" controller="imanaging_core_application.user_controller:indexAction">
     </route>
 
-    <route id="core_application_user_edit" path="/user/{id}/edit" controller="imanaging_core_application.user_controller:editAction">
-    </route>
-
-    <route id="core_application_user_save" path="/user/{id}/save" controller="imanaging_core_application.user_controller:saveAction">
-    </route>
-
     <route id="core_application_user_synchroniser" path="/user/synchroniser" controller="imanaging_core_application.user_controller:synchroniserAction">
     </route>
 
@@ -29,5 +23,14 @@
     </route>
 
     <route id="core_application_role_save" path="/role/{id}/save" controller="imanaging_core_application.role_controller:saveRoleAction">
+    </route>
+
+    <route id="core_application_role_save_libelle" path="/role/{id}/save-libelle" controller="imanaging_core_application.role_controller:saveLibelleRoleAction">
+    </route>
+
+    <route id="core_application_role_edit_role_module" path="/role-module/edit" controller="imanaging_core_application.role_controller:editRoleModuleAction">
+    </route>
+
+    <route id="core_application_role_save_role_module" path="/role-module/{id}/save" controller="imanaging_core_application.role_controller:saveRoleModuleAction">
     </route>
 </routes>

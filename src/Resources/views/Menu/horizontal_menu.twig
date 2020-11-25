@@ -1,0 +1,116 @@
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  {% if isRouteExiste(getUrlHomepage()) %}
+    <a class="navbar-brand" href="{{ path(getUrlHomepage()) }}">{{ client }}</a>
+  {% else %}
+    {{ client }}
+  {% endif %}
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      {% set modules = getTopLevelModules(app.user, false) %}
+      
+      {% for module in modules %}
+        {% if module.type == 'module' %}
+          <li class="nav-item active {% if module.children|length > 0 %}dropdown{% endif %}">
+            <a href="{{ path(module.route) }}" class="nav-link">
+              {{ module.libelle }}
+            </a>
+            {% if module.children|length > 0 %}
+              <div class="dropdown-menu">
+                {% for sousModule in module.children %}
+                  {% if sousModule.route == '' or isRouteExiste(sousModule.route) %}
+                    <a {% if sousModule.children|length > 0 %}href="#" class="dropdown-item dropdown-toggle"{% else %} href="{% if sousModule.route != "" %}{{ path(sousModule.route) }}{% else %}#{% endif %}" class="dropdown-item"{% endif %}>
+                      {{ sousModule.libelle }}
+                    </a>
+                    {% include '@ImanagingCoreApplication/Menu/recursive_dropdown.twig' %}
+                  {% endif %}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </li>
+        {% elseif module.type in ['dossier_locataire', 'portail_extranet'] %}
+            {% set dataApplication = getApplicationInformation(module.id) %}
+            {% if dataApplication.urlSso is defined %}
+              <li class="nav-item active">
+                <div data-sso-method="{{dataApplication.urlSso}}" class="nav-link changeApplication" style="cursor:pointer;">
+                  {{ module.libelle }}
+                </div>
+              </li>
+            {% endif %}
+        {% endif %}
+      {% endfor %}
+    </ul>
+  
+    <ul class="navbar-nav">
+      {% set modules = getTopLevelModules(app.user, true) %}
+      {% for module in modules %}
+        {% if module.type == 'module' %}
+          <li class="nav-item active {% if module.children|length > 0 %}dropdown{% endif %}">
+            <a {% if module.children|length > 0 %}href="#" class="nav-link main-menu-nav-link dropdown-toggle" data-toggle="dropdown" {% else %}
+              href="{% if module.route != "" %}{{ path(module.route) }}{% else %}#{% endif %}"{% endif %}>
+              {{ module.libelle }}
+            </a>
+            {% if module.children|length > 0 %}
+              <div class="dropdown-menu">
+                {% for sousModule in module.children %}
+                  {% if sousModule.route == '' or isRouteExiste(sousModule.route) %}
+                    <a {% if sousModule.children|length > 0 %}href="#" class="dropdown-item dropdown-toggle"{% else %} href="{% if sousModule.route != "" %}{{ path(sousModule.route) }}{% else %}#{% endif %}" class="dropdown-item"{% endif %}>
+                      {{ sousModule.libelle }}
+                    </a>
+                    {% include '@ImanagingCoreApplication/Menu/recursive_dropdown.twig' %}
+                  {% endif %}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </li>
+        {% elseif module.type in ['dossier_locataire', 'portail_extranet'] %}
+          {% set dataApplication = getApplicationInformation(module.id) %}
+          {% if dataApplication.urlSso is defined %}
+            <li class="nav-item active">
+              <div data-sso-method="{{dataApplication.urlSso}}" class="nav-link changeApplication" style="cursor:pointer;">
+                {{ module.libelle }}
+              </div>
+            </li>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+  
+      <ul class="navbar-nav">
+        <li class="nav-item dropdown active">
+          <a class="nav-link main-menu-nav-link  dropdown-toggle nav-link" href="#" role="button" data-toggle="dropdown">
+            {{ app.user.prenom }} {{ app.user.nom }} <b class="caret"></b>
+          </a>
+          <div class="dropdown-menu">
+            {% if getUrlProfile() != "" %}
+              <a class="dropdown-item" href="{{ path(getUrlProfile()) }}">Profil</a>
+              <div class="dropdown-divider"></div>
+            {% endif %}
+            {% if getUrlLogout() != "" %}
+              <a class="dropdown-item" href="{{ path(getUrlLogout()) }}">Déconnexion</a>
+            {% endif %}
+          </div>
+        </li>
+      </ul>
+    </ul>
+  </div>
+</nav>
+
+<script>
+  $('.changeApplication').click(function() {
+    var urlSso = $(this).data('sso-method');
+    $.ajax({
+      url: "{{ path('zeus_user_get_data_for_redirect') }}",
+      type: "GET",
+      success: function (data) {
+        window.location.replace(urlSso +"?login="+data.login+"&token="+data.token);
+      },
+      error: function (data) {
+        alert(data.responseJSON.error_message);
+      }
+    })
+  })
+</script>
