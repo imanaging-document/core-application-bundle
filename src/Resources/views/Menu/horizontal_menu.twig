@@ -16,7 +16,8 @@
       {% for module in modules %}
         {% if module.type == 'module' %}
           <li class="nav-item active {% if module.children|length > 0 %}dropdown{% endif %}">
-            <a href="{{ path(module.route) }}" class="nav-link">
+            <a {% if module.children|length > 0 %}href="#" class="nav-link main-menu-nav-link dropdown-toggle" data-toggle="dropdown" {% else %}
+              href="{% if module.route != "" %}{{ path(module.route) }}{% else %}#{% endif %}"{% endif %}>
               {{ module.libelle }}
             </a>
             {% if module.children|length > 0 %}
