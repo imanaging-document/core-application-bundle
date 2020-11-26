@@ -189,6 +189,14 @@ class CoreApplication
             return json_decode($response->getData(), true);
           }
           break;
+        case 'core':
+
+          $url = '/application?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&type_application=core';
+          $response = $this->apiCoreCommunication->sendGetRequest($url);
+          if ($response->getHttpCode() == 200) {
+            return json_decode($response->getData(), true);
+          }
+          break;
         default:
           return [
             'success' => 'false',
@@ -228,7 +236,8 @@ class CoreApplication
             'type' => $module->getTypeApplication(),
             'data_application' => json_decode($module->getDataApplication()),
             'route' => $module->getRoute(),
-            'children' => $this->getChildren($module, $role)
+            'children' => $this->getChildren($module, $role),
+            'redirection_route' => $module->getRedirectionRoute()
           ];
         }
       }

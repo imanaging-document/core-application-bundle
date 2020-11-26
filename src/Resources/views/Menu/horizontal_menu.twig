@@ -8,11 +8,11 @@
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
-  
+
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav mr-auto">
       {% set modules = getTopLevelModules(app.user, false) %}
-      
+
       {% for module in modules %}
         {% if module.type == 'module' %}
           <li class="nav-item active {% if module.children|length > 0 %}dropdown{% endif %}">
@@ -33,19 +33,20 @@
               </div>
             {% endif %}
           </li>
-        {% elseif module.type in ['dossier_locataire', 'portail_extranet'] %}
-            {% set dataApplication = getApplicationInformation(module.id) %}
-            {% if dataApplication.urlSso is defined %}
-              <li class="nav-item active">
-                <div data-sso-method="{{dataApplication.urlSso}}" class="nav-link changeApplication" style="cursor:pointer;">
-                  {{ module.libelle }}
-                </div>
-              </li>
-            {% endif %}
+        {% elseif module.type in ['dossier_locataire', 'portail_extranet', 'core'] %}
+          {% set dataApplication = getApplicationInformation(module.id) %}
+          {% if dataApplication.urlSso is defined %}
+            <li class="nav-item active">
+              <div data-sso-method="{{dataApplication.urlSso}}" data-redirection-route="{{ module.redirection_route }}"
+                   class="nav-link changeApplication" style="cursor:pointer;">
+                {{ module.libelle }}
+              </div>
+            </li>
+          {% endif %}
         {% endif %}
       {% endfor %}
     </ul>
-  
+
     <ul class="navbar-nav">
       {% set modules = getTopLevelModules(app.user, true) %}
       {% for module in modules %}
@@ -68,18 +69,19 @@
               </div>
             {% endif %}
           </li>
-        {% elseif module.type in ['dossier_locataire', 'portail_extranet'] %}
+        {% elseif module.type in ['dossier_locataire', 'portail_extranet', 'core'] %}
           {% set dataApplication = getApplicationInformation(module.id) %}
           {% if dataApplication.urlSso is defined %}
             <li class="nav-item active">
-              <div data-sso-method="{{dataApplication.urlSso}}" class="nav-link changeApplication" style="cursor:pointer;">
+              <div data-sso-method="{{dataApplication.urlSso}}" data-redirection-route="{{ module.redirection_route }}"
+                   class="nav-link changeApplication" style="cursor:pointer;">
                 {{ module.libelle }}
               </div>
             </li>
           {% endif %}
         {% endif %}
       {% endfor %}
-  
+
       <ul class="navbar-nav">
         <li class="nav-item dropdown active">
           <a class="nav-link main-menu-nav-link  dropdown-toggle nav-link" href="#" role="button" data-toggle="dropdown">
@@ -103,11 +105,12 @@
 <script>
   $('.changeApplication').click(function() {
     var urlSso = $(this).data('sso-method');
+    var redirectionRoute = $(this).data('redirection-route');
     $.ajax({
       url: "{{ path('zeus_user_get_data_for_redirect') }}",
       type: "GET",
       success: function (data) {
-        window.location.replace(urlSso +"?login="+data.login+"&token="+data.token);
+        window.location.replace(urlSso +"?login="+data.login+"&token="+data.token+"&route="+redirectionRoute);
       },
       error: function (data) {
         alert(data.responseJSON.error_message);
