@@ -1,0 +1,77 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;300;600;800&display=swap">
+
+<style>
+  .app-container{
+    min-height: calc(100vh - 60px);
+  }
+
+  .left-menu{
+    background: #E5F1F5;
+    width: 20%
+  }
+
+  .cn-vertical-menu{
+    border-right: 1px solid black;
+    min-height: 100%;
+  }
+
+  .cn-vertical-menu ul{
+    padding-top: 50px;
+    list-style-type: none;
+  }
+
+  .cn-vertical-menu ul li{
+    margin-bottom: 10px;
+    font-family: Montserrat, sans-serif;
+    font-size: 16px;
+    font-weight: normal;
+  }
+
+  .nav-item span{
+    color: black;
+  }
+
+  .nav-item a{
+    color: black;
+  }
+
+  span.current-item{
+    font-weight: bold;
+  }
+
+  a.current-item{
+    font-weight: bold;
+  }
+</style>
+
+<div class="cn-vertical-menu">
+  <ul>
+    {% for module in getModulesLevel2ByRoute(app.user, app.request.get('_route')) %}
+      <li class="nav-item active {% if module.children|length > 0 %}dropdown{% endif %}">
+        {% if module.children|length > 0 %}
+          <span class="{% if module.route == app.request.get('_route') %}current-item{% endif %}">{{ module.libelle }}</span>
+        {% else %}
+          <a href="{% if module.route != "" %}{{ path(module.route) }}{% else %}#{% endif %}"
+             class="{% if module.route == app.request.get('_route') %}current-item{% endif %}">
+            {{ module.libelle }}
+          </a>
+        {% endif %}
+
+        {% if module.children|length > 0 %}
+          <ul>
+            {% for sousModule in module.children %}
+              {% if sousModule.route == '' or isRouteExiste(sousModule.route) %}
+                <li>
+                  <a {% if sousModule.children|length > 0 %}href="#" class="dropdown-item dropdown-toggle"{% else %} href="{% if sousModule.route != "" %}{{ path(sousModule.route) }}{% else %}#{% endif %}" class="dropdown-item"{% endif %}>
+                    {{ sousModule.libelle }}
+                  </a>
+                </li>
+                {% include '@ImanagingCoreApplication/Menu/vertical_menu_recursive.twig' %}
+              {% endif %}
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+</div>

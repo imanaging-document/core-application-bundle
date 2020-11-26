@@ -9,6 +9,8 @@ use Imanaging\ApiCommunicationBundle\ApiCoreCommunication;
 use Imanaging\ZeusUserBundle\Interfaces\ModuleInterface;
 use Imanaging\ZeusUserBundle\Interfaces\RoleInterface;
 use Imanaging\ZeusUserBundle\Interfaces\RoleModuleInterface;
+use Imanaging\ZeusUserBundle\Interfaces\RouteInterface;
+use Imanaging\ZeusUserBundle\Interfaces\UserInterface;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 class CoreApplication
@@ -244,6 +246,50 @@ class CoreApplication
     }
     $this->session->get($key, json_encode($topLevelModules));
     return $topLevelModules;
+  }
+
+  /**
+   * @param UserInterface $user
+   * @param $routeName
+   * @return array|mixed|null
+   */
+  public function getModulesLevel2ByRoute(UserInterface $user, $routeName)
+  {
+    $route = $this->em->getRepository(RouteInterface::class)->findOneBy(['route' => $routeName]);
+    if ($route instanceof RouteInterface){
+      $role = $user->getRole();
+      $module = $this->em->getRepository(ModuleInterface::class)->findOneBy(['code' => $route->getCodeModule()]);
+      if ($module instanceof ModuleInterface) {
+        // Il ne doit s'agit que de module de niveau 1
+        if (is_null($module->getParent())){
+          $key = 'menu_'.$module->getCode();
+          $secondLevelModules = $this->session->get($key);
+          if (!is_null($secondLevelModules)) {
+            return json_decode($secondLevelModules);
+          }
+
+          $secondLevelModules = [];
+          foreach ($module->getEnfants() as $moduleEnfant){
+            $roleModule = $role->getRoleModule($moduleEnfant);
+            if ($roleModule instanceof RoleModuleInterface){
+              $secondLevelModules[] = [
+                'id' => $moduleEnfant->getId(),
+                'libelle' => $roleModule->getLibelle(),
+                'type' => $moduleEnfant->getTypeApplication(),
+                'data_application' => json_decode($moduleEnfant->getDataApplication()),
+                'route' => $moduleEnfant->getRoute(),
+                'children' => $this->getChildren($moduleEnfant, $role),
+                'redirection_route' => $moduleEnfant->getRedirectionRoute()
+              ];
+            }
+          }
+
+          $this->session->get($key, json_encode($secondLevelModules));
+          return $secondLevelModules;
+        }
+      }
+    }
+    return [];
   }
 
   /**
