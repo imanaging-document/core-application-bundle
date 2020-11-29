@@ -17,7 +17,7 @@
         {% if module.type == 'module' %}
           <li class="nav-item active {% if module.children|length > 0 %}dropdown{% endif %}">
             <a {% if module.children|length > 0 %}href="#" class="nav-link main-menu-nav-link dropdown-toggle" data-toggle="dropdown" {% else %}
-              href="{% if module.route != "" %}{{ path(module.route) }}{% else %}#{% endif %}"{% endif %}>
+              href="{% if module.route != "" %}{{ path(module.route) }}{% else %}#{% endif %}" class="nav-link main-menu-nav-link" {% endif %}>
               {{ module.libelle }}
             </a>
             {% if module.children|length > 0 %}
