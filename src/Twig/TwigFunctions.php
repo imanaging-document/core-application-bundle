@@ -22,6 +22,7 @@ class TwigFunctions extends AbstractExtension
     return array(
       new TwigFunction('getApplications', array($this, 'getApplications')),
       new TwigFunction('getTopLevelModules', [$this, 'getTopLevelModules']),
+      new TwigFunction('getModuleNameByRoute', [$this, 'getModuleNameByRoute']),
       new TwigFunction('getModulesLevel2ByRoute', [$this, 'getModulesLevel2ByRoute']),
       new TwigFunction('getApplicationInformation', [$this, 'getApplicationInformation']),
       new TwigFunction('getUrlLogout', [$this, 'getUrlLogout']),
@@ -54,6 +55,10 @@ class TwigFunctions extends AbstractExtension
   public function getTopLevelModules(UserInterface $user, bool $isDroite)
   {
     return $this->coreService->getTopLevelModules($user, $isDroite);
+  }
+
+  public function getModuleNameByRoute(UserInterface $user, $route){
+    return $this->coreService->getModuleNameByRoute($user, $route);
   }
 
   public function getModulesLevel2ByRoute(UserInterface $user, $route){

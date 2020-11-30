@@ -49,6 +49,7 @@
 
   <div class="left-menu">
     <div class="cn-vertical-menu">
+      <h4 class="text-center pt-5 mb-4">{{ getModuleNameByRoute(app.user, app.request.get('_route')) }}</h4>
       <ul>
         {% for module in modulesLvl2 %}
           <li class="nav-item active {% if module.children|length > 0 %}dropdown{% endif %}">

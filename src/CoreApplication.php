@@ -248,6 +248,29 @@ class CoreApplication
     return $topLevelModules;
   }
 
+  public function getModuleNameByRoute(UserInterface $user, $routeName){
+    $key = 'module_name_'.$routeName;
+    $moduleName = $this->session->get($key);
+    if (!is_null($moduleName)) {
+      return $moduleName;
+    }
+    $route = $this->em->getRepository(RouteInterface::class)->findOneBy(['route' => $routeName]);
+    if ($route instanceof RouteInterface){
+      $module = $this->em->getRepository(ModuleInterface::class)->findOneBy(['code' => $route->getCodeModule()]);
+      if ($module instanceof ModuleInterface) {
+        $role = $user->getRole();
+        if ($role instanceof RoleInterface){
+          $roleModule = $role->getRoleModule($module);
+          if ($roleModule instanceof RoleModuleInterface){
+            $this->session->set($key, $roleModule->getLibelle());
+            return $roleModule->getLibelle();
+          }
+        }
+      }
+    }
+    return '';
+  }
+
   /**
    * @param UserInterface $user
    * @param $routeName
