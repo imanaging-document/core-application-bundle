@@ -85,7 +85,7 @@ class RoleController extends ImanagingController
     $role = $this->em->getRepository(RoleInterface::class)->find($id);
     if ($role instanceof RoleInterface){
       if (!$role->isZeusOnly()){
-          try {
+        try {
           $this->em->remove($role);
           $this->em->flush();
           $this->addFlash('success', 'Rôle supprimé avec succès');

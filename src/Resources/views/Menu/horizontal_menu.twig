@@ -1,10 +1,9 @@
 <!-- NAVBAR -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-  {% if isRouteExiste(getUrlHomepage()) %}
-    <a class="navbar-brand" href="{{ path(getUrlHomepage()) }}">{{ client }}</a>
-  {% else %}
-    {{ client }}
-  {% endif %}
+<nav class="navbar navbar-expand-lg">
+  <a class="navbar-brand" {% if isRouteExiste(getUrlHomepage()) %}href="{{ path(getUrlHomepage()) }}"{% endif %}>
+    <img alt="{{ client }}" src="{{ asset('img/logo-client.png') }}" class="logo-client">
+  </a>
+
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
@@ -15,30 +14,18 @@
 
       {% for module in modules %}
         {% if module.type == 'module' %}
-          <li class="nav-item active {% if module.children|length > 0 %}dropdown{% endif %}">
-            <a {% if module.children|length > 0 %}href="#" class="nav-link main-menu-nav-link dropdown-toggle" data-toggle="dropdown" {% else %}
-              href="{% if module.route != "" %}{{ path(module.route) }}{% else %}#{% endif %}" class="nav-link main-menu-nav-link" {% endif %}>
+          <li class="nav-item active">
+            <a class="nav-link link-with-loader" {% if module.route != ""  %}href="{{ path(module.route) }}"
+                {% else %} href="{{ path('core_application_menu_get_first_sous_module_redirect', {id: module.id}) }}"{% endif %}>
               {{ module.libelle }}
             </a>
-            {% if module.children|length > 0 %}
-              <div class="dropdown-menu">
-                {% for sousModule in module.children %}
-                  {% if sousModule.route == '' or isRouteExiste(sousModule.route) %}
-                    <a {% if sousModule.children|length > 0 %}href="#" class="dropdown-item dropdown-toggle"{% else %} href="{% if sousModule.route != "" %}{{ path(sousModule.route) }}{% else %}#{% endif %}" class="dropdown-item"{% endif %}>
-                      {{ sousModule.libelle }}
-                    </a>
-                    {% include '@ImanagingCoreApplication/Menu/recursive_dropdown.twig' %}
-                  {% endif %}
-                {% endfor %}
-              </div>
-            {% endif %}
           </li>
         {% elseif module.type in ['dossier_locataire', 'portail_extranet', 'core'] %}
           {% set dataApplication = getApplicationInformation(module.id) %}
           {% if dataApplication.urlSso is defined %}
             <li class="nav-item active">
               <div data-sso-method="{{dataApplication.urlSso}}" data-redirection-route="{{ module.redirection_route }}"
-                   class="nav-link changeApplication" style="cursor:pointer;">
+                   class="nav-link changeApplication link-with-loader" style="cursor:pointer;">
                 {{ module.libelle }}
               </div>
             </li>
@@ -51,30 +38,18 @@
       {% set modules = getTopLevelModules(app.user, true) %}
       {% for module in modules %}
         {% if module.type == 'module' %}
-          <li class="nav-item active {% if module.children|length > 0 %}dropdown{% endif %}">
-            <a {% if module.children|length > 0 %}href="#" class="nav-link main-menu-nav-link dropdown-toggle" data-toggle="dropdown" {% else %}
-              href="{% if module.route != "" %}{{ path(module.route) }}{% else %}#{% endif %}"{% endif %}>
+          <li class="nav-item active">
+            <a class="nav-link link-with-loader" {% if module.route != ""  %}href="{{ path(module.route) }}"
+                {% else %} href="{{ path('core_application_menu_get_first_sous_module_redirect', {id: module.id}) }}"{% endif %}>
               {{ module.libelle }}
             </a>
-            {% if module.children|length > 0 %}
-              <div class="dropdown-menu">
-                {% for sousModule in module.children %}
-                  {% if sousModule.route == '' or isRouteExiste(sousModule.route) %}
-                    <a {% if sousModule.children|length > 0 %}href="#" class="dropdown-item dropdown-toggle"{% else %} href="{% if sousModule.route != "" %}{{ path(sousModule.route) }}{% else %}#{% endif %}" class="dropdown-item"{% endif %}>
-                      {{ sousModule.libelle }}
-                    </a>
-                    {% include '@ImanagingCoreApplication/Menu/recursive_dropdown.twig' %}
-                  {% endif %}
-                {% endfor %}
-              </div>
-            {% endif %}
           </li>
         {% elseif module.type in ['dossier_locataire', 'portail_extranet', 'core'] %}
           {% set dataApplication = getApplicationInformation(module.id) %}
           {% if dataApplication.urlSso is defined %}
             <li class="nav-item active">
               <div data-sso-method="{{dataApplication.urlSso}}" data-redirection-route="{{ module.redirection_route }}"
-                   class="nav-link changeApplication" style="cursor:pointer;">
+                   class="nav-link changeApplication link-with-loader" style="cursor:pointer;">
                 {{ module.libelle }}
               </div>
             </li>
@@ -102,6 +77,32 @@
   </div>
 </nav>
 
+<style>
+    .logo-client{
+        max-height: 60px;
+    }
+
+    .navbar{
+        box-shadow: 0 10px 12px #00000029;
+    }
+
+    .global-loader{
+        z-index: 999;
+        position: fixed;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: Montserrat-Medium, sans-serif;
+        font-size: 18px;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #E5F1F5;
+        opacity: .95;
+    }
+</style>
+
 <script>
   $('.changeApplication').click(function() {
     var urlSso = $(this).data('sso-method');
@@ -116,5 +117,13 @@
         alert(data.responseJSON.error_message);
       }
     })
+  })
+
+  $("a.link-with-loader").click(function(){
+    $('<div class="global-loader"><h4><i class="fa fa-spin fa-spinner fa-fw"></i>Chargement en cours ...</h4></div>').prependTo(document.body);
+  })
+
+  $("div.link-with-loader").click(function(){
+    $('<div class="global-loader"><h4><i class="fa fa-spin fa-spinner fa-fw"></i>Redirection en cours ...</h4></div>').prependTo(document.body);
   })
 </script>

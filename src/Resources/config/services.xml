@@ -32,6 +32,11 @@
         <service id="Imanaging\CoreApplicationBundle\Command\DeclarationCoreCommand" alias="imanaging_core_application.core_declaration_command" />
         <service id="Imanaging\CoreApplicationBundle\Command\SynchronisationUtilisateursCoreCommand" alias="imanaging_core_application.synchronisation_utilisateurs_core_command" />
 
+        <service id="imanaging_core_application.menu_controller" class="Imanaging\CoreApplicationBundle\Controller\MenuController" public="true">
+            <argument type="service" id="doctrine.orm.default_entity_manager" />
+            <argument type="service" id="imanaging_core_application.core_application" />
+        </service>
+
         <service id="imanaging_core_application.user_controller" class="Imanaging\CoreApplicationBundle\Controller\UserController" public="true">
             <argument type="service" id="doctrine.orm.default_entity_manager" />
             <argument type="service" id="imanaging_core_application.core_application" />

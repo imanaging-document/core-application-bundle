@@ -3,7 +3,6 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://symfony.com/schema/routing
         https://symfony.com/schema/routing/routing-1.0.xsd">
-
     <route id="core_application_user" path="/user" controller="imanaging_core_application.user_controller:indexAction">
     </route>
 
@@ -32,5 +31,9 @@
     </route>
 
     <route id="core_application_role_save_role_module" path="/role-module/{id}/save" controller="imanaging_core_application.role_controller:saveRoleModuleAction">
+    </route>
+
+    <route id="core_application_menu_get_first_sous_module_redirect" path="/menu/module/{id}/get-first-sous-module-redirect"
+           controller="imanaging_core_application.menu_controller:getFirstSousModuleRedirectAction">
     </route>
 </routes>
