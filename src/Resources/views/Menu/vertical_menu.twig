@@ -10,8 +10,7 @@
       }
 
       .left-menu{
-          background: #E5F1F5;
-          width: 20%
+          width: 17%
       }
 
       .cn-vertical-menu{
@@ -21,45 +20,65 @@
 
       .cn-vertical-menu ul{
           list-style-type: none;
+          margin: 0;
+          padding: 0;
       }
 
-      .cn-vertical-menu ul li{
-          margin-bottom: 10px;
-          font-family: Montserrat, sans-serif;
-          font-size: 16px;
-          font-weight: normal;
+      .cn-vertical-menu ul li span{
+          position: relative;
+          display: block;
+          padding: 24px 36px;
+          font-size: 17px;
+          font-family: Montserrat, sans-serif;;
+          color: #202121;
+          cursor: pointer;
+          background: #f4f7f6;
+          border-bottom: 1px solid #E6EAEA;
+          transition: background 0.3s ease-in-out, border 0.3s ease-in-out, color 0.3s ease-in-out;
       }
 
-      .nav-item span{
-          color: black;
+      .cn-vertical-menu ul li span a{
+          color: #202121;
       }
 
-      .nav-item a{
-          color: black;
+      .cn-vertical-menu ul li span:hover{
+          background: white;
       }
 
-      span.current-item{
-          font-weight: bold;
+      .cn-vertical-menu ul li.current-item span{
+          background-color: #A1D5CF;
+          font-weight: 600;
       }
 
-      a.current-item{
-          font-weight: bold;
+      .cn-vertical-menu ul li span.title{
+          cursor: auto;
+          font-size: 24px;
+          text-align: center;
+          border-bottom: 0;
       }
   </style>
 
   <div class="left-menu">
     <div class="cn-vertical-menu">
-      <h4 class="text-center pt-5 mb-4">{{ getModuleNameByRoute(app.user, app.request.get('_route')) }}</h4>
+      <ul>
+        <li>
+          <span class="title">{{ getModuleNameByRoute(app.user, app.request.get('_route')) }}</span>
+        </li>
+      </ul>
       <ul>
         {% for module in modulesLvl2 %}
-          <li class="nav-item active {% if module.children|length > 0 %}dropdown{% endif %}">
+          <li class="{% if module.route == app.request.get('_route') %}current-item{% endif %}">
             {% if module.children|length > 0 %}
-              <span class="{% if module.route == app.request.get('_route') %}current-item{% endif %}">{{ module.libelle }}</span>
-            {% else %}
-              <a href="{% if module.route != "" %}{{ path(module.route) }}{% else %}#{% endif %}"
-                 class="link-with-loader {% if module.route == app.request.get('_route') %}current-item{% endif %}">
+              <span class="{% if module.route == app.request.get('_route') %}current-item{% endif %}">
                 {{ module.libelle }}
-              </a>
+              </span>
+            {% else %}
+              <span>
+                <a href="{% if module.route != "" %}{{ path(module.route) }}{% else %}#{% endif %}"
+                   class="link-with-loader {% if module.route == app.request.get('_route') %}current-item{% endif %}">
+                  {{ module.libelle }}
+                </a>
+              </span>
             {% endif %}
 
             {% if module.children|length > 0 %}
@@ -67,10 +86,12 @@
                 {% for sousModule in module.children %}
                   {% if sousModule.route == '' or isRouteExiste(sousModule.route) %}
                     <li>
-                      <a {% if sousModule.children|length > 0 %}href="#" class="dropdown-item dropdown-toggle link-with-loader"{% else %}
-                        href="{% if sousModule.route != "" %}{{ path(sousModule.route) }}{% else %}#{% endif %}" class="dropdown-item link-with-loader"{% endif %}>
-                        {{ sousModule.libelle }}
-                      </a>
+                      <span>
+                        <a {% if sousModule.children|length > 0 %}href="#" class="dropdown-item dropdown-toggle link-with-loader"{% else %}
+                          href="{% if sousModule.route != "" %}{{ path(sousModule.route) }}{% else %}#{% endif %}" class="dropdown-item link-with-loader"{% endif %}>
+                          {{ sousModule.libelle }}
+                        </a>
+                      </span>
                     </li>
                     {% include '@ImanagingCoreApplication/Menu/vertical_menu_recursive.twig' %}
                   {% endif %}
