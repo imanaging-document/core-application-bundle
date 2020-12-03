@@ -148,6 +148,12 @@
             <input type="checkbox" class="cbx-module" name="modules[]" data-id="{{ module.id }}" data-parent-id="{{ module.parent.id }}" value="{{ module.id }}" {% if role.canAccess(module.id) %}checked{% endif %}>
             <b>{{ module.libelle }}</b>
           </label>
+
+          {% if role.canAccess(module.id) %}
+            <small>Traduction : <b class="text-primary">{{ role.getLibelleForModule(module.id) }}</b> (n°{{ role.getOrdreForModule(module.id) }})</small>
+          {% endif %}
+          <i class="fa fa-pencil-square-o fa-fw text-primary edit-role-module"
+             data-role-id="{{ role.id }}" data-module-id="{{ module.id }}" style="cursor: pointer;"></i>
         </div>
       </li>
 
@@ -181,9 +187,9 @@
   <div id="divModalEditRoleModule"></div>
 
   <style>
-    .list-style-none{
-      list-style-type: none;
-    }
+      .list-style-none{
+          list-style-type: none;
+      }
   </style>
 
   <script>
