@@ -10,11 +10,45 @@
       }
 
       .left-menu{
-          width: 17%
+          left: -17%;
+          position: fixed;
+          width: 17%;
+          overflow-y: scroll;
+          height: calc(100vh - 60px);
+          background: #f4f7f6;
+          transition: left .33s ease-in;
+      }
+
+      .left-menu-sm{
+          position: fixed;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          flex-direction: column;
+          padding: 25px;
+          width: 4%;
+          height: calc(100vh - 60px);
+          background: #f4f7f6;
+          cursor: pointer;
+      }
+
+      .left-menu-sm:hover{
+          background-color: #dbd7d7;
+      }
+
+      .left-menu-sm .title{
+          font-size: 26px;
+          font-family: Montserrat, sans-serif;
+          font-weight: 500;
+          writing-mode: vertical-lr;
+          transform: rotate(180deg);
+      }
+
+      .left-menu.visible{
+          left: 0;
       }
 
       .cn-vertical-menu{
-          border-right: 1px solid black;
           min-height: 100%;
       }
 
@@ -27,14 +61,20 @@
       .cn-vertical-menu ul li span{
           position: relative;
           display: block;
-          padding: 24px 36px;
+          padding: 20px 32px;
           font-size: 17px;
-          font-family: Montserrat, sans-serif;;
+          font-family: Montserrat, sans-serif;
           color: #202121;
           cursor: pointer;
           background: #f4f7f6;
           border-bottom: 1px solid #E6EAEA;
           transition: background 0.3s ease-in-out, border 0.3s ease-in-out, color 0.3s ease-in-out;
+      }
+
+      .cn-vertical-menu ul li.lvl-2 span{
+          padding: 20px 32px;
+          font-size: 14px;
+          text-indent: 25px;
       }
 
       .cn-vertical-menu ul li span a{
@@ -56,20 +96,40 @@
           text-align: center;
           border-bottom: 0;
       }
+
+      #close-menu{
+          cursor: pointer;
+      }
+
+      #close-menu:hover{
+          color: #A1D5CF;
+      }
   </style>
 
-  <div class="left-menu">
+  <div class="left-menu-sm">
+    <div class="title">
+      {{ getModuleNameByRoute(app.user, app.request.get('_route')) }} <i class="fa fa-bars fa-rotate-90"></i>
+    </div>
+  </div>
+
+  <div class="left-menu visible">
     <div class="cn-vertical-menu">
       <ul>
-        <li>
-          <span class="title">{{ getModuleNameByRoute(app.user, app.request.get('_route')) }}</span>
+        <li class="d-flex">
+          <span class="title">
+            {{ getModuleNameByRoute(app.user, app.request.get('_route')) }}
+          </span>
+
+          <div id="close-menu" class="d-flex justify-content-center align-items-center w-100">
+            <i class="fa fa-times fa-2x"></i>
+          </div>
         </li>
       </ul>
       <ul>
         {% for module in modulesLvl2 %}
-          <li class="{% if module.route == app.request.get('_route') %}current-item{% endif %}">
+          <li {% if module.route == app.request.get('_route') %}class="current-item"{% endif %}>
             {% if module.children|length > 0 %}
-              <span class="{% if module.route == app.request.get('_route') %}current-item{% endif %}">
+              <span {% if module.route == app.request.get('_route') %}class="current-item"{% endif %}>
                 {{ module.libelle }}
               </span>
             {% else %}
@@ -85,7 +145,7 @@
               <ul>
                 {% for sousModule in module.children %}
                   {% if sousModule.route == '' or isRouteExiste(sousModule.route) %}
-                    <li>
+                    <li class="lvl-2 {% if module.route == app.request.get('_route') %}current-item{% endif %}">
                       <span>
                         <a {% if sousModule.children|length > 0 %}href="#" class="dropdown-item dropdown-toggle link-with-loader"{% else %}
                           href="{% if sousModule.route != "" %}{{ path(sousModule.route) }}{% else %}#{% endif %}" class="dropdown-item link-with-loader"{% endif %}>
@@ -112,5 +172,13 @@
     $("div.link-with-loader").click(function(){
       $('<div class="global-loader"><h4><i class="fa fa-spin fa-spinner fa-fw"></i>Redirection en cours ...</h4></div>').prependTo(document.body);
     })
+
+    $(".left-menu-sm").click(function(){
+      $(".left-menu").toggleClass('visible');
+    });
+
+    $("#close-menu").click(function(){
+      $(".left-menu").toggleClass('visible');
+    });
   </script>
 {% endif %}

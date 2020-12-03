@@ -1,5 +1,5 @@
 <!-- NAVBAR -->
-<nav class="navbar navbar-expand-lg">
+<nav class="navbar navbar-expand-lg fixed-top bg-white">
   <a class="navbar-brand" {% if isRouteExiste(getUrlHomepage()) %}href="{{ path(getUrlHomepage()) }}"{% endif %}>
     <img alt="{{ client }}" src="{{ asset('images/logo-client.png') }}" class="logo-client">
   </a>
@@ -78,11 +78,17 @@
 </nav>
 
 <style>
+    .root-container{
+        display: flex;
+        margin-top: 60px;
+    }
+
     .logo-client{
         max-height: 60px;
     }
 
     .navbar{
+        height: 60px;
         box-shadow: 0 10px 12px #00000029;
     }
 
