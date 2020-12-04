@@ -326,14 +326,17 @@ class CoreApplication
     foreach ($module->getEnfants() as $enfant) {
       if ($enfant instanceof ModuleInterface){
         if ($role->hasModule($enfant)) {
-          $children[] = [
-            'id' => $enfant->getId(),
-            'libelle' => $enfant->getLibelle(),
-            'type' => $module->getTypeApplication(),
-            'data_application' => json_decode($module->getDataApplication()),
-            'route' => $enfant->getRoute(),
-            'children' => $this->getChildren($enfant, $role)
-          ];
+          $roleModule = $this->em->getRepository(RoleModuleInterface::class)->findOneBy(['role' => $role, 'module' => $enfant]);
+          if ($roleModule instanceof RoleModuleInterface){
+            $children[] = [
+              'id' => $enfant->getId(),
+              'libelle' => $roleModule->getLibelle(),
+              'type' => $module->getTypeApplication(),
+              'data_application' => json_decode($module->getDataApplication()),
+              'route' => $enfant->getRoute(),
+              'children' => $this->getChildren($enfant, $role)
+            ];
+          }
         }
       }
     }

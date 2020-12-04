@@ -171,12 +171,27 @@ class RoleController extends ImanagingController
         $fonctions = [];
         $notifications = [];
         if (isset($params['modules'])){
+          // TOUT D'ABORD ON VIRE TOUS LES MODULES QUI NE SONT PAS DANS LA LISTE
+
+          $modules = $this->em->getRepository(ModuleInterface::class)->findAll();
+          foreach ($modules as $module){
+            if ($module instanceof ModuleInterface){
+              if (!in_array($module->getId(), $params['modules'])){
+                $roleModule = $this->em->getRepository(RoleModuleInterface::class)->findOneBy(['role' => $role, 'module' => $module]);
+                if ($roleModule instanceof RoleModuleInterface){
+                  $this->em->remove($roleModule);
+                }
+              }
+            }
+          }
+
           foreach ($params['modules'] as $moduleId){
             $module = $this->em->getRepository(ModuleInterface::class)->find($moduleId);
             if ($module instanceof ModuleInterface){
-              $className = $this->em->getRepository(RoleModuleInterface::class)->getClassName();
-              $roleModule = new $className();
-              if ($roleModule instanceof RoleModuleInterface){
+              $roleModule = $this->em->getRepository(RoleModuleInterface::class)->findOneBy(['role' => $role, 'module' => $module]);
+              if (!($roleModule instanceof RoleModuleInterface)){
+                $className = $this->em->getRepository(RoleModuleInterface::class)->getClassName();
+                $roleModule = new $className();
                 $roleModule->setModule($module);
                 $roleModule->setRole($role);
                 $roleModule->setLibelle($module->getLibelle());
@@ -186,6 +201,7 @@ class RoleController extends ImanagingController
             }
           }
         }
+
         if (isset($params['fonctions'])){
           foreach ($params['fonctions'] as $fonctionId){
             $fonction = $this->em->getRepository(FonctionInterface::class)->find($fonctionId);
