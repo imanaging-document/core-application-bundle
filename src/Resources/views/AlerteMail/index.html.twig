@@ -34,7 +34,12 @@
                       <i class="fa fa-edit text-primary edit-destinataire" style="cursor:pointer;" data-destinataire-id="{{ destinataire.id }}"></i>
                     {% endif %}
                   </td>
-                  <th scope="row">{{ destinataire.nom|upper }} {{ destinataire.prenom }} <small>({{ destinataire.mail }})</small></th>
+                  <th scope="row">
+                    {% if destinataire.user is not null and destinataire.user.utilisateurZeus %}
+                      <i class="fa fa-bolt fa-fw text-warning"></i>
+                    {% endif %}
+                    {{ destinataire.nom|upper }} {{ destinataire.prenom }} <small>({{ destinataire.mail }})</small>
+                  </th>
                   {% for alertMailType in alertsMailType %}
                     <td class="text-center">
                       <div class="pretty p-icon p-curve p-jelly">
