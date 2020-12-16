@@ -1,0 +1,150 @@
+{% extends basePath %}
+
+{% block body %}
+  <div class="container container-90 mt-4 mb-4">
+    <h2 class="text-center">Gestion des alertes mail</h2>
+
+    <div class="card mt-2">
+      <h5 class="card-header">Gestion des alertes mail</h5>
+      <div class="card-body" style="overflow-x: auto; white-space: nowrap;">
+
+        <div class="text-right mb-2">
+          <button class="btn btn-success btn-sm" data-toggle="modal" data-target="#addDestinataireModal">
+            <i class="fa fa-plus-circle fa-fw"></i>Ajouter un nouveau destinataire
+          </button>
+        </div>
+
+        <form action="{{ path('core_application_alerte_mail_save_destinataire_alerte_mail') }}" method="post">
+          <table class="table table-bordered">
+            <thead>
+              <tr class="text-center">
+                <th scope="col"><i class="fa fa-edit"></i></th>
+                <th scope="col">#</th>
+                {% for alertMailType in alertsMailType %}
+                  <th scope="col">{{ alertMailType.libelle }}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+            {% for destinataire in destinataires %}
+              {% if app.user.utilisateurZeus or destinataire.user is null or (destinataire.user is not null and not destinataire.user.utilisateurZeus) %}
+                <tr class="text-center {% if destinataire.user is not null and destinataire.user.utilisateurZeus %}tr-disabled{% endif %}">
+                  <td>
+                    {% if destinataire.user is null or not destinataire.user.utilisateurZeus %}
+                      <i class="fa fa-edit text-primary edit-destinataire" style="cursor:pointer;" data-destinataire-id="{{ destinataire.id }}"></i>
+                    {% endif %}
+                  </td>
+                  <th scope="row">{{ destinataire.nom|upper }} {{ destinataire.prenom }} <small>({{ destinataire.mail }})</small></th>
+                  {% for alertMailType in alertsMailType %}
+                    <td class="text-center">
+                      <div class="pretty p-icon p-curve p-jelly">
+                        <input type="checkbox" {% if alertMailType in destinataire.typesAlerteMail %}checked{% endif %}
+                               name="{{ alertMailType.id ~ '~' ~ destinataire.id }}"
+                            {% if destinataire.user is not null and destinataire.user.utilisateurZeus%}disabled{% endif%} />
+                        <div class="state p-success">
+                          <i class="icon fa fa-check"></i>
+                          <label></label>
+                        </div>
+                      </div>
+                    </td>
+                  {% endfor %}
+                </tr>
+              {% endif %}
+            {% endfor %}
+            </tbody>
+          </table>
+          <div class="text-center">
+            <button type="submit" class="btn btn-success">
+              <i class="fa fa-save fa-fw"></i>Enregistrer
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="addDestinataireModal" tabindex="-1" role="dialog" aria-labelledby="addDestinataireModal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addDestinataireModalTitle">Ajouter un nouveau destinataire</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form action="{{ path('core_application_alerte_mail_add_destinataire') }}" method="post">
+            <div class="form-group">
+              <label for="user">Utilisateur</label>
+              <select name="user_id" id="user" class="form-control">
+                <option value="" selected></option>
+                {% for user in usersNonZeus %}
+                  <option value="{{ user.id }}">{{ user.nom }} {{ user.prenom }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="nom">Nom</label>
+              <input type="text" class="form-control" name="nom" id="nom">
+            </div>
+
+            <div class="form-group">
+              <label for="prenom">Prénom</label>
+              <input type="text" class="form-control" name="prenom" id="prenom">
+            </div>
+
+            <div class="form-group">
+              <label for="mail">Adresse e-mail</label>
+              <input type="text" class="form-control" name="mail" id="mail">
+            </div>
+
+            <div class="form-group">
+              <label for="tel_por">Téléphone portable</label>
+              <input type="text" class="form-control" name="tel_por" id="tel_por">
+            </div>
+
+            <div class="text-center">
+              <button class="btn btn-success">
+                <i class="fa fa-plus-circle fa-fw"></i>Ajouter
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="divModalEditDestinataire"></div>
+
+  <style>
+    .tr-disabled{
+        background-color: lightgray;
+        color: gray;
+    }
+  </style>
+
+  <script>
+    $(".edit-destinataire").click(function(){
+      $(".edit-destinataire").prop('disabled', true);
+      let destinataireId = $(this).data('destinataire-id');
+      let data = {destinataire_id: destinataireId};
+      $.ajax({
+        url: "{{ path('core_application_alerte_mail_edit_destinataire') }}",
+        type: "POST",
+        data : data,
+        success: function (data) {
+          $("#divModalEditDestinataire").html(data);
+          $("#editDestinataireModal").modal();
+        },
+        error: function () {
+          toastr.error("Une erreur est survenue");
+        },
+        complete: function () {
+          $(".edit-destinataire").prop('disabled', false);
+        }
+      })
+    });
+  </script>
+{% endblock %}

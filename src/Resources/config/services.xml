@@ -42,6 +42,11 @@
             <argument type="service" id="imanaging_core_application.core_application" />
         </service>
 
+        <service id="imanaging_core_application.alerte_mail_controller" class="Imanaging\CoreApplicationBundle\Controller\AlerteMailController" public="true">
+            <argument type="service" id="doctrine.orm.default_entity_manager" />
+            <argument type="service" id="imanaging_core_application.core_application" />
+        </service>
+
         <service id="imanaging_core_application.role_controller" class="Imanaging\CoreApplicationBundle\Controller\RoleController" public="true">
             <argument type="service" id="doctrine.orm.default_entity_manager" />
             <argument type="service" id="imanaging_core_application.core_application" />

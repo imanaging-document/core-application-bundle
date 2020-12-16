@@ -1,0 +1,51 @@
+<div class="modal fade" id="editDestinataireModal" tabindex="-1" role="dialog" aria-labelledby="editDestinataireModal" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addDestinataireModalTitle">Modifier un destinataire</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form action="{{ path('core_application_alerte_mail_save_destinataire', {id: destinataire.id}) }}" method="post">
+          <div class="form-group">
+            <label for="user">Utilisateur</label>
+            <select name="user_id" id="user" class="form-control" disabled>
+              <option value=""></option>
+              {% for user in usersNonZeus %}
+                <option value="{{ user.id }}" {% if user == destinataire.user %}selected{% endif %}>{{ user.nom }} {{ user.prenom }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="nom">Nom</label>
+            <input type="text" class="form-control" name="nom" id="nom" value="{{ destinataire.nom }}">
+          </div>
+
+          <div class="form-group">
+            <label for="prenom">Prénom</label>
+            <input type="text" class="form-control" name="prenom" id="prenom" value="{{ destinataire.prenom }}">
+          </div>
+
+          <div class="form-group">
+            <label for="mail">Adresse e-mail</label>
+            <input type="text" class="form-control" name="mail" id="mail" value="{{ destinataire.mail }}">
+          </div>
+
+          <div class="form-group">
+            <label for="tel_por">Téléphone portable</label>
+            <input type="text" class="form-control" name="tel_por" id="tel_por" value="{{ destinataire.numero }}">
+          </div>
+
+          <div class="text-center">
+            <button class="btn btn-success">
+              <i class="fa fa-save fa-fw"></i>Enregistrer
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

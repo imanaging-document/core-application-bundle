@@ -9,6 +9,25 @@
     <route id="core_application_user_synchroniser" path="/user/synchroniser" controller="imanaging_core_application.user_controller:synchroniserAction">
     </route>
 
+    <route id="core_application_alerte_mail" path="/alerte-mail" controller="imanaging_core_application.alerte_mail_controller:indexAction">
+    </route>
+
+    <route id="core_application_alerte_mail_add_destinataire" path="/alerte-mail/destinataire/add"
+           controller="imanaging_core_application.alerte_mail_controller:addDestinataireAction">
+    </route>
+
+    <route id="core_application_alerte_mail_edit_destinataire" path="/alerte-mail/destinataire/edit"
+           controller="imanaging_core_application.alerte_mail_controller:editDestinataireAction">
+    </route>
+
+    <route id="core_application_alerte_mail_save_destinataire" path="/alerte-mail/destinataire/{id}/save"
+           controller="imanaging_core_application.alerte_mail_controller:saveDestinataireAction">
+    </route>
+
+    <route id="core_application_alerte_mail_save_destinataire_alerte_mail" path="/alerte-mail/destinataire-alerte-mail/save"
+           controller="imanaging_core_application.alerte_mail_controller:saveDestinataireAlerteMailAction">
+    </route>
+
     <route id="core_application_role" path="/role" controller="imanaging_core_application.role_controller:indexAction">
     </route>
 
