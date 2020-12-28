@@ -1,5 +1,5 @@
 <!-- NAVBAR -->
-<nav class="navbar navbar-expand-lg fixed-top bg-white">
+<nav class="navbar navbar-expand-lg fixed-top bg-white navbar-light">
   <a class="navbar-brand" {% if isRouteExiste(getUrlHomepage()) %}href="{{ path(getUrlHomepage()) }}"{% endif %}>
     <img alt="{{ client }}" src="{{ asset('images/logo-client.png') }}" class="logo-client">
   </a>
@@ -90,6 +90,10 @@
     .navbar{
         height: 60px;
         box-shadow: 0 10px 12px #00000029;
+    }
+
+    .navbar-light .nav-link:hover{
+      color: #637392 !important;
     }
 
     .global-loader{
