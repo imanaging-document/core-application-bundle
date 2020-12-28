@@ -4,10 +4,6 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;300;600;800&display=swap">
 
   <style>
-      .root-container{
-          width: 100%;
-      }
-
       .app-container{
           position: absolute;
           min-height: calc(100vh - 60px);
@@ -158,7 +154,7 @@
               <ul>
                 {% for sousModule in module.children %}
                   {% if sousModule.route == '' or isRouteExiste(sousModule.route) %}
-                    <li class="lvl-2 {% if module.route == app.request.get('_route') %}current-item{% endif %}">
+                    <li class="lvl-2 {% if sousModule.route == app.request.get('_route') %}current-item{% endif %}">
                       <span>
                         <a {% if sousModule.children|length > 0 %}href="#" class="dropdown-item dropdown-toggle link-with-loader"{% else %}
                           href="{% if sousModule.route != "" %}{{ path(sousModule.route) }}{% else %}#{% endif %}" class="dropdown-item link-with-loader"{% endif %}>

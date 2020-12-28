@@ -2,7 +2,7 @@
   <ul>
     {% for sousModule in sousModule.children %}
       {% if sousModule.route == '' or isRouteExiste(sousModule.route) %}
-        <li class="{% if sousModule.route == app.request.get('_route') %} active {% endif %}">
+        <li class="lvl-x {% if sousModule.route == app.request.get('_route') %} active {% endif %}">
           <a {% if sousModule.children|length > 0 %}href="#" class="dropdown-item dropdown-toggle"{% else %} href="{% if sousModule.route != "" %}{{ path(sousModule.route) }}{% else %}#{% endif %}" class="dropdown-item"{% endif %}>
             {{ sousModule.libelle }}
           </a>

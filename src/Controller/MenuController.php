@@ -35,22 +35,33 @@ class MenuController extends ImanagingController
         $module = $this->em->getRepository(ModuleInterface::class)->find($id);
         if ($module instanceof ModuleInterface){
           foreach ($module->getEnfants() as $sousModule){
-            if ($sousModule instanceof ModuleInterface){
-              if ($role->canAccess($sousModule->getId())){
-                if ($sousModule->getRoute() != ''){
-                  try {
-                    $this->generateUrl($sousModule->getRoute());
-                    return $this->redirectToRoute($sousModule->getRoute());
-                  } catch (RouteNotFoundException $e) {
-                    return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
-                  }
-                }
+            return $this->recursiveFindFirstSousModule($role, $module);
+          }
+        }
+      }
+    }
+    return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
+  }
+
+  private function recursiveFindFirstSousModule(RoleInterface $role, ModuleInterface $module){
+    foreach ($module->getEnfants() as $sousModule){
+      if ($sousModule instanceof ModuleInterface){
+        if ($role->canAccess($sousModule->getId())){
+          if (count($sousModule->getEnfants()) > 0){
+            return $this->recursiveFindFirstSousModule($role, $sousModule);
+          } else {
+            if ($sousModule->getRoute() != ''){
+              try {
+                // VRAI MODULE
+                $this->generateUrl($sousModule->getRoute());
+                return $this->redirectToRoute($sousModule->getRoute());
+              } catch (RouteNotFoundException $e) {
+                return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
               }
             }
           }
         }
       }
     }
-    return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
   }
 }
