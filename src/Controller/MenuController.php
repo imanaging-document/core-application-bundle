@@ -35,7 +35,10 @@ class MenuController extends ImanagingController
         $module = $this->em->getRepository(ModuleInterface::class)->find($id);
         if ($module instanceof ModuleInterface){
           foreach ($module->getEnfants() as $sousModule){
-            return $this->recursiveFindFirstSousModule($role, $module);
+            $res = $this->recursiveFindFirstSousModule($role, $module);
+            if (!is_null($res)){
+              return $res;
+            }
           }
         }
       }
@@ -63,5 +66,6 @@ class MenuController extends ImanagingController
         }
       }
     }
+    return null;
   }
 }
