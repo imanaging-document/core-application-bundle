@@ -235,6 +235,7 @@ class CoreApplication
           $topLevelModules[] = [
             'id' => $module->getId(),
             'libelle' => $roleModule->getLibelle(),
+            'acces' => $roleModule->isAcces(),
             'type' => $module->getTypeApplication(),
             'data_application' => json_decode($module->getDataApplication()),
             'route' => $module->getRoute(),
@@ -298,6 +299,7 @@ class CoreApplication
               $secondLevelModules[] = [
                 'id' => $moduleEnfant->getId(),
                 'libelle' => $roleModule->getLibelle(),
+                'acces' => $roleModule->isAcces(),
                 'type' => $moduleEnfant->getTypeApplication(),
                 'data_application' => json_decode($moduleEnfant->getDataApplication()),
                 'route' => $moduleEnfant->getRoute(),
@@ -331,6 +333,7 @@ class CoreApplication
             $children[] = [
               'id' => $enfant->getId(),
               'libelle' => $roleModule->getLibelle(),
+              'acces' => $roleModule->isAcces(),
               'type' => $module->getTypeApplication(),
               'data_application' => json_decode($module->getDataApplication()),
               'route' => $enfant->getRoute(),

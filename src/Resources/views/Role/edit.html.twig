@@ -32,6 +32,26 @@
               <h4 class="text-center">Modules / Fonctions</h4>
               <p><i class="fa fa-info-circle fa-fw"></i>Gestion de la visibilité des modules, sous modules et fonctions associées.</p>
 
+              <h5>Légende :</h5>
+              <div class="form-group">
+                <label>
+                  <input type="checkbox" checked disabled>
+                  <b>Module visible et accessible</b>
+                </label>
+              </div>
+              <div class="form-group">
+                <label>
+                  <input type="checkbox" disabled>
+                  <b>Module non visible</b>
+                </label>
+              </div>
+              <div class="form-group">
+                <label>
+                  <input type="checkbox" checked disabled>
+                  <b style="color: lightgray">Module visible mais non accessible</b>
+                </label>
+              </div>
+
               <div class="btn-group w-100 mb-4" role="group">
                 <button id="toutCocherModules" class="btn btn-success btn-sm" type="button">
                   <i class="fa fa-check-circle fa-fw"></i>Tout cocher
@@ -71,11 +91,11 @@
                       <li class="list-style-none">
                         <div class="checkbox">
                           <label>
-                            <input type="checkbox" class="cbx-module" name="modules[]" value="{{ module.id }}" {% if role.canAccess(module.id) %}checked{% endif %}>
-                            <b>{{ module.libelle }}</b> {% if module.typeApplication != 'module' %} <i>(Redirection SSO vers une autre application)</i> {% endif %}
+                            <input type="checkbox" class="cbx-module" name="modules[]" data-id="{{ module.id }}" value="{{ module.id }}" {% if role.canSee(module.id) %}checked{% endif %}>
+                            <b {% if not role.canAccess(module.id) and role.canSee(module.id) %}style="color: lightgray;"{% endif %}>{{ module.libelle }}</b> {% if module.typeApplication != 'module' %} <i>(Redirection SSO vers une autre application)</i> {% endif %}
                           </label>
 
-                          {% if role.canAccess(module.id) %}
+                          {% if role.canSee(module.id) %}
                             <small>Traduction : <b class="text-primary">{{ role.getLibelleForModule(module.id) }}</b> (n°{{ role.getOrdreForModule(module.id) }})</small>
                           {% endif %}
                           <i class="fa fa-pencil-square-o fa-fw text-primary edit-role-module"
@@ -145,11 +165,11 @@
       <li class="list-style-none">
         <div class="checkbox">
           <label>
-            <input type="checkbox" class="cbx-module" name="modules[]" data-id="{{ module.id }}" data-parent-id="{{ module.parent.id }}" value="{{ module.id }}" {% if role.canAccess(module.id) %}checked{% endif %}>
-            <b>{{ module.libelle }}</b>
+            <input type="checkbox" class="cbx-module" name="modules[]" data-id="{{ module.id }}" data-parent-id="{{ module.parent.id }}" value="{{ module.id }}" {% if role.canSee(module.id) %}checked{% endif %}>
+            <b {% if not role.canAccess(module.id) and role.canSee(module.id) %}style="color: lightgray;"{% endif %}>{{ module.libelle }}</b>
           </label>
 
-          {% if role.canAccess(module.id) %}
+          {% if role.canSee(module.id) %}
             <small>Traduction : <b class="text-primary">{{ role.getLibelleForModule(module.id) }}</b> (n°{{ role.getOrdreForModule(module.id) }})</small>
           {% endif %}
           <i class="fa fa-pencil-square-o fa-fw text-primary edit-role-module"
@@ -229,5 +249,41 @@
     $("#toutDecocherNotifications").click(function(){
       $( "input[name='notifications[]']").prop('checked', false);
     });
+
+    $(".cbx-module").click(function(){
+      if ($(this).prop('checked')) {
+        recursiveCheckParentIfNotChecked($(this));
+      } else {
+        recursiveUncheckChildrenIfChecked($(this));
+      }
+    });
+
+    function recursiveCheckParentIfNotChecked(cbx){
+      if (cbx.prop('checked')){
+        // On coche les parents
+        let parentId = cbx.data('parent-id');
+        let parentCbx = $(".cbx-module[data-id="+parentId+"]")
+        if (parentCbx.length > 0){
+          if (!parentCbx.prop('checked')){
+            parentCbx.prop('checked', true);
+            recursiveCheckParentIfNotChecked(parentCbx);
+          }
+        }
+      }
+    }
+
+    function recursiveUncheckChildrenIfChecked(cbx){
+      if (!cbx.prop('checked')){
+        // On coche les parents
+        let id = cbx.data('id');
+        $(".cbx-module[data-parent-id="+id+"]").each(function(){
+          let cbxChild = $(this);
+          if (cbxChild.prop('checked')){
+            cbxChild.prop('checked', false);
+            recursiveUncheckChildrenIfChecked(cbxChild);
+          }
+        });
+      }
+    }
   </script>
 {% endblock %}

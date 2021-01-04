@@ -80,6 +80,10 @@
           transition: background 0.3s ease-in-out, border 0.3s ease-in-out, color 0.3s ease-in-out;
       }
 
+      .cn-vertical-menu ul li span.disabled-module{
+          cursor: not-allowed;
+      }
+
       .cn-vertical-menu ul li.lvl-2 span{
           padding: 16px 28px;
           font-size: 14px;
@@ -104,6 +108,14 @@
           font-size: 24px;
           text-align: center;
           border-bottom: 0;
+      }
+
+      .disabled-link{
+          color: lightgray;
+      }
+
+      .disabled-module{
+          cursor: not-allowed;
       }
 
       #close-menu{
@@ -136,17 +148,23 @@
       </ul>
       <ul>
         {% for module in modulesLvl2 %}
-          <li {% if module.route == app.request.get('_route') %}class="current-item"{% endif %}>
+          <li class="{% if module.route == app.request.get('_route') %}current-item{% endif %} {% if not module.acces %}disabled-module{% endif %}">
             {% if module.children|length > 0 %}
               <span {% if module.route == app.request.get('_route') %}class="current-item"{% endif %}>
                 {{ module.libelle }}
               </span>
             {% else %}
-              <span>
-                <a href="{% if module.route != "" %}{{ path(module.route) }}{% else %}#{% endif %}"
-                   class="link-with-loader {% if module.route == app.request.get('_route') %}current-item{% endif %}">
-                  {{ module.libelle }}
-                </a>
+              <span class="{% if not module.acces %}disabled-module{% endif %}">
+                {% if module.acces %}
+                  <a href="{% if module.route != "" %}{{ path(module.route) }}{% else %}#{% endif %}"
+                     class="link-with-loader {% if module.route == app.request.get('_route') %}current-item{% endif %}">
+                    {{ module.libelle }}
+                  </a>
+                {% else %}
+                  <div class="disabled-link">
+                    {{ module.libelle }}
+                  </div>
+                {% endif %}
               </span>
             {% endif %}
 
@@ -155,11 +173,17 @@
                 {% for sousModule in module.children %}
                   {% if sousModule.route == '' or isRouteExiste(sousModule.route) %}
                     <li class="lvl-2 {% if sousModule.route == app.request.get('_route') %}current-item{% endif %}">
-                      <span>
-                        <a {% if sousModule.children|length > 0 %}href="#" class="dropdown-item dropdown-toggle link-with-loader"{% else %}
-                          href="{% if sousModule.route != "" %}{{ path(sousModule.route) }}{% else %}#{% endif %}" class="dropdown-item link-with-loader"{% endif %}>
-                          {{ sousModule.libelle }}
-                        </a>
+                      <span class="{% if not module.acces %}disabled-module{% endif %}">
+                        {% if module.acces %}
+                          <a {% if sousModule.children|length > 0 %}href="#" class="dropdown-item dropdown-toggle link-with-loader"{% else %}
+                            href="{% if sousModule.route != "" %}{{ path(sousModule.route) }}{% else %}#{% endif %}" class="dropdown-item link-with-loader"{% endif %}>
+                            {{ sousModule.libelle }}
+                          </a>
+                        {% else %}
+                          <div class="disabled-link">
+                            {{ module.libelle }}
+                          </div>
+                        {% endif %}
                       </span>
                     </li>
                     {% include '@ImanagingCoreApplication/Menu/vertical_menu_recursive.twig' %}

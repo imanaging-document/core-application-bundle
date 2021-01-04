@@ -2,10 +2,18 @@
   <ul>
     {% for sousModule in sousModule.children %}
       {% if sousModule.route == '' or isRouteExiste(sousModule.route) %}
-        <li class="lvl-x {% if sousModule.route == app.request.get('_route') %} active {% endif %}">
-          <a {% if sousModule.children|length > 0 %}href="#" class="dropdown-item dropdown-toggle"{% else %} href="{% if sousModule.route != "" %}{{ path(sousModule.route) }}{% else %}#{% endif %}" class="dropdown-item"{% endif %}>
-            {{ sousModule.libelle }}
-          </a>
+        <li class="lvl-x {% if sousModule.route == app.request.get('_route') %} active {% endif %} {% if not module.acces %}disabled-module{% endif %}">
+          <span class="{% if not module.acces %}disabled-module{% endif %}">
+            {% if module.acces %}
+              <a {% if sousModule.children|length > 0 %}href="#" class="dropdown-item dropdown-toggle"{% else %} href="{% if sousModule.route != "" %}{{ path(sousModule.route) }}{% else %}#{% endif %}" class="dropdown-item"{% endif %}>
+              {{ sousModule.libelle }}
+            </a>
+          {% else %}
+              <div class="disabled-link">
+              {{ module.libelle }}
+            </div>
+            {% endif %}
+          </span>
           {% include '@ImanagingCoreApplication/Menu/vertical_menu_recursive.twig' %}
         </li>
       {% endif %}

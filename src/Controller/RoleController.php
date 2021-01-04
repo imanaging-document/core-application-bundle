@@ -194,6 +194,7 @@ class RoleController extends ImanagingController
                 $roleModule = new $className();
                 $roleModule->setModule($module);
                 $roleModule->setRole($role);
+                $roleModule->setAcces(true);
                 $roleModule->setLibelle($module->getLibelle());
                 $roleModule->setOrdre($module->getOrdre());
                 $this->em->persist($roleModule);
@@ -244,6 +245,7 @@ class RoleController extends ImanagingController
         $roleModule = new RoleModule();
         $roleModule->setRole($role);
         $roleModule->setModule($module);
+        $roleModule->setAcces(true);
         $roleModule->setLibelle($module->getLibelle());
         $roleModule->setOrdre($module->getOrdre());
         $this->em->persist($roleModule);
@@ -261,6 +263,7 @@ class RoleController extends ImanagingController
     $roleModule = $this->em->getRepository(RoleModuleInterface::class)->find($id);
     if ($roleModule instanceof RoleModuleInterface){
       $params = $request->request->all();
+      $roleModule->setAcces(isset($params['acces']));
       $roleModule->setLibelle($params['libelle']);
       $roleModule->setOrdre($params['ordre']);
       $this->em->persist($roleModule);
