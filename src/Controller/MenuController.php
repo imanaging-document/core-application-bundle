@@ -50,17 +50,17 @@ class MenuController extends ImanagingController
     foreach ($module->getEnfants() as $sousModule){
       if ($sousModule instanceof ModuleInterface){
         if ($role->canAccess($sousModule->getId())){
-          if (count($sousModule->getEnfants()) > 0){
-            return $this->recursiveFindFirstSousModule($role, $sousModule);
+          if ($sousModule->getRoute() != ''){
+            try {
+              // VRAI MODULE
+              $this->generateUrl($sousModule->getRoute());
+              return $this->redirectToRoute($sousModule->getRoute());
+            } catch (RouteNotFoundException $e) {
+              return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
+            }
           } else {
-            if ($sousModule->getRoute() != ''){
-              try {
-                // VRAI MODULE
-                $this->generateUrl($sousModule->getRoute());
-                return $this->redirectToRoute($sousModule->getRoute());
-              } catch (RouteNotFoundException $e) {
-                return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
-              }
+            if (count($sousModule->getEnfants()) > 0){
+              return $this->recursiveFindFirstSousModule($role, $sousModule);
             }
           }
         }
