@@ -8,72 +8,74 @@
     <span class="navbar-toggler-icon"></span>
   </button>
 
-  <div class="collapse navbar-collapse" id="navbarSupportedContent">
-    <ul class="navbar-nav mr-auto">
-      {% set modules = getTopLevelModules(app.user, false) %}
+  <div class="nav-container">
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        {% set modules = getTopLevelModules(app.user, false) %}
 
-      {% for module in modules %}
-        {% if module.type == 'module' %}
-          <li class="nav-item active">
-            <a class="nav-link link-with-loader" {% if module.route != ""  %}href="{{ path(module.route) }}"
-                {% else %} href="{{ path('core_application_menu_get_first_sous_module_redirect', {id: module.id}) }}"{% endif %}>
-              {{ module.libelle }}
-            </a>
-          </li>
-        {% elseif module.type in ['dossier_locataire', 'portail_extranet', 'core'] %}
-          {% set dataApplication = getApplicationInformation(module.id) %}
-          {% if dataApplication.urlSso is defined %}
+        {% for module in modules %}
+          {% if module.type == 'module' %}
             <li class="nav-item active">
-              <div data-sso-method="{{dataApplication.urlSso}}" data-redirection-route="{{ module.redirection_route }}"
-                   class="nav-link changeApplication link-with-loader" style="cursor:pointer;">
+              <a class="nav-link link-with-loader" {% if module.route != ""  %}href="{{ path(module.route) }}"
+                  {% else %} href="{{ path('core_application_menu_get_first_sous_module_redirect', {id: module.id}) }}"{% endif %}>
                 {{ module.libelle }}
-              </div>
+              </a>
             </li>
+          {% elseif module.type in ['dossier_locataire', 'portail_extranet', 'core'] %}
+            {% set dataApplication = getApplicationInformation(module.id) %}
+            {% if dataApplication.urlSso is defined %}
+              <li class="nav-item active">
+                <div data-sso-method="{{dataApplication.urlSso}}" data-redirection-route="{{ module.redirection_route }}"
+                     class="nav-link changeApplication link-with-loader" style="cursor:pointer;">
+                  {{ module.libelle }}
+                </div>
+              </li>
+            {% endif %}
           {% endif %}
-        {% endif %}
-      {% endfor %}
-    </ul>
-
-    <ul class="navbar-nav">
-      {% set modules = getTopLevelModules(app.user, true) %}
-      {% for module in modules %}
-        {% if module.type == 'module' %}
-          <li class="nav-item active">
-            <a class="nav-link link-with-loader" {% if module.route != ""  %}href="{{ path(module.route) }}"
-                {% else %} href="{{ path('core_application_menu_get_first_sous_module_redirect', {id: module.id}) }}"{% endif %}>
-              {{ module.libelle }}
-            </a>
-          </li>
-        {% elseif module.type in ['dossier_locataire', 'portail_extranet', 'core'] %}
-          {% set dataApplication = getApplicationInformation(module.id) %}
-          {% if dataApplication.urlSso is defined %}
-            <li class="nav-item active">
-              <div data-sso-method="{{dataApplication.urlSso}}" data-redirection-route="{{ module.redirection_route }}"
-                   class="nav-link changeApplication link-with-loader" style="cursor:pointer;">
-                {{ module.libelle }}
-              </div>
-            </li>
-          {% endif %}
-        {% endif %}
-      {% endfor %}
+        {% endfor %}
+      </ul>
 
       <ul class="navbar-nav">
-        <li class="nav-item dropdown active">
-          <a class="nav-link main-menu-nav-link  dropdown-toggle nav-link" href="#" role="button" data-toggle="dropdown">
-            {{ app.user.prenom }} {{ app.user.nom }} <b class="caret"></b>
-          </a>
-          <div class="dropdown-menu">
-            {% if getUrlProfile() != "" %}
-              <a class="dropdown-item" href="{{ path(getUrlProfile()) }}">Profil</a>
-              <div class="dropdown-divider"></div>
+        {% set modules = getTopLevelModules(app.user, true) %}
+        {% for module in modules %}
+          {% if module.type == 'module' %}
+            <li class="nav-item active">
+              <a class="nav-link link-with-loader" {% if module.route != ""  %}href="{{ path(module.route) }}"
+                  {% else %} href="{{ path('core_application_menu_get_first_sous_module_redirect', {id: module.id}) }}"{% endif %}>
+                {{ module.libelle }}
+              </a>
+            </li>
+          {% elseif module.type in ['dossier_locataire', 'portail_extranet', 'core'] %}
+            {% set dataApplication = getApplicationInformation(module.id) %}
+            {% if dataApplication.urlSso is defined %}
+              <li class="nav-item active">
+                <div data-sso-method="{{dataApplication.urlSso}}" data-redirection-route="{{ module.redirection_route }}"
+                     class="nav-link changeApplication link-with-loader" style="cursor:pointer;">
+                  {{ module.libelle }}
+                </div>
+              </li>
             {% endif %}
-            {% if getUrlLogout() != "" %}
-              <a class="dropdown-item" href="{{ path(getUrlLogout()) }}">Déconnexion</a>
-            {% endif %}
-          </div>
-        </li>
+          {% endif %}
+        {% endfor %}
+
+        <ul class="navbar-nav">
+          <li class="nav-item dropdown active">
+            <a class="nav-link main-menu-nav-link  dropdown-toggle nav-link" href="#" role="button" data-toggle="dropdown">
+              {{ app.user.prenom }} {{ app.user.nom }} <b class="caret"></b>
+            </a>
+            <div class="dropdown-menu">
+              {% if getUrlProfile() != "" %}
+                <a class="dropdown-item" href="{{ path(getUrlProfile()) }}">Profil</a>
+                <div class="dropdown-divider"></div>
+              {% endif %}
+              {% if getUrlLogout() != "" %}
+                <a class="dropdown-item" href="{{ path(getUrlLogout()) }}">Déconnexion</a>
+              {% endif %}
+            </div>
+          </li>
+        </ul>
       </ul>
-    </ul>
+    </div>
   </div>
 </nav>
 
@@ -90,6 +92,12 @@
     .navbar{
         height: 60px;
         box-shadow: 0 10px 12px #00000029;
+    }
+
+    .nav-container{
+        width: 70%;
+        margin-left: auto;
+        margin-right: auto;
     }
 
     .navbar-light .nav-link:hover{
