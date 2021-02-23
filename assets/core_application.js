@@ -1,9 +1,9 @@
 $(document).ready(function() {
-  $('.changeApplication').click(function() {
-    var urlSso = $(this).data('sso-method');
-    var redirectionRoute = $(this).data('redirection-route');
+  $('.changeApplication').click(function(e) {
+    var urlSso = $(e).data('sso-method');
+    var redirectionRoute = $(e).data('redirection-route');
     $.ajax({
-      url: $(this).data('url'),
+      url: $(e).data('url'),
       type: "GET",
       success: function (data) {
         window.location.replace(urlSso +"?login="+data.login+"&token="+data.token+"&route="+redirectionRoute);
@@ -22,9 +22,9 @@ $(document).ready(function() {
     $('<div class="global-loader"><h4><i class="fa fa-spin fa-spinner fa-fw"></i>Redirection en cours ...</h4></div>').prependTo(document.body);
   })
 
-  $('.dropdown-toggle').click(function() {
-    $(this).parent().toggleClass('show');
-    $(this).parent().children('.dropdown-menu').toggleClass('show');
+  $('.dropdown-toggle').click(function(e) {
+    $(e).parent().toggleClass('show');
+    $(e).parent().children('.dropdown-menu').toggleClass('show');
   })
 
   $(".left-menu-sm").click(function(){
