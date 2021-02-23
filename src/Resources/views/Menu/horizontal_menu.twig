@@ -26,6 +26,7 @@
             {% if dataApplication.urlSso is defined %}
               <li class="nav-item active">
                 <div data-sso-method="{{dataApplication.urlSso}}" data-redirection-route="{{ module.redirection_route }}"
+                     data-url="{{ path('zeus_user_get_data_for_redirect') }}"
                      class="nav-link changeApplication link-with-loader" style="cursor:pointer;">
                   {{ module.libelle }}
                 </div>
@@ -50,6 +51,7 @@
             {% if dataApplication.urlSso is defined %}
               <li class="nav-item active">
                 <div data-sso-method="{{dataApplication.urlSso}}" data-redirection-route="{{ module.redirection_route }}"
+                     data-url="{{ path('zeus_user_get_data_for_redirect') }}"
                      class="nav-link changeApplication link-with-loader" style="cursor:pointer;">
                   {{ module.libelle }}
                 </div>
