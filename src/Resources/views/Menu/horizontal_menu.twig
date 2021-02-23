@@ -21,7 +21,7 @@
                 {{ module.libelle }}
               </a>
             </li>
-          {% elseif module.type in ['dossier_locataire', 'portail_extranet', 'core'] %}
+          {% elseif module.type in ['dossier_locataire', 'portail_extranet', 'core', 'hqmc'] %}
             {% set dataApplication = getApplicationInformation(module.id) %}
             {% if dataApplication.urlSso is defined %}
               <li class="nav-item active">
@@ -46,7 +46,7 @@
                 {{ module.libelle }}
               </a>
             </li>
-          {% elseif module.type in ['dossier_locataire', 'portail_extranet', 'core'] %}
+          {% elseif module.type in ['dossier_locataire', 'portail_extranet', 'core', 'hqmc'] %}
             {% set dataApplication = getApplicationInformation(module.id) %}
             {% if dataApplication.urlSso is defined %}
               <li class="nav-item active">
