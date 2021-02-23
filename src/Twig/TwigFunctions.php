@@ -6,16 +6,19 @@ use Imanaging\CoreApplicationBundle\CoreApplication;
 use Imanaging\ZeusUserBundle\Interfaces\ModuleInterface;
 use Imanaging\ZeusUserBundle\Interfaces\UserInterface;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
 class TwigFunctions extends AbstractExtension
 {
   private $coreService;
+  private $generator;
 
-  public function __construct(CoreApplication $coreService)
+  public function __construct(CoreApplication $coreService, UrlGeneratorInterface $generator)
   {
     $this->coreService = $coreService;
+    $this->generator = $generator;
   }
   public function getFunctions()
   {
@@ -28,6 +31,7 @@ class TwigFunctions extends AbstractExtension
       new TwigFunction('getUrlLogout', [$this, 'getUrlLogout']),
       new TwigFunction('getUrlProfile', [$this, 'getUrlProfile']),
       new TwigFunction('getUrlHomepage', [$this, 'getUrlHomepage']),
+      new TwigFunction('isRouteExiste', [$this, 'isRouteExiste'])
     );
   }
 

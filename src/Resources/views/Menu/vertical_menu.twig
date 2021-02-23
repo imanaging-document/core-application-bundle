@@ -10,6 +10,7 @@
           flex-grow: 1;
           left: 17%;
           width: 83%;
+          transition: left .5s ease;
       }
 
       .app-container.small-cn{
@@ -67,6 +68,11 @@
           padding: 0;
       }
 
+      .app-container.small-cn {
+          left: 4%;
+          width: 96%;
+      }
+
       .cn-vertical-menu ul li span{
           position: relative;
           display: block;
@@ -92,6 +98,8 @@
 
       .cn-vertical-menu ul li span a{
           color: #202121;
+          text-decoration: none;
+          background-color: transparent;
       }
 
       .cn-vertical-menu ul li span:hover{
@@ -196,24 +204,4 @@
       </ul>
     </div>
   </div>
-
-  <script>
-    $("a.link-with-loader").click(function(){
-      $('<div class="global-loader"><h4><i class="fa fa-spin fa-spinner fa-fw"></i>Chargement en cours ...</h4></div>').prependTo(document.body);
-    })
-
-    $("div.link-with-loader").click(function(){
-      $('<div class="global-loader"><h4><i class="fa fa-spin fa-spinner fa-fw"></i>Redirection en cours ...</h4></div>').prependTo(document.body);
-    })
-
-    $(".left-menu-sm").click(function(){
-      $(".left-menu").toggleClass('visible');
-      $(".app-container").toggleClass('small-cn');
-    });
-
-    $("#close-menu").click(function(){
-      $(".left-menu").toggleClass('visible');
-      $(".app-container").toggleClass('small-cn');
-    });
-  </script>
 {% endif %}
