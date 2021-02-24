@@ -429,7 +429,6 @@ class CoreApplication
     $now = new DateTime();
     $nowFormat = $now->format('YmdHis');
     $coreApiToken = getenv('CORE_API_TOKEN');
-    $coreApiToken = 'a928a2f284434c2dc50622ebb8c1e249';
     return [
       'token' => hash('sha256', $nowFormat.$coreApiToken),
       'date' => $nowFormat
