@@ -121,7 +121,17 @@ class RoleController extends ImanagingController
           'basePath' => $this->coreApplication->getBasePath()
         ]);
       } else {
-        $this->addFlash('error', 'Seuls les rôles non ZEUS sont éditables.');
+        $modules = $this->em->getRepository(ModuleInterface::class)->findAll();
+        $notifications = $this->em->getRepository(NotificationInterface::class)->findAll();
+        $fonctionsWithoutModule = $this->em->getRepository(FonctionInterface::class)->findBy(['module' => null]);
+
+        return $this->render("@ImanagingCoreApplication/Role/edit-zeus.html.twig", [
+          'role' => $role,
+          'modules' => $modules,
+          'notifications' => $notifications,
+          'fonctions_without_module' => $fonctionsWithoutModule,
+          'basePath' => $this->coreApplication->getBasePath()
+        ]);
       }
     }
     return $this->redirectToRoute('core_application_role');
@@ -249,11 +259,38 @@ class RoleController extends ImanagingController
         $roleModule->setLibelle($module->getLibelle());
         $roleModule->setOrdre($module->getOrdre());
         $this->em->persist($roleModule);
-        $this->em->flush();
       }
-      return $this->render("@ImanagingCoreApplication/Role/modals/edit-role-module.html.twig", [
-        'role_module' => $roleModule
-      ]);
+
+      // on récupère toutes les applications par type
+      $apps = $this->coreApplication->getApplicationsByType($module->getTypeApplication());
+      $newApps = [];
+      foreach ($apps as $app) {
+        if ($roleModule->hasApp($app['client_traitement'])) {
+          $appTemp = $roleModule->getApp($app['client_traitement']);
+          $appTemp['url'] = $app['url'];
+        } else {
+          $appTemp = [
+            'client_traitement' => $app['client_traitement'],
+            'libelle' => $app['nom'],
+            'url' => $app['url'],
+            'acces' => false
+          ];
+        }
+        $newApps[] = $appTemp;
+      }
+      $roleModule->setApps($newApps);
+      $this->em->persist($roleModule);
+
+      $this->em->flush();
+      if ($roleModule->getRole()->isZeusOnly()) {
+        return $this->render("@ImanagingCoreApplication/Role/modals/edit-role-module-zeus.html.twig", [
+          'role_module' => $roleModule
+        ]);
+      } else {
+        return $this->render("@ImanagingCoreApplication/Role/modals/edit-role-module.html.twig", [
+          'role_module' => $roleModule
+        ]);
+      }      
     } else {
       return new JsonResponse([], 500);
     }
@@ -263,9 +300,19 @@ class RoleController extends ImanagingController
     $roleModule = $this->em->getRepository(RoleModuleInterface::class)->find($id);
     if ($roleModule instanceof RoleModuleInterface){
       $params = $request->request->all();
-      $roleModule->setAcces(isset($params['acces']));
-      $roleModule->setLibelle($params['libelle']);
-      $roleModule->setOrdre($params['ordre']);
+      if (!$roleModule->getRole()->isZeusOnly()) {
+        $roleModule->setAcces(isset($params['acces']));
+        $roleModule->setLibelle($params['libelle']);
+        $roleModule->setOrdre($params['ordre']);
+      }
+
+      $apps = $roleModule->getApps();
+      foreach ($apps as $key => $app) {
+        $app['libelle'] = $params['app_libelle_' . $app['client_traitement']];
+        $app['acces'] = array_key_exists('app_acces_' . $app['client_traitement'], $params);
+        $apps[$key] = $app;
+      }
+      $roleModule->setApps($apps);
       $this->em->persist($roleModule);
       $this->em->flush();
 

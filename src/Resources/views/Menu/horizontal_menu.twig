@@ -22,16 +22,20 @@
               </a>
             </li>
           {% elseif module.type in ['dossier_locataire', 'portail_extranet', 'core', 'hqmc'] %}
-            {% set dataApplication = getApplicationInformation(module.id) %}
-            {% if dataApplication.urlSso is defined %}
-              <li class="nav-item active">
-                <div data-sso-method="{{dataApplication.urlSso}}" data-redirection-route="{{ module.redirection_route }}"
-                     data-url="{{ path('zeus_user_get_data_for_redirect') }}"
-                     class="nav-link changeApplication link-with-loader" style="cursor:pointer;">
-                  {{ module.libelle }}
-                </div>
-              </li>
-            {% endif %}
+            {% for app in module.apps %}
+              {% if app.acces %}
+                {% set dataApplication = getApplicationInformation(module.id, app.client_traitement) %}
+                {% if dataApplication.urlSso is defined %}
+                  <li class="nav-item active">
+                    <div data-sso-method="{{dataApplication.urlSso}}" data-redirection-route="{{ module.redirection_route }}"
+                         data-url="{{ path('zeus_user_get_data_for_redirect') }}"
+                         class="nav-link changeApplication link-with-loader" style="cursor:pointer;">
+                      {{ app.libelle }}
+                    </div>
+                  </li>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
           {% endif %}
         {% endfor %}
       </ul>
@@ -190,9 +194,6 @@
         display: block;
         padding: .5rem 1rem;
         text-decoration: none;
-    }
-
-    a.nav-link {
         font-family: Montserrat, sans-serif;
         font-size: 16px;
         font-weight: 300;
@@ -213,7 +214,7 @@
         color: black;
     }
 
-    a.nav-link:hover{
+    .nav-link:hover{
         color: lightgray!important;
     }
 
@@ -306,7 +307,3 @@
         opacity: .95;
     }
 </style>
-
-<script>
-
-</script>

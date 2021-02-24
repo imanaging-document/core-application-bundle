@@ -1,0 +1,182 @@
+{% extends basePath %}
+
+{% block body %}
+  {% import _self as macros %}
+
+  <div class="container container-90 mt-4 mb-4">
+    <h2 class="text-center">Edition d'un rôle - {{ role.libelle }}</h2>
+
+    <div class="card mt-2">
+      <div class="card-body">
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input" id="par-defaut" name="par-defaut" {% if role.parDefaut %}checked{% endif %} disabled>
+          <label class="form-check-label" for="par-defaut">Définir ce rôle par défaut aux nouveaux utilisateurs</label>
+        </div>
+        <hr>
+
+        <form action="{{ path('core_application_role_save', {id: role.id}) }}" method="post">
+          <div class="row">
+            <div class="col">
+              <h4 class="text-center">Modules / Fonctions</h4>
+              <h5 class="text-danger"><i class="fa fa-warning fa-2x"></i>Vous pouvez seulement modifier les applications SSO</h5>
+
+              {% if fonctions_without_module|length > 0 %}
+                <h5 class="text-primary">
+                  <b>Fonctions globales</b>
+                </h5>
+                <ul>
+                  {% for fonction in fonctions_without_module %}
+                    {% if not fonction.zeusOnly %}
+                      <li class="list-style-none">
+                        <div class="checkbox">
+                          <label>
+                            <input type="checkbox" name="fonctions[]" value="{{ fonction.id }}" {% if role.canDo(fonction.code) %}checked{% endif %} disabled>
+                            <i class="text-info">{{ fonction.libelle }} (<i>fonction</i>)</i>
+                          </label>
+                        </div>
+                      </li>
+                    {% endif %}
+                  {% endfor %}
+                </ul>
+              {% endif %}
+
+              <h5 class="text-primary">
+                <b>Modules & sous-modules</b>
+              </h5>
+              {% for module in modules %}
+                  {% if module.parent is null %}
+                    <ul class="ul-no-indent">
+                      <li class="list-style-none">
+                        <div class="checkbox">
+                          <label>
+                            <input type="checkbox" class="cbx-module" name="modules[]" data-id="{{ module.id }}" value="{{ module.id }}" {% if role.canSee(module.id) %}checked{% endif %} disabled>
+                            <b {% if not role.canAccess(module.id) and role.canSee(module.id) %}style="color: lightgray;"{% endif %}>{{ module.libelle }}</b> {% if module.typeApplication != 'module' %} <i>(Redirection SSO vers une autre application)</i> {% endif %}
+                          </label>
+
+                          {% if module.typeApplication != 'module' %}
+                            <i class="fa fa-pencil-square-o fa-fw text-primary edit-role-module"
+                               data-role-id="{{ role.id }}" data-module-id="{{ module.id }}" style="cursor: pointer;"></i>
+                          {% endif %}
+
+                        </div>
+
+                      </li>
+
+                      {% if module.enfants is not empty %}
+                        {% for sousModule in module.enfants %}
+                          {% if not sousModule.zeusOnly %}
+                            {{ _self.showSousModules(sousModule, role) }}
+                          {% endif %}
+                        {% endfor %}
+                      {% endif %}
+                    </ul>
+                  {% endif %}
+              {% endfor %}
+            </div>
+            <div class="col border-left border-dark">
+              <h4 class="text-center">Notifications (messages oranges)</h4>
+              <p><i class="fa fa-info-circle fa-fw"></i>Gestion de la visibilité des notifications</p>
+
+              <h5 class="text-primary">
+                <b>Types de notification</b>
+              </h5>
+
+              <ul>
+                {% for notification in notifications %}
+                  {% if not notification.zeusOnly %}
+                    <li class="list-style-none">
+                      <div class="checkbox">
+                        <label>
+                          <input type="checkbox" class="" name="notifications[]" value="{{ notification.id }}" {% if role.canSeeNotification(notification.code) %}checked{% endif %} disabled>
+                          {{ notification.libelle }}
+                        </label>
+                      </div>
+                    </li>
+                  {% endif %}
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+
+          <div class="text-center mt-4">
+            <button type="submit" class="btn btn-primary">
+              <i class="fa fa-save fa-fw"></i>Enregistrer
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {% macro showSousModules(module, role) %}
+    <ul class="ul-no-indent">
+      <li class="list-style-none">
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" class="cbx-module" name="modules[]" data-id="{{ module.id }}" data-parent-id="{{ module.parent.id }}" value="{{ module.id }}" {% if role.canSee(module.id) %}checked{% endif %} disabled>
+            <b {% if not role.canAccess(module.id) and role.canSee(module.id) %}style="color: lightgray;"{% endif %}>{{ module.libelle }}</b>
+          </label>
+
+          {% if module.typeApplication != 'module' %}
+            <i class="fa fa-pencil-square-o fa-fw text-primary edit-role-module"
+               data-role-id="{{ role.id }}" data-module-id="{{ module.id }}" style="cursor: pointer;"></i>
+          {% endif %}
+        </div>
+      </li>
+
+      {% if module.fonctions|length > 0 %}
+        {% for fonction in module.fonctions %}
+          {% if not fonction.zeusOnly %}
+            <ul>
+              <li class="list-style-none">
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" name="fonctions[]" value="{{ fonction.id }}" {% if role.canDo(fonction.code) %}checked{% endif %} disabled>
+                    <i class="text-info">{{ fonction.libelle }} (<i>fonction</i>)</i>
+                  </label>
+                </div>
+              </li>
+            </ul>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+
+      {% if module.enfants is not empty %}
+        {% for sousModule in module.enfants %}
+          {% if not sousModule.zeusOnly %}
+            {{ _self.showSousModules(sousModule, role) }}
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+    </ul>
+  {% endmacro %}
+
+  <div id="divModalEditRoleModule"></div>
+
+  <style>
+      .list-style-none{
+          list-style-type: none;
+      }
+  </style>
+
+  <script>
+    $(".edit-role-module").click(function(){
+      let roleId = $(this).data('role-id');
+      let moduleId = $(this).data('module-id');
+
+      let data = {role_id: roleId, module_id: moduleId};
+      $.ajax({
+        url: "{{ path('core_application_role_edit_role_module') }}",
+        type: 'POST',
+        data: data,
+        success: function(data){
+          $("#divModalEditRoleModule").html(data);
+          $("#modalEditRoleModule").modal();
+        },
+        error: function(){
+          alert('Une erreur est survenue. Veuillez réessayer plus tard.');
+        }
+      });
+    });
+  </script>
+{% endblock %}

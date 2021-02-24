@@ -11,17 +11,17 @@
         <form action="{{ path('core_application_role_save_role_module', {id: role_module.id}) }}" method="post">
           <div class="form-group">
             <label for="libelle">Nom du module</label>
-            <input type="text" class="form-control" value="{{ role_module.libelle }}" id="libelle" name="libelle">
+            <input type="text" class="form-control" value="{{ role_module.libelle }}" id="libelle" name="libelle" disabled>
           </div>
 
           <div class="form-group">
             <label for="ordre">Ordre module</label>
-            <input type="text" class="form-control" value="{{ role_module.ordre }}" id="ordre" name="ordre">
+            <input type="text" class="form-control" value="{{ role_module.ordre }}" id="ordre" name="ordre" disabled>
           </div>
 
           <div class="checkbox">
             <label for="acces">
-              <input id="acces" type="checkbox" name="acces" {% if role_module.acces %}checked{% endif %}>
+              <input id="acces" type="checkbox" name="acces" {% if role_module.acces %}checked{% endif %} disabled>
               Accessible - Le module sera grisé si cette case n'est pas cochée
             </label>
           </div>

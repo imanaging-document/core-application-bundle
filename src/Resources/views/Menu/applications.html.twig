@@ -18,18 +18,4 @@
 {% endif %}
 
 <script>
-  $('.changeApplication').click(function() {
-    var urlSso = $(this).data('sso-method');
-    $.ajax({
-      url: "{{ path('zeus_user_get_data_for_redirect') }}",
-      type: "GET",
-      success: function (data) {
-        window.location.replace(urlSso +"?login="+data.login+"&token="+data.token);
-      },
-      error: function (data) {
-        alert(data.responseJSON.error_message);
-      }
-    })
-
-  })
 </script>

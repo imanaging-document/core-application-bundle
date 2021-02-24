@@ -47,8 +47,8 @@ class TwigFunctions extends AbstractExtension
    * @param $user
    * @return array
    */
-  public function getApplicationInformation($moduleId){
-    return $this->coreService->getApplicationInformation($moduleId);
+  public function getApplicationInformation($moduleId, $clientTraitement = null){
+    return $this->coreService->getApplicationInformation($moduleId, $clientTraitement);
   }
 
   /**

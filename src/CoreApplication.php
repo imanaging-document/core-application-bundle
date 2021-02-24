@@ -169,7 +169,7 @@ class CoreApplication
     return $applications;
   }
 
-  public function getApplicationInformation($moduleId){
+  public function getApplicationInformation($moduleId, $clientTraitement = null){
     $module = $this->em->getRepository(ModuleInterface::class)->find($moduleId);
     if ($module instanceof ModuleInterface){
       $tokenAndDate = $this->getCoreTokenAndDate();
@@ -192,8 +192,14 @@ class CoreApplication
           }
           break;
         case 'core':
-
           $url = '/application?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&type_application=core';
+          $response = $this->apiCoreCommunication->sendGetRequest($url);
+          if ($response->getHttpCode() == 200) {
+            return json_decode($response->getData(), true);
+          }
+          break;
+        case 'hqmc':
+          $url = '/application?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&type_application=hqmc&client_traitement='.$clientTraitement;
           $response = $this->apiCoreCommunication->sendGetRequest($url);
           if ($response->getHttpCode() == 200) {
             return json_decode($response->getData(), true);
@@ -210,6 +216,45 @@ class CoreApplication
       'success' => 'false',
       'error_message' => 'Une erreur est survenue'
     ];
+  }
+
+  public function getApplicationsByType($type){
+    $tokenAndDate = $this->getCoreTokenAndDate();
+    $tokenCoreHashed = $tokenAndDate['token'];
+    $tokenCoreDate = $tokenAndDate['date'];
+
+    switch ($type) {
+      case 'dossier_locataire':
+        $url = '/application?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&type_application=dossier-locataire&multiple=1';
+        $response = $this->apiCoreCommunication->sendGetRequest($url);
+        if ($response->getHttpCode() == 200) {
+          return json_decode($response->getData(), true);
+        }
+        break;
+      case 'portail_extranet':
+        $url = '/application?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&type_application=portail-extranet&multiple=1';
+        $response = $this->apiCoreCommunication->sendGetRequest($url);
+        if ($response->getHttpCode() == 200) {
+          return json_decode($response->getData(), true);
+        }
+        break;
+      case 'core':
+        $url = '/application?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&type_application=core&multiple=1';
+        $response = $this->apiCoreCommunication->sendGetRequest($url);
+        if ($response->getHttpCode() == 200) {
+          return json_decode($response->getData(), true);
+        }
+        break;
+      case 'hqmc':
+        $url = '/application?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&type_application=hqmc&multiple=1';
+        $response = $this->apiCoreCommunication->sendGetRequest($url);
+        if ($response->getHttpCode() == 200) {
+          return json_decode($response->getData(), true);
+        }
+        break;
+      default:
+        return [];
+    }
   }
 
   /**
@@ -237,6 +282,7 @@ class CoreApplication
             'libelle' => $roleModule->getLibelle(),
             'acces' => $roleModule->isAcces(),
             'type' => $module->getTypeApplication(),
+            'apps' => $roleModule->getApps(),
             'data_application' => json_decode($module->getDataApplication()),
             'route' => $module->getRoute(),
             'children' => $this->getChildren($module, $role),
@@ -382,8 +428,10 @@ class CoreApplication
   public function getCoreTokenAndDate() {
     $now = new DateTime();
     $nowFormat = $now->format('YmdHis');
+    $coreApiToken = getenv('CORE_API_TOKEN');
+    $coreApiToken = 'a928a2f284434c2dc50622ebb8c1e249';
     return [
-      'token' => hash('sha256', $nowFormat.getenv('CORE_API_TOKEN')),
+      'token' => hash('sha256', $nowFormat.$coreApiToken),
       'date' => $nowFormat
     ];
   }
