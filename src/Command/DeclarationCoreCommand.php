@@ -48,5 +48,6 @@ class DeclarationCoreCommand extends Command
     } else {
       $output->writeln("<fg=red>Une erreur est survenue lors de la déclaration sur le CORE (HTTP CODE : ".$response->getHttpCode()." ).</>");
     }
+    return Command::SUCCESS;
   }
 }

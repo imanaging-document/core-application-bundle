@@ -42,5 +42,6 @@ class SynchronisationUtilisateursCoreCommand extends Command
     } else {
       $output->writeln("<fg=red>".$res['error_message']."</>");
     }
+    return Command::SUCCESS;
   }
 }
