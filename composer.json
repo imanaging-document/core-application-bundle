@@ -15,8 +15,8 @@
         "symfony/dependency-injection": "^4.2",
         "symfony/http-kernel": "^4.2",
         "symfony/yaml": "^4.2",
-        "imanaging-document/api-communication-bundle": "dev-master",
-        "imanaging-document/zeus-user-bundle": "dev-master"
+        "imanaging-document/api-communication-bundle": "1.*",
+        "imanaging-document/zeus-user-bundle": "1.*"
     },
     "autoload": {
         "psr-4": {
