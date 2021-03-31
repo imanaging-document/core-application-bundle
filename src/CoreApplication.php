@@ -11,6 +11,7 @@ use Imanaging\ZeusUserBundle\Interfaces\RoleInterface;
 use Imanaging\ZeusUserBundle\Interfaces\RoleModuleInterface;
 use Imanaging\ZeusUserBundle\Interfaces\RouteInterface;
 use Imanaging\ZeusUserBundle\Interfaces\UserInterface;
+use Imanaging\ZeusUserBundle\Interfaces\ParametrageInterface;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 class CoreApplication
@@ -292,9 +293,17 @@ class CoreApplication
   public function getTopLevelModules(User $user, bool $isDroite)
   {
     $key = 'menu_'.($isDroite ? 1: 0);
+    $keyMenuHash = 'menu_hash';
     $topLevelModules = $this->session->get($key);
+    $roleModuleHash = $this->em->getRepository(ParametrageInterface::class)->findOneBy(['cle' => 'menu_hash']);
+
     if (!is_null($topLevelModules)) {
-      return json_decode($topLevelModules);
+      if ($roleModuleHash instanceof ParametrageInterface){
+        $currentMenuHash = $this->session->get($keyMenuHash);
+        if ($currentMenuHash == $roleModuleHash->getValeur()){
+          return json_decode($topLevelModules);
+        }
+      }
     }
 
     $modules = $this->em->getRepository(ModuleInterface::class)->findBy(['parent' => null, 'droite' => $isDroite]);
@@ -318,7 +327,12 @@ class CoreApplication
         }
       }
     }
-    $this->session->get($key, json_encode($topLevelModules));
+
+    $this->session->set($key, json_encode($topLevelModules));
+    if ($roleModuleHash instanceof ParametrageInterface){
+      // Pour gérer la suppression du cache dès qu'une modification est détectée
+      $this->session->set($keyMenuHash, $roleModuleHash->getValeur());
+    }
     return $topLevelModules;
   }
 
