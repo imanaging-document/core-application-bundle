@@ -23,6 +23,7 @@ class Configuration implements ConfigurationInterface
       ->variableNode('own_url')->defaultValue('%env(OWN_URL)%')->end()
       ->variableNode('own_url_api')->defaultValue('%env(OWN_URL_API)%')->end()
       ->variableNode('client_traitement')->defaultValue('%env(CLIENT_TRAITEMENT)%')->end()
+      ->variableNode('traitement_year')->defaultValue('%env(TRAITEMENT_YEAR)%')->end()
       ->variableNode('core_api_type')->defaultValue('%env(CORE_API_TYPE_APPLICATION)%')->end()
       ->end()
     ;

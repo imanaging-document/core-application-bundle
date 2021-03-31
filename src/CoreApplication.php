@@ -27,6 +27,7 @@ class CoreApplication
   private $ownUrl;
   private $ownUrlApi;
   private $clientTraitement;
+  private $traitementYear;
   private $coreApiType;
 
   /**
@@ -42,11 +43,12 @@ class CoreApplication
    * @param $ownUrl
    * @param $ownUrlApi
    * @param $clientTraitement
+   * @param $traitementYear
    * @param $coreApiType
    */
   public function __construct(EntityManagerInterface $em, ApiCoreCommunication $apiCoreCommunication, SessionInterface $session,
                               $basePath, $urlLogout, $urlProfile, $urlHomepage, $appSecret, $appName, $ownUrl, $ownUrlApi,
-                              $clientTraitement, $coreApiType)
+                              $clientTraitement, $traitementYear, $coreApiType)
   {
     $this->em = $em;
     $this->apiCoreCommunication = $apiCoreCommunication;
@@ -60,6 +62,7 @@ class CoreApplication
     $this->ownUrl = $ownUrl;
     $this->ownUrlApi = $ownUrlApi;
     $this->clientTraitement = $clientTraitement;
+    $this->traitementYear = $traitementYear;
     $this->coreApiType = $coreApiType;
   }
 
@@ -80,6 +83,7 @@ class CoreApplication
     $json_data->url = $this->ownUrl;
     $json_data->url_api = $this->ownUrlApi;
     $json_data->client_traitement = $this->clientTraitement;
+    $json_data->traitement_year = $this->traitementYear;
     $json_data->type_application = $this->coreApiType;
 
     // Generating post data
