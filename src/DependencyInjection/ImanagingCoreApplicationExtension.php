@@ -27,6 +27,12 @@ class ImanagingCoreApplicationExtension extends Extension
     $definition->setArgument(4, $config['url_logout']);
     $definition->setArgument(5, $config['url_profile']);
     $definition->setArgument(6, $config['url_homepage']);
+    $definition->setArgument(7, $config['app_secret']);
+    $definition->setArgument(8, $config['app_name']);
+    $definition->setArgument(9, $config['own_url']);
+    $definition->setArgument(10, $config['own_url_api']);
+    $definition->setArgument(11, $config['client_traitement']);
+    $definition->setArgument(12, $config['core_api_type']);
 
   }
 

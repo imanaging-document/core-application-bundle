@@ -22,14 +22,31 @@ class CoreApplication
   private $urlLogout;
   private $urlProfile;
   private $urlHomepage;
+  private $appSecret;
+  private $appName;
+  private $ownUrl;
+  private $ownUrlApi;
+  private $clientTraitement;
+  private $coreApiType;
 
   /**
    * @param EntityManagerInterface $em
    * @param ApiCoreCommunication $apiCoreCommunication
    * @param SessionInterface $session
+   * @param $basePath
+   * @param $urlLogout
+   * @param $urlProfile
+   * @param $urlHomepage
+   * @param $appSecret
+   * @param $appName
+   * @param $ownUrl
+   * @param $ownUrlApi
+   * @param $clientTraitement
+   * @param $coreApiType
    */
   public function __construct(EntityManagerInterface $em, ApiCoreCommunication $apiCoreCommunication, SessionInterface $session,
-                              $basePath, $urlLogout, $urlProfile, $urlHomepage)
+                              $basePath, $urlLogout, $urlProfile, $urlHomepage, $appSecret, $appName, $ownUrl, $ownUrlApi,
+                              $clientTraitement, $coreApiType)
   {
     $this->em = $em;
     $this->apiCoreCommunication = $apiCoreCommunication;
@@ -38,6 +55,12 @@ class CoreApplication
     $this->urlLogout = $urlLogout;
     $this->urlProfile = $urlProfile;
     $this->urlHomepage = $urlHomepage;
+    $this->appSecret = $appSecret;
+    $this->appName = $appName;
+    $this->ownUrl = $ownUrl;
+    $this->ownUrlApi = $ownUrlApi;
+    $this->clientTraitement = $clientTraitement;
+    $this->coreApiType = $coreApiType;
   }
 
   public function getBasePath()
@@ -52,12 +75,12 @@ class CoreApplication
     $tokenCoreDate = $tokenAndDate['date'];
 
     $json_data = new \stdClass();
-    $json_data->token = getenv('APP_SECRET');
-    $json_data->nom = getenv('APP_NAME');
-    $json_data->url = getenv('OWN_URL');
-    $json_data->url_api = getenv('OWN_URL_API');
-    $json_data->client_traitement = getenv('CLIENT_TRAITEMENT');
-    $json_data->type_application = getenv('CORE_API_TYPE_APPLICATION');
+    $json_data->token = $this->appSecret;
+    $json_data->nom = $this->appName;
+    $json_data->url = $this->ownUrl;
+    $json_data->url_api = $this->ownUrlApi;
+    $json_data->client_traitement = $this->clientTraitement;
+    $json_data->type_application = $this->coreApiType;
 
     // Generating post data
     $postData = array(
@@ -76,7 +99,7 @@ class CoreApplication
     $tokenAndDate = $this->getCoreTokenAndDate();
     $tokenCoreHashed = $tokenAndDate['token'];
     $tokenCoreDate = $tokenAndDate['date'];
-    $url = '/application?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&type_application='.getenv('CORE_API_TYPE_APPLICATION').'&client_traitement='.getenv('CLIENT_TRAITEMENT');
+    $url = '/application?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&type_application='.$this->coreApiType.'&client_traitement='.$this->clientTraitement;
     $response = $this->apiCoreCommunication->sendGetRequest($url);
 
 
@@ -149,7 +172,7 @@ class CoreApplication
     $tokenCoreDate = $tokenAndDate['date'];
 
     // on va récupèrer directement sur le CORE les applications disponibles pour cet utilisateur
-    $url = '/application?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&type_application='.getenv('CORE_API_TYPE_APPLICATION').'&client_traitement='.getenv('CLIENT_TRAITEMENT');
+    $url = '/application?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&type_application='.$this->coreApiType.'&client_traitement='.$this->clientTraitement;
     $response = $this->apiCoreCommunication->sendGetRequest($url);
     if ($response->getHttpCode() == 200) {
       $data = json_decode($response->getData());
@@ -411,7 +434,7 @@ class CoreApplication
     $tokenCoreDate = $tokenAndDate['date'];
 
     // on va demander au CORE si cet utilisateur peut se connecter sur cette application
-    $url = '/application-hqmc?token='.$tokenCoreHashed.'&token_date'.$tokenCoreDate.'&client_traitement='.getenv('CLIENT_TRAITEMENT');
+    $url = '/application-hqmc?token='.$tokenCoreHashed.'&token_date'.$tokenCoreDate.'&client_traitement='.$this->clientTraitement;
     $response = $this->apiCoreCommunication->sendGetRequest($url);
     if ($response->getHttpCode() == 200) {
       $data = json_decode($response->getData());
@@ -428,9 +451,8 @@ class CoreApplication
   public function getCoreTokenAndDate() {
     $now = new DateTime();
     $nowFormat = $now->format('YmdHis');
-    $coreApiToken = getenv('CORE_API_TOKEN');
     return [
-      'token' => hash('sha256', $nowFormat.$coreApiToken),
+      'token' => hash('sha256', $nowFormat.$this->apiCoreCommunication->getApiCoreToken()),
       'date' => $nowFormat
     ];
   }
