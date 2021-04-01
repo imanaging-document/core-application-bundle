@@ -328,10 +328,12 @@ class CoreApplication
       }
     }
 
-    $this->session->set($key, json_encode($topLevelModules));
+    
     if ($roleModuleHash instanceof ParametrageInterface){
       // Pour gérer la suppression du cache dès qu'une modification est détectée
       $this->session->set($keyMenuHash, $roleModuleHash->getValeur());
+      // on stock en session le menu
+      $this->session->set($key, json_encode($topLevelModules));
     }
     return $topLevelModules;
   }
