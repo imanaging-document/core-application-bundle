@@ -328,12 +328,11 @@ class CoreApplication
       }
     }
 
-    
+
     if ($roleModuleHash instanceof ParametrageInterface){
+      $this->session->set($key, json_encode($topLevelModules));
       // Pour gérer la suppression du cache dès qu'une modification est détectée
       $this->session->set($keyMenuHash, $roleModuleHash->getValeur());
-      // on stock en session le menu
-      $this->session->set($key, json_encode($topLevelModules));
     }
     return $topLevelModules;
   }
@@ -341,8 +340,16 @@ class CoreApplication
   public function getModuleNameByRoute(UserInterface $user, $routeName){
     $key = 'module_name_'.$routeName;
     $moduleName = $this->session->get($key);
+    $keyMenuHash = $key.'_hash';
+    $roleModuleHash = $this->em->getRepository(ParametrageInterface::class)->findOneBy(['cle' => 'menu_hash']);
+
     if (!is_null($moduleName)) {
-      return $moduleName;
+      if ($roleModuleHash instanceof ParametrageInterface){
+        $currentMenuHash = $this->session->get($keyMenuHash);
+        if ($currentMenuHash == $roleModuleHash->getValeur()){
+          return $moduleName;
+        }
+      }
     }
     $route = $this->em->getRepository(RouteInterface::class)->findOneBy(['route' => $routeName]);
     if ($route instanceof RouteInterface){
@@ -352,7 +359,10 @@ class CoreApplication
         if ($role instanceof RoleInterface){
           $roleModule = $role->getRoleModule($module);
           if ($roleModule instanceof RoleModuleInterface){
-            $this->session->set($key, $roleModule->getLibelle());
+            if ($roleModuleHash instanceof ParametrageInterface) {
+              $this->session->set($key, $roleModule->getLibelle());
+              $this->session->set($keyMenuHash, $roleModuleHash->getValeur());
+            }
             return $roleModule->getLibelle();
           }
         }
@@ -370,8 +380,16 @@ class CoreApplication
   {
     $key = 'menu_'.$routeName;
     $secondLevelModules = $this->session->get($key);
+    $keyMenuHash = $key.'_hash';
+    $roleModuleHash = $this->em->getRepository(ParametrageInterface::class)->findOneBy(['cle' => 'menu_hash']);
+
     if (!is_null($secondLevelModules)) {
-      return json_decode($secondLevelModules);
+      if ($roleModuleHash instanceof ParametrageInterface){
+        $currentMenuHash = $this->session->get($keyMenuHash);
+        if ($currentMenuHash == $roleModuleHash->getValeur()){
+          return json_decode($secondLevelModules);
+        }
+      }
     }
 
     $route = $this->em->getRepository(RouteInterface::class)->findOneBy(['route' => $routeName]);
@@ -398,7 +416,10 @@ class CoreApplication
             }
           }
 
-          $this->session->set($key, json_encode($secondLevelModules));
+          if ($roleModuleHash instanceof ParametrageInterface) {
+            $this->session->set($key, json_encode($secondLevelModules));
+            $this->session->set($keyMenuHash, $roleModuleHash->getValeur());
+          }
           return $secondLevelModules;
         }
       }
