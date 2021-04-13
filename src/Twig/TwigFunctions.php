@@ -30,6 +30,7 @@ class TwigFunctions extends AbstractExtension
       new TwigFunction('getApplicationInformation', [$this, 'getApplicationInformation']),
       new TwigFunction('getUrlLogout', [$this, 'getUrlLogout']),
       new TwigFunction('getUrlProfile', [$this, 'getUrlProfile']),
+      new TwigFunction('getUrlUpdatePassword', [$this, 'getUrlUpdatePassword']),
       new TwigFunction('getUrlHomepage', [$this, 'getUrlHomepage']),
       new TwigFunction('isRouteExiste', [$this, 'isRouteExiste'])
     );
@@ -82,6 +83,11 @@ class TwigFunctions extends AbstractExtension
   public function getUrlHomepage()
   {
     return $this->coreService->getUrlHomepage();
+  }
+
+  public function getUrlUpdatePassword()
+  {
+    return $this->coreService->getUrlUpdatePassword();
   }
 
   /**

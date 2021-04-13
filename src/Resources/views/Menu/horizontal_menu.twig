@@ -74,6 +74,10 @@
               {{ app.user.prenom }} {{ app.user.nom }} <b class="caret"></b>
             </a>
             <div class="dropdown-menu">
+              {% if getUrlUpdatePassword() != "" %}
+                <a class="dropdown-item" href="{{ path(getUrlUpdatePassword()) }}">Modifier mon mot de passe</a>
+                <div class="dropdown-divider"></div>
+              {% endif %}
               {% if getUrlProfile() != "" %}
                 <a class="dropdown-item" href="{{ path(getUrlProfile()) }}">Profil</a>
                 <div class="dropdown-divider"></div>

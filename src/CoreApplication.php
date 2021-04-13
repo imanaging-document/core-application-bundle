@@ -30,6 +30,7 @@ class CoreApplication
   private $clientTraitement;
   private $traitementYear;
   private $coreApiType;
+  private $urlUpdatePassword;
 
   /**
    * @param EntityManagerInterface $em
@@ -46,10 +47,11 @@ class CoreApplication
    * @param $clientTraitement
    * @param $traitementYear
    * @param $coreApiType
+   * @param $urlUpdatePassword
    */
   public function __construct(EntityManagerInterface $em, ApiCoreCommunication $apiCoreCommunication, SessionInterface $session,
                               $basePath, $urlLogout, $urlProfile, $urlHomepage, $appSecret, $appName, $ownUrl, $ownUrlApi,
-                              $clientTraitement, $traitementYear, $coreApiType)
+                              $clientTraitement, $traitementYear, $coreApiType, $urlUpdatePassword)
   {
     $this->em = $em;
     $this->apiCoreCommunication = $apiCoreCommunication;
@@ -65,6 +67,7 @@ class CoreApplication
     $this->clientTraitement = $clientTraitement;
     $this->traitementYear = $traitementYear;
     $this->coreApiType = $coreApiType;
+    $this->urlUpdatePassword = $urlUpdatePassword;
   }
 
   public function getBasePath()
@@ -462,6 +465,10 @@ class CoreApplication
 
   public function getUrlProfile(){
     return $this->urlProfile;
+  }
+
+  public function getUrlUpdatePassword(){
+    return $this->urlUpdatePassword;
   }
 
   public function getUrlHomepage(){

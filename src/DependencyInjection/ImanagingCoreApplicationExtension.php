@@ -34,7 +34,7 @@ class ImanagingCoreApplicationExtension extends Extension
     $definition->setArgument(11, $config['client_traitement']);
     $definition->setArgument(12, $config['traitement_year']);
     $definition->setArgument(13, $config['core_api_type']);
-
+    $definition->setArgument(14, $config['url_update_password']);
   }
 
   public function getAlias()
