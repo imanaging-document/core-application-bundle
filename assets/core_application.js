@@ -1,9 +1,7 @@
 $(document).ready(function() {
-  console.log("toto");
   $('.changeApplication').click(function() {
     var urlSso = $(this).data('sso-method');
     var redirectionRoute = $(this).data('redirection-route');
-    console.log("On est la;");
     $.ajax({
       url: $(this).data('url'),
       type: "GET",
