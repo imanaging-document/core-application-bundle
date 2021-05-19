@@ -21,7 +21,7 @@
                 {{ module.libelle }}
               </a>
             </li>
-          {% elseif module.type in ['dossier_locataire', 'portail_extranet', 'core', 'hqmc'] %}
+          {% elseif module.type in ['dossier_locataire', 'portail_extranet', 'core', 'hqmc', 'quittance'] %}
             {% for app in module.apps %}
               {% if app.acces and app.url != ownUrl %}
                 {% set dataApplication = getApplicationInformation(module.id, app.client_traitement) %}
@@ -50,7 +50,7 @@
                 {{ module.libelle }}
               </a>
             </li>
-          {% elseif module.type in ['dossier_locataire', 'portail_extranet', 'core', 'hqmc'] %}
+          {% elseif module.type in ['dossier_locataire', 'portail_extranet', 'core', 'hqmc', 'quittance'] %}
             {% for app in module.apps %}
               {% if app.acces and app.url != ownUrl %}
                 {% set dataApplication = getApplicationInformation(module.id, app.client_traitement) %}
