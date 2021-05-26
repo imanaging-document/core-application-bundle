@@ -44,14 +44,14 @@
                   {% endif %}
                 </td>
                 <td>
-                  <a href="{{ path('core_application_role_edit', {id: role.id}) }}">
-                    <i class="fa fa-pencil text-primary"></i>
+                  <a href="{{ path('core_application_role_edit', {id: role.id}) }}" class="text-primary">
+                    <i class="fa fa-pencil fa-fw"></i>Editer
                   </a>
                 </td>
                 {% if not role.zeusOnly %}
                   <td>
-                    <a href="{{ path('core_application_role_remove', {id: role.id}) }}">
-                      <i class="fa fa-trash-o text-danger"></i>
+                    <a href="{{ path('core_application_role_remove', {id: role.id}) }}" class="text-danger">
+                      <i class="fa fa-trash-o fa-fw"></i>Supprimer
                     </a>
                   </td>
                 {% else %}
