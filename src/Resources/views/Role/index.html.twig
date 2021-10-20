@@ -16,8 +16,8 @@
               <th>Type de rôle</th>
             {% endif %}
             <th>Rôle par défaut</th>
-            <th><i class="fa fa-pencil"></i></th>
-            <th><i class="fa fa-trash-o"></i></th>
+            <th><i class="fa fa-pen"></i></th>
+            <th><i class="fa fa-trash"></i></th>
           </tr>
           </thead>
           <tbody>
@@ -45,13 +45,13 @@
                 </td>
                 <td>
                   <a href="{{ path('core_application_role_edit', {id: role.id}) }}" class="text-primary">
-                    <i class="fa fa-pencil fa-fw"></i>Editer
+                    <i class="fa fa-pen fa-fw"></i>Editer
                   </a>
                 </td>
                 {% if not role.zeusOnly %}
                   <td>
                     <a href="{{ path('core_application_role_remove', {id: role.id}) }}" class="text-danger">
-                      <i class="fa fa-trash-o fa-fw"></i>Supprimer
+                      <i class="fa fa-trash- fa-fw"></i>Supprimer
                     </a>
                   </td>
                 {% else %}
