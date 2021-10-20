@@ -98,7 +98,7 @@
                           {% if role.canSee(module.id) %}
                             <small>Traduction : <b class="text-primary">{{ role.getLibelleForModule(module.id) }}</b> (n°{{ role.getOrdreForModule(module.id) }})</small>
                           {% endif %}
-                          <i class="fa fa-pencil-square-o fa-fw text-primary edit-role-module"
+                          <i class="fa fa-pen fa-fw text-primary edit-role-module"
                              data-role-id="{{ role.id }}" data-module-id="{{ module.id }}" style="cursor: pointer;"></i>
                         </div>
 
@@ -172,7 +172,7 @@
           {% if role.canSee(module.id) %}
             <small>Traduction : <b class="text-primary">{{ role.getLibelleForModule(module.id) }}</b> (n°{{ role.getOrdreForModule(module.id) }})</small>
           {% endif %}
-          <i class="fa fa-pencil-square-o fa-fw text-primary edit-role-module"
+          <i class="fa fa-pen fa-fw text-primary edit-role-module"
              data-role-id="{{ role.id }}" data-module-id="{{ module.id }}" style="cursor: pointer;"></i>
         </div>
       </li>
