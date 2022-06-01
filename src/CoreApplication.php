@@ -12,14 +12,14 @@ use Imanaging\ZeusUserBundle\Interfaces\RoleModuleInterface;
 use Imanaging\ZeusUserBundle\Interfaces\RouteInterface;
 use Imanaging\ZeusUserBundle\Interfaces\UserInterface;
 use Imanaging\ZeusUserBundle\Interfaces\ParametrageInterface;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 class CoreApplication
 {
   private $em;
   private $apiCoreCommunication;
-  private $session;
   private $basePath;
+  private $requestStack;
   private $urlLogout;
   private $urlProfile;
   private $urlHomepage;
@@ -35,7 +35,7 @@ class CoreApplication
   /**
    * @param EntityManagerInterface $em
    * @param ApiCoreCommunication $apiCoreCommunication
-   * @param SessionInterface $session
+   * @param RequestStack $requestStack
    * @param $basePath
    * @param $urlLogout
    * @param $urlProfile
@@ -49,13 +49,13 @@ class CoreApplication
    * @param $coreApiType
    * @param $urlUpdatePassword
    */
-  public function __construct(EntityManagerInterface $em, ApiCoreCommunication $apiCoreCommunication, SessionInterface $session,
-                              $basePath, $urlLogout, $urlProfile, $urlHomepage, $appSecret, $appName, $ownUrl, $ownUrlApi,
-                              $clientTraitement, $traitementYear, $coreApiType, $urlUpdatePassword)
+  public function __construct(EntityManagerInterface $em, ApiCoreCommunication $apiCoreCommunication, RequestStack $requestStack,
+                                                     $basePath, $urlLogout, $urlProfile, $urlHomepage, $appSecret, $appName, $ownUrl, $ownUrlApi,
+                                                     $clientTraitement, $traitementYear, $coreApiType, $urlUpdatePassword)
   {
     $this->em = $em;
     $this->apiCoreCommunication = $apiCoreCommunication;
-    $this->session = $session;
+    $this->requestStack = $requestStack;
     $this->basePath = $basePath;
     $this->urlLogout = $urlLogout;
     $this->urlProfile = $urlProfile;
@@ -169,7 +169,7 @@ class CoreApplication
   public function getMenuApplications(User $user)
   {
     $keyMenu = 'menu_applications';
-    $applications = $this->session->get($keyMenu);
+    $applications = $this->requestStack->getSession()->get($keyMenu);
     if (!is_null($applications)) {
       return json_decode($applications, true);
     }
@@ -189,7 +189,7 @@ class CoreApplication
       $resultRequest = $this->apiCoreCommunication->sendGetRequest($url);
       if ($resultRequest->getHttpCode() == 200) {
         $applications = json_decode($resultRequest->getData(), true);
-        $this->session->set($keyMenu, json_encode($applications));
+        $this->requestStack->getSession()->set($keyMenu, json_encode($applications));
       } else {
         $applications = [];
       }
@@ -311,12 +311,12 @@ class CoreApplication
   {
     $key = 'menu_'.($isDroite ? 1: 0);
     $keyMenuHash = 'menu_hash';
-    $topLevelModules = $this->session->get($key);
+    $topLevelModules = $this->requestStack->getSession()->get($key);
     $roleModuleHash = $this->em->getRepository(ParametrageInterface::class)->findOneBy(['cle' => 'menu_hash']);
 
     if (!is_null($topLevelModules)) {
       if ($roleModuleHash instanceof ParametrageInterface){
-        $currentMenuHash = $this->session->get($keyMenuHash);
+        $currentMenuHash = $this->requestStack->getSession()->get($keyMenuHash);
         if ($currentMenuHash == $roleModuleHash->getValeur()){
           return json_decode($topLevelModules);
         }
@@ -347,22 +347,22 @@ class CoreApplication
 
 
     if ($roleModuleHash instanceof ParametrageInterface){
-      $this->session->set($key, json_encode($topLevelModules));
+      $this->requestStack->getSession()->set($key, json_encode($topLevelModules));
       // Pour gérer la suppression du cache dès qu'une modification est détectée
-      $this->session->set($keyMenuHash, $roleModuleHash->getValeur());
+      $this->requestStack->getSession()->set($keyMenuHash, $roleModuleHash->getValeur());
     }
     return $topLevelModules;
   }
 
   public function getModuleNameByRoute(UserInterface $user, $routeName){
     $key = 'module_name_'.$routeName;
-    $moduleName = $this->session->get($key);
+    $moduleName = $this->requestStack->getSession()->get($key);
     $keyMenuHash = $key.'_hash';
     $roleModuleHash = $this->em->getRepository(ParametrageInterface::class)->findOneBy(['cle' => 'menu_hash']);
 
     if (!is_null($moduleName)) {
       if ($roleModuleHash instanceof ParametrageInterface){
-        $currentMenuHash = $this->session->get($keyMenuHash);
+        $currentMenuHash = $this->requestStack->getSession()->get($keyMenuHash);
         if ($currentMenuHash == $roleModuleHash->getValeur()){
           return $moduleName;
         }
@@ -377,8 +377,8 @@ class CoreApplication
           $roleModule = $role->getRoleModule($module);
           if ($roleModule instanceof RoleModuleInterface){
             if ($roleModuleHash instanceof ParametrageInterface) {
-              $this->session->set($key, $roleModule->getLibelle());
-              $this->session->set($keyMenuHash, $roleModuleHash->getValeur());
+              $this->requestStack->getSession()->set($key, $roleModule->getLibelle());
+              $this->requestStack->getSession()->set($keyMenuHash, $roleModuleHash->getValeur());
             }
             return $roleModule->getLibelle();
           }
@@ -396,13 +396,13 @@ class CoreApplication
   public function getModulesLevel2ByRoute(UserInterface $user, $routeName)
   {
     $key = 'menu_'.$routeName;
-    $secondLevelModules = $this->session->get($key);
+    $secondLevelModules = $this->requestStack->getSession()->get($key);
     $keyMenuHash = $key.'_hash';
     $roleModuleHash = $this->em->getRepository(ParametrageInterface::class)->findOneBy(['cle' => 'menu_hash']);
 
     if (!is_null($secondLevelModules)) {
       if ($roleModuleHash instanceof ParametrageInterface){
-        $currentMenuHash = $this->session->get($keyMenuHash);
+        $currentMenuHash = $this->requestStack->getSession()->get($keyMenuHash);
         if ($currentMenuHash == $roleModuleHash->getValeur()){
           return json_decode($secondLevelModules);
         }
@@ -434,8 +434,8 @@ class CoreApplication
           }
 
           if ($roleModuleHash instanceof ParametrageInterface) {
-            $this->session->set($key, json_encode($secondLevelModules));
-            $this->session->set($keyMenuHash, $roleModuleHash->getValeur());
+            $this->requestStack->getSession()->set($key, json_encode($secondLevelModules));
+            $this->requestStack->getSession()->set($keyMenuHash, $roleModuleHash->getValeur());
           }
           return $secondLevelModules;
         }
