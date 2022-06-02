@@ -10,11 +10,11 @@
         }
     ],
     "require": {
-        "php": "^7.1.3",
-        "symfony/config": "^4.2 | ^5",
-        "symfony/dependency-injection": "^4.2 | ^5",
-        "symfony/http-kernel": "^4.2 | ^5",
-        "symfony/yaml": "^4.2 | ^5",
+        "php": "^8.1",
+        "symfony/config": "^5 | ^6",
+        "symfony/dependency-injection": "^5 | ^6",
+        "symfony/http-kernel": "^5 | ^6",
+        "symfony/yaml": "^5 | ^6",
         "imanaging-document/api-communication-bundle": "dev-master",
         "imanaging-document/zeus-user-bundle": "dev-master"
     },
