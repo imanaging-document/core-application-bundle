@@ -37,7 +37,7 @@ class ImanagingCoreApplicationExtension extends Extension
     $definition->setArgument(14, $config['url_update_password']);
   }
 
-  public function getAlias()
+  public function getAlias() : string
   {
     return 'imanaging_core_application';
   }

@@ -20,7 +20,7 @@ class TwigFunctions extends AbstractExtension
     $this->coreService = $coreService;
     $this->generator = $generator;
   }
-  public function getFunctions()
+  public function getFunctions() : array
   {
     return array(
       new TwigFunction('getApplications', array($this, 'getApplications')),

@@ -8,7 +8,7 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 class Configuration implements ConfigurationInterface
 {
-  public function getConfigTreeBuilder()
+  public function getConfigTreeBuilder() : TreeBuilder
   {
     $treeBuilder = new TreeBuilder('imanaging_core_application');
     $rootNode = $treeBuilder->getRootNode();
