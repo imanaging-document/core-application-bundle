@@ -12,7 +12,7 @@ class ImanagingCoreApplicationBundle extends Bundle
   /**
    * Overridden to allow for the custom extension alias.
    */
-  public function getContainerExtension()
+  public function getContainerExtension() : ?ImanagingCoreApplicationExtension
   {
     if (null === $this->extension) {
       $this->extension = new ImanagingCoreApplicationExtension();
