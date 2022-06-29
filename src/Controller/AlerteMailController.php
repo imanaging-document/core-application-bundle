@@ -12,40 +12,48 @@ use Imanaging\ZeusUserBundle\Interfaces\UserInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Twig\Environment;
+use Symfony\Component\HttpFoundation\Response;
 
 class AlerteMailController extends ImanagingController
 {
   private $em;
   private $coreApplication;
+  private $tokenStorage;
+  private $twig;
+
 
   /**
    * MappingController constructor.
    * @param EntityManagerInterface $em
    * @param CoreApplication $coreApplication
    */
-  public function __construct(EntityManagerInterface $em, CoreApplication $coreApplication)
+  public function __construct(EntityManagerInterface $em, CoreApplication $coreApplication, TokenStorageInterface $tokenStorage, Environment $twig)
   {
     $this->em = $em;
     $this->coreApplication = $coreApplication;
+    $this->tokenStorage = $tokenStorage;
+    $this->twig = $twig;
   }
 
   public function indexAction()
   {
-    if (!$this->userCanAccess($this->getUser(), ['core_application_alerte_mail'])){
+    if (!$this->userCanAccess($this->tokenStorage->getToken()->getUser(), ['core_application_alerte_mail'])){
       return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
     }
-    
-    return $this->render("@ImanagingCoreApplication/AlerteMail/index.html.twig", [
+
+    return new Response($this->twig->render("@ImanagingCoreApplication/AlerteMail/index.html.twig", [
       'destinataires' => $this->em->getRepository(DestinataireMailInterface::class)->findAll(),
       'alertsMailType' => $this->em->getRepository(AlerteMailInterface::class)->findAll(),
       'usersNonZeus' => $this->em->getRepository(UserInterface::class)->findBy(['utilisateurZeus' => false]),
       'basePath' => $this->coreApplication->getBasePath()
-    ]);
+    ]));
   }
 
   public function addDestinataireAction(Request $request)
   {
-    if (!$this->userCanAccess($this->getUser(), ['core_application_alerte_mail'])){
+    if (!$this->userCanAccess($this->tokenStorage->getToken()->getUser(), ['core_application_alerte_mail'])){
       return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
     }
 
@@ -96,7 +104,7 @@ class AlerteMailController extends ImanagingController
 
   public function editDestinataireAction(Request $request)
   {
-    if (!$this->userCanAccess($this->getUser(), ['core_application_alerte_mail'])){
+    if (!$this->userCanAccess($this->tokenStorage->getToken()->getUser(), ['core_application_alerte_mail'])){
       return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
     }
 
@@ -104,10 +112,10 @@ class AlerteMailController extends ImanagingController
     $destinaire = $this->em->getRepository(DestinataireMailInterface::class)->find($params['destinataire_id']);
 
     if ($destinaire instanceof DestinataireMailInterface){
-      return $this->render("@ImanagingCoreApplication/AlerteMail/edit_destinataire.html.twig", [
+      return new Response($this->twig->render("@ImanagingCoreApplication/AlerteMail/edit_destinataire.html.twig", [
         'destinataire' => $destinaire,
         'usersNonZeus' => $this->em->getRepository(UserInterface::class)->findBy(['utilisateurZeus' => false])
-      ]);
+      ]));
     } else {
       return new JsonResponse(['error_message' => 'Destinataire introuvable'], 500);
     }
@@ -115,7 +123,7 @@ class AlerteMailController extends ImanagingController
 
   public function saveDestinataireAction($id, Request $request)
   {
-    if (!$this->userCanAccess($this->getUser(), ['core_application_alerte_mail'])){
+    if (!$this->userCanAccess($this->tokenStorage->getToken()->getUser(), ['core_application_alerte_mail'])){
       return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
     }
 
@@ -150,7 +158,7 @@ class AlerteMailController extends ImanagingController
 
   public function saveDestinataireAlerteMailAction(Request $request)
   {
-    if (!$this->userCanAccess($this->getUser(), ['core_application_alerte_mail'])){
+    if (!$this->userCanAccess($this->tokenStorage->getToken()->getUser(), ['core_application_alerte_mail'])){
       return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
     }
 

@@ -9,26 +9,30 @@ use Doctrine\ORM\EntityManagerInterface;
 use Imanaging\ZeusUserBundle\Interfaces\RoleInterface;
 use Imanaging\ZeusUserBundle\Interfaces\UserInterface;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class MenuController extends ImanagingController
 {
   private $em;
   private $coreApplication;
+  private $tokenStorage;
 
   /**
    * MappingController constructor.
    * @param EntityManagerInterface $em
    * @param CoreApplication $coreApplication
    */
-  public function __construct(EntityManagerInterface $em, CoreApplication $coreApplication)
+  public function __construct(EntityManagerInterface $em, CoreApplication $coreApplication, TokenStorageInterface $tokenStorage)
   {
     $this->em = $em;
     $this->coreApplication = $coreApplication;
+    $this->tokenStorage = $tokenStorage;
   }
 
   public function getFirstSousModuleRedirectAction($id)
   {
-    $user = $this->getUser();
+    $user = $this->tokenStorage->getToken()->getUser();
+
     if ($user instanceof UserInterface){
       $role = $user->getRole();
       if ($role instanceof RoleInterface){

@@ -4,72 +4,79 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services
         http://symfony.com/schema/dic/services/services-1.0.xsd">
 
-    <services>
-        <service id="imanaging_core_application.core_application" class="Imanaging\CoreApplicationBundle\CoreApplication">
-            <argument type="service" id="doctrine.orm.default_entity_manager" />
-            <argument type="service" id="imanaging_api_communication.api_core_communication" />
-            <argument type="service" id="request_stack" />
-            <argument />
-            <argument />
-            <argument />
-            <argument />
-        </service>
+  <services>
+    <service id="imanaging_core_application.core_application" class="Imanaging\CoreApplicationBundle\CoreApplication">
+      <argument type="service" id="doctrine.orm.default_entity_manager" />
+      <argument type="service" id="imanaging_api_communication.api_core_communication" />
+      <argument type="service" id="request_stack" />
+      <argument />
+      <argument />
+      <argument />
+      <argument />
+    </service>
 
-        <service id="imanaging_core_application.core_declaration_command" class="Imanaging\CoreApplicationBundle\Command\DeclarationCoreCommand">
-            <argument type="service" id="doctrine.orm.default_entity_manager" />
-            <argument type="service" id="imanaging_core_application.core_application" />
-            <tag name="console.command" command="core:declaration" />
-        </service>
+    <service id="imanaging_core_application.core_declaration_command" class="Imanaging\CoreApplicationBundle\Command\DeclarationCoreCommand">
+      <argument type="service" id="doctrine.orm.default_entity_manager" />
+      <argument type="service" id="imanaging_core_application.core_application" />
+      <tag name="console.command" command="core:declaration" />
+    </service>
 
-        <service id="imanaging_core_application.synchronisation_utilisateurs_core_command" class="Imanaging\CoreApplicationBundle\Command\SynchronisationUtilisateursCoreCommand">
-            <argument type="service" id="imanaging_core_application.core_application" />
-            <tag name="console.command" command="core:synchronisation:utilisateurs" />
-        </service>
+    <service id="imanaging_core_application.synchronisation_utilisateurs_core_command" class="Imanaging\CoreApplicationBundle\Command\SynchronisationUtilisateursCoreCommand">
+      <argument type="service" id="imanaging_core_application.core_application" />
+      <tag name="console.command" command="core:synchronisation:utilisateurs" />
+    </service>
 
-        <service id="imanaging_core_application.twig_functions" class="Imanaging\CoreApplicationBundle\Twig\TwigFunctions">
-            <argument type="service" id="imanaging_core_application.core_application" />
-            <argument type="service" id="Symfony\Component\Routing\Generator\UrlGeneratorInterface" />
-            <tag name="twig.extension" function="getApplications" />
-        </service>
+    <service id="imanaging_core_application.twig_functions" class="Imanaging\CoreApplicationBundle\Twig\TwigFunctions">
+      <argument type="service" id="imanaging_core_application.core_application" />
+      <argument type="service" id="Symfony\Component\Routing\Generator\UrlGeneratorInterface" />
+      <tag name="twig.extension" function="getApplications" />
+    </service>
 
-        <service id="Imanaging\CoreApplicationBundle\CoreApplication" alias="imanaging_core_application.core_application" />
-        <service id="Imanaging\CoreApplicationBundle\Command\DeclarationCoreCommand" alias="imanaging_core_application.core_declaration_command" />
-        <service id="Imanaging\CoreApplicationBundle\Command\SynchronisationUtilisateursCoreCommand" alias="imanaging_core_application.synchronisation_utilisateurs_core_command" />
+    <service id="Imanaging\CoreApplicationBundle\CoreApplication" alias="imanaging_core_application.core_application" />
+    <service id="Imanaging\CoreApplicationBundle\Command\DeclarationCoreCommand" alias="imanaging_core_application.core_declaration_command" />
+    <service id="Imanaging\CoreApplicationBundle\Command\SynchronisationUtilisateursCoreCommand" alias="imanaging_core_application.synchronisation_utilisateurs_core_command" />
 
-        <service id="imanaging_core_application.menu_controller" class="Imanaging\CoreApplicationBundle\Controller\MenuController" public="true">
-          <call method="setContainer">
-            <argument type="service" id="Psr\Container\ContainerInterface"/>
-          </call>
-          <tag name="container.service_subscriber"/>
-          <argument type="service" id="doctrine.orm.default_entity_manager" />
-          <argument type="service" id="imanaging_core_application.core_application" />
-        </service>
+    <service id="imanaging_core_application.menu_controller" class="Imanaging\CoreApplicationBundle\Controller\MenuController" public="true">
+      <call method="setContainer">
+        <argument type="service" id="service_container"/>
+      </call>
+      <tag name="container.service_subscriber"/>
+      <argument type="service" id="doctrine.orm.default_entity_manager" />
+      <argument type="service" id="imanaging_core_application.core_application" />
+      <argument type="service" id="security.token_storage" />
+    </service>
 
-        <service id="imanaging_core_application.user_controller" class="Imanaging\CoreApplicationBundle\Controller\UserController" public="true">
-          <call method="setContainer">
-            <argument type="service" id="Psr\Container\ContainerInterface"/>
-          </call>
-          <tag name="container.service_subscriber"/>
-          <argument type="service" id="doctrine.orm.default_entity_manager" />
-          <argument type="service" id="imanaging_core_application.core_application" />
-        </service>
+    <service id="imanaging_core_application.user_controller" class="Imanaging\CoreApplicationBundle\Controller\UserController" public="true">
+      <call method="setContainer">
+        <argument type="service" id="service_container"/>
+      </call>
+      <tag name="container.service_subscriber"/>
+      <argument type="service" id="doctrine.orm.default_entity_manager" />
+      <argument type="service" id="imanaging_core_application.core_application" />
+      <argument type="service" id="security.token_storage" />
+      <argument type="service" id="twig" />
+    </service>
 
-        <service id="imanaging_core_application.alerte_mail_controller" class="Imanaging\CoreApplicationBundle\Controller\AlerteMailController" public="true">
-          <call method="setContainer">
-            <argument type="service" id="Psr\Container\ContainerInterface"/>
-          </call>
-          <tag name="container.service_subscriber"/>
-          <argument type="service" id="doctrine.orm.default_entity_manager" />
-          <argument type="service" id="imanaging_core_application.core_application" />
-        </service>
+    <service id="imanaging_core_application.alerte_mail_controller" class="Imanaging\CoreApplicationBundle\Controller\AlerteMailController" public="true">
+      <call method="setContainer">
+        <argument type="service" id="service_container"/>
+      </call>
+      <tag name="container.service_subscriber"/>
+      <argument type="service" id="doctrine.orm.default_entity_manager" />
+      <argument type="service" id="imanaging_core_application.core_application" />
+      <argument type="service" id="security.token_storage" />
+      <argument type="service" id="twig" />
+    </service>
 
-        <service id="imanaging_core_application.role_controller" class="Imanaging\CoreApplicationBundle\Controller\RoleController" public="true">
-          <call method="setContainer">
-            <argument type="service" id="Psr\Container\ContainerInterface"/>
-          </call>
-          <tag name="container.service_subscriber"/>
-          <argument type="service" id="doctrine.orm.default_entity_manager" />
-          <argument type="service" id="imanaging_core_application.core_application" />
-        </service>
-    </services>
+    <service id="imanaging_core_application.role_controller" class="Imanaging\CoreApplicationBundle\Controller\RoleController" public="true">
+      <call method="setContainer">
+        <argument type="service" id="service_container"/>
+      </call>
+      <tag name="container.service_subscriber"/>
+      <argument type="service" id="doctrine.orm.default_entity_manager" />
+      <argument type="service" id="imanaging_core_application.core_application" />
+      <argument type="service" id="security.token_storage" />
+      <argument type="service" id="twig" />
+    </service>
+  </services>
 </container>

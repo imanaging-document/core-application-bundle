@@ -15,39 +15,46 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Twig\Environment;
 
 class RoleController extends ImanagingController
 {
   private $em;
   private $coreApplication;
+  private $tokenStorage;
+  private $twig;
 
   /**
    * MappingController constructor.
    * @param EntityManagerInterface $em
    * @param CoreApplication $coreApplication
    */
-  public function __construct(EntityManagerInterface $em, CoreApplication $coreApplication)
+  public function __construct(EntityManagerInterface $em, CoreApplication $coreApplication, TokenStorageInterface $tokenStorage, Environment $twig)
   {
     $this->em = $em;
     $this->coreApplication = $coreApplication;
+    $this->tokenStorage = $tokenStorage;
+    $this->twig = $twig;
   }
 
   public function indexAction(Request $request)
   {
-    if (!$this->userCanAccess($this->getUser(), ['core_application_role'])){
+    if (!$this->userCanAccess($this->tokenStorage->getToken()->getUser(), ['core_application_role'])){
       return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
     }
 
     $params = $request->request->all();
-    return $this->render("@ImanagingCoreApplication/Role/index.html.twig", [
+    return new Response($this->twig->render("@ImanagingCoreApplication/Role/index.html.twig", [
       'roles' => $this->em->getRepository(RoleInterface::class)->findAll(),
       'basePath' => $this->coreApplication->getBasePath()
-    ]);
+    ]));
   }
 
   public function addRoleAction(Request $request)
   {
-    if (!$this->userCanAccess($this->getUser(), ['core_application_role'])){
+    if (!$this->userCanAccess($this->tokenStorage->getToken()->getUser(), ['core_application_role'])){
       return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
     }
 
@@ -78,7 +85,7 @@ class RoleController extends ImanagingController
 
   public function removeRoleAction($id)
   {
-    if (!$this->userCanAccess($this->getUser(), ['core_application_role'])){
+    if (!$this->userCanAccess($this->tokenStorage->getToken()->getUser(), ['core_application_role'])){
       return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
     }
 
@@ -102,7 +109,7 @@ class RoleController extends ImanagingController
 
   public function editRoleAction($id)
   {
-    if (!$this->userCanAccess($this->getUser(), ['core_application_role'])){
+    if (!$this->userCanAccess($this->tokenStorage->getToken()->getUser(), ['core_application_role'])){
       return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
     }
 
@@ -113,25 +120,25 @@ class RoleController extends ImanagingController
         $notifications = $this->em->getRepository(NotificationInterface::class)->findAll();
         $fonctionsWithoutModule = $this->em->getRepository(FonctionInterface::class)->findBy(['module' => null]);
 
-        return $this->render("@ImanagingCoreApplication/Role/edit.html.twig", [
+        return new Response($this->twig->render("@ImanagingCoreApplication/Role/edit.html.twig", [
           'role' => $role,
           'modules' => $modules,
           'notifications' => $notifications,
           'fonctions_without_module' => $fonctionsWithoutModule,
           'basePath' => $this->coreApplication->getBasePath()
-        ]);
+        ]));
       } else {
         $modules = $this->em->getRepository(ModuleInterface::class)->findAll();
         $notifications = $this->em->getRepository(NotificationInterface::class)->findAll();
         $fonctionsWithoutModule = $this->em->getRepository(FonctionInterface::class)->findBy(['module' => null]);
 
-        return $this->render("@ImanagingCoreApplication/Role/edit-zeus.html.twig", [
+        return new Response($this->twig->render("@ImanagingCoreApplication/Role/edit-zeus.html.twig", [
           'role' => $role,
           'modules' => $modules,
           'notifications' => $notifications,
           'fonctions_without_module' => $fonctionsWithoutModule,
           'basePath' => $this->coreApplication->getBasePath()
-        ]);
+        ]));
       }
     }
     return $this->redirectToRoute('core_application_role');
@@ -139,7 +146,7 @@ class RoleController extends ImanagingController
 
   public function saveLibelleRoleAction($id, Request $request)
   {
-    if (!$this->userCanAccess($this->getUser(), ['core_application_role'])){
+    if (!$this->userCanAccess($this->tokenStorage->getToken()->getUser(), ['core_application_role'])){
       return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
     }
 
@@ -170,7 +177,7 @@ class RoleController extends ImanagingController
 
   public function saveRoleAction($id, Request $request)
   {
-    if (!$this->userCanAccess($this->getUser(), ['core_application_role'])){
+    if (!$this->userCanAccess($this->tokenStorage->getToken()->getUser(), ['core_application_role'])){
       return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
     }
 
@@ -242,7 +249,7 @@ class RoleController extends ImanagingController
   }
 
   public function editRoleModuleAction(Request $request){
-    if (!$this->userCanAccess($this->getUser(), ['core_application_role'])){
+    if (!$this->userCanAccess($this->tokenStorage->getToken()->getUser(), ['core_application_role'])){
       return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
     }
 
@@ -283,14 +290,14 @@ class RoleController extends ImanagingController
 
       $this->em->flush();
       if ($roleModule->getRole()->isZeusOnly()) {
-        return $this->render("@ImanagingCoreApplication/Role/modals/edit-role-module-zeus.html.twig", [
+        return new Response($this->twig->render("@ImanagingCoreApplication/Role/modals/edit-role-module-zeus.html.twig", [
           'role_module' => $roleModule
-        ]);
+        ]));
       } else {
-        return $this->render("@ImanagingCoreApplication/Role/modals/edit-role-module.html.twig", [
+        return new Response($this->twig->render("@ImanagingCoreApplication/Role/modals/edit-role-module.html.twig", [
           'role_module' => $roleModule
-        ]);
-      }      
+        ]));
+      }
     } else {
       return new JsonResponse([], 500);
     }

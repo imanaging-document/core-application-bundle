@@ -3,56 +3,68 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://symfony.com/schema/routing
         https://symfony.com/schema/routing/routing-1.0.xsd">
-    <route id="core_application_user" path="/user" controller="imanaging_core_application.user_controller:indexAction">
+
+    <route id="core_application_user" path="/user">
+        <default key="_controller">imanaging_core_application.user_controller::indexAction</default>
     </route>
 
-    <route id="core_application_user_synchroniser" path="/user/synchroniser" controller="imanaging_core_application.user_controller:synchroniserAction">
+    <route id="core_application_user_synchroniser" path="/user/synchroniser">
+        <default key="_controller">imanaging_core_application.user_controller::synchroniserAction</default>
     </route>
 
-    <route id="core_application_alerte_mail" path="/alerte-mail" controller="imanaging_core_application.alerte_mail_controller:indexAction">
+    <route id="core_application_alerte_mail" path="/alerte-mail">
+        <default key="_controller">imanaging_core_application.alerte_mail_controller::indexAction</default>
     </route>
 
-    <route id="core_application_alerte_mail_add_destinataire" path="/alerte-mail/destinataire/add"
-           controller="imanaging_core_application.alerte_mail_controller:addDestinataireAction">
+    <route id="core_application_alerte_mail_add_destinataire" path="/alerte-mail/destinataire/add">
+        <default key="_controller">imanaging_core_application.alerte_mail_controller::addDestinataireAction</default>
     </route>
 
-    <route id="core_application_alerte_mail_edit_destinataire" path="/alerte-mail/destinataire/edit"
-           controller="imanaging_core_application.alerte_mail_controller:editDestinataireAction">
+    <route id="core_application_alerte_mail_edit_destinataire" path="/alerte-mail/destinataire/edit">
+        <default key="_controller">imanaging_core_application.alerte_mail_controller::editDestinataireAction</default>
     </route>
 
-    <route id="core_application_alerte_mail_save_destinataire" path="/alerte-mail/destinataire/{id}/save"
-           controller="imanaging_core_application.alerte_mail_controller:saveDestinataireAction">
+    <route id="core_application_alerte_mail_save_destinataire" path="/alerte-mail/destinataire/{id}/save">
+        <default key="_controller">imanaging_core_application.alerte_mail_controller::saveDestinataireAction</default>
     </route>
 
-    <route id="core_application_alerte_mail_save_destinataire_alerte_mail" path="/alerte-mail/destinataire-alerte-mail/save"
-           controller="imanaging_core_application.alerte_mail_controller:saveDestinataireAlerteMailAction">
+    <route id="core_application_alerte_mail_save_destinataire_alerte_mail" path="/alerte-mail/destinataire-alerte-mail/save">
+        <default key="_controller">imanaging_core_application.alerte_mail_controller::saveDestinataireAlerteMailAction</default>
     </route>
 
-    <route id="core_application_role" path="/role" controller="imanaging_core_application.role_controller:indexAction">
+    <route id="core_application_role" path="/role">
+        <default key="_controller">imanaging_core_application.role_controller::indexAction</default>
     </route>
 
-    <route id="core_application_role_add" path="/role/add" controller="imanaging_core_application.role_controller:addRoleAction">
+    <route id="core_application_role_add" path="/role/add">
+        <default key="_controller">imanaging_core_application.role_controller::addRoleAction</default>
     </route>
 
-    <route id="core_application_role_remove" path="/role/{id}/remove" controller="imanaging_core_application.role_controller:removeRoleAction">
+    <route id="core_application_role_remove" path="/role/{id}/remove">
+        <default key="_controller">imanaging_core_application.role_controller::removeRoleAction</default>
     </route>
 
-    <route id="core_application_role_edit" path="/role/{id}/edit" controller="imanaging_core_application.role_controller:editRoleAction">
+    <route id="core_application_role_edit" path="/role/{id}/edit">
+        <default key="_controller">imanaging_core_application.role_controller::editRoleAction</default>
     </route>
 
-    <route id="core_application_role_save" path="/role/{id}/save" controller="imanaging_core_application.role_controller:saveRoleAction">
+    <route id="core_application_role_save" path="/role/{id}/save">
+        <default key="_controller">imanaging_core_application.role_controller::saveRoleAction</default>
     </route>
 
-    <route id="core_application_role_save_libelle" path="/role/{id}/save-libelle" controller="imanaging_core_application.role_controller:saveLibelleRoleAction">
+    <route id="core_application_role_save_libelle" path="/role/{id}/save-libelle">
+        <default key="_controller">imanaging_core_application.role_controller::saveLibelleRoleAction</default>
     </route>
 
-    <route id="core_application_role_edit_role_module" path="/role-module/edit" controller="imanaging_core_application.role_controller:editRoleModuleAction">
+    <route id="core_application_role_edit_role_module" path="/role-module/edit">
+        <default key="_controller">imanaging_core_application.role_controller::editRoleModuleAction</default>
     </route>
 
-    <route id="core_application_role_save_role_module" path="/role-module/{id}/save" controller="imanaging_core_application.role_controller:saveRoleModuleAction">
+    <route id="core_application_role_save_role_module" path="/role-module/{id}/save">
+        <default key="_controller">imanaging_core_application.role_controller::saveRoleModuleAction</default>
     </route>
 
-    <route id="core_application_menu_get_first_sous_module_redirect" path="/menu/module/{id}/get-first-sous-module-redirect"
-           controller="imanaging_core_application.menu_controller:getFirstSousModuleRedirectAction">
+    <route id="core_application_menu_get_first_sous_module_redirect" path="/menu/module/{id}/get-first-sous-module-redirect" >
+        <default key="_controller">imanaging_core_application.menu_controller::getFirstSousModuleRedirectAction</default>
     </route>
 </routes>
