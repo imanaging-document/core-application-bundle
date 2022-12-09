@@ -1,0 +1,86 @@
+<div class="app_list_container">
+  <div class="app_list_my_apps">
+    <h5>MES APPLICATIONS</h5>
+    <div class="app_list">
+      {% for type_app in types_application %}
+        {% if type_app.apps|length > 0 and type_app.user_access %}
+          <div class="app_detail_container {% if type_app.application_active %}app_active{% endif %}">
+            <img src="{{ type_app.logo_base }}" alt="logo_base">
+            <div class="{{ type_app.code }}_hover">{{ type_app.libelle }}</div>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+  <div class="app_list_others_apps mt-2">
+    <h5>AUTRES APPLICATIONS DISPONIBLES</h5>
+    <div class="app_list">
+      {% for type_app in types_application %}
+        {% if type_app.apps|length == 0 or not type_app.user_access %}
+          <div class="app_detail_container">
+            <img src="{{ type_app.logo_base }}" alt="logo_base">
+            <div class="{{ type_app.code }}_hover">{{ type_app.libelle }}</div>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<style>
+  .app_list_container{
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+  }
+
+  .app_list_container h5{
+      font-size: 15px;
+  }
+
+  .app_list_my_apps{
+      display: flex;
+      flex-direction: column;
+  }
+  .app_list_others_apps{
+      display: flex;
+      flex-direction: column;
+  }
+  .app_detail_container{
+      padding: 5px;
+      display: flex;
+      height: 60px;
+      border: 1px solid black;
+      background-color: #FFFFFF;
+      border-radius: 5px;
+  }
+  .app_detail_container img{
+      width: 50px;
+      flex: 1;
+  }
+  .app_detail_container div{
+      display: flex;
+      flex: 3;
+      justify-content: center;
+      align-items: center;
+  }
+  .app_list{
+      background-color: #E8E8E8;
+      border: 2px solid #0f6674;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-column-gap: 5px;
+      grid-row-gap: 5px;
+      padding: 10px;
+  }
+
+  .app_active{
+      background-color: green;
+  }
+
+  {% for type_app in types_application %}
+    .app_detail_container:hover .{{ type_app.code }}_hover {
+        color: {{ type_app.color }}
+    }
+    {% endfor  %}
+</style>

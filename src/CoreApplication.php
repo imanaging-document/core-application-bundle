@@ -200,6 +200,44 @@ class CoreApplication
     return $applications;
   }
 
+  /**
+   * @param User $user
+   * @return array
+   */
+  public function getApplicationsListing(User $user)
+  {
+    $keyMenu = 'list_applications';
+//    $applications = $this->requestStack->getSession()->get($keyMenu);
+//    if (!is_null($applications)) {
+//      return json_decode($applications, true);
+//    }
+
+
+    $tokenAndDate = $this->getCoreTokenAndDate();
+    $tokenCoreHashed = $tokenAndDate['token'];
+    $tokenCoreDate = $tokenAndDate['date'];
+
+    // on va récupèrer directement sur le CORE les applications disponibles pour cet utilisateur
+    $url = '/application?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&type_application='.$this->coreApiType.'&client_traitement='.$this->clientTraitement;
+    $response = $this->apiCoreCommunication->sendGetRequest($url);
+    if ($response->getHttpCode() == 200) {
+      $data = json_decode($response->getData());
+      $applicationId = $data->id;
+      $url = '/applications-all/utilisateur?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&application='.$applicationId.'&login='.$user->getLogin();
+      $resultRequest = $this->apiCoreCommunication->sendGetRequest($url);
+      if ($resultRequest->getHttpCode() == 200) {
+        $typesApplication = json_decode($resultRequest->getData(), true);
+        $this->requestStack->getSession()->set($keyMenu, json_encode($typesApplication));
+      } else {
+        $typesApplication = [];
+      }
+    } else {
+      $typesApplication = [];
+    }
+
+    return $typesApplication;
+  }
+
   public function getApplicationInformation($moduleId, $clientTraitement = null){
     $module = $this->em->getRepository(ModuleInterface::class)->find($moduleId);
     if ($module instanceof ModuleInterface){
@@ -264,6 +302,52 @@ class CoreApplication
     switch ($type) {
       case 'dossier_locataire':
         $url = '/application?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&type_application=dossier-locataire&multiple=1';
+        $response = $this->apiCoreCommunication->sendGetRequest($url);
+        if ($response->getHttpCode() == 200) {
+          return json_decode($response->getData(), true);
+        }
+        break;
+      case 'portail_extranet':
+        $url = '/application?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&type_application=portail-extranet&multiple=1';
+        $response = $this->apiCoreCommunication->sendGetRequest($url);
+        if ($response->getHttpCode() == 200) {
+          return json_decode($response->getData(), true);
+        }
+        break;
+      case 'quittance':
+        $url = '/application?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&type_application=quittance&multiple=1';
+        $response = $this->apiCoreCommunication->sendGetRequest($url);
+        if ($response->getHttpCode() == 200) {
+          return json_decode($response->getData(), true);
+        }
+        break;
+      case 'core':
+        $url = '/application?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&type_application=core&multiple=1';
+        $response = $this->apiCoreCommunication->sendGetRequest($url);
+        if ($response->getHttpCode() == 200) {
+          return json_decode($response->getData(), true);
+        }
+        break;
+      case 'hqmc':
+        $url = '/application?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&type_application=hqmc&multiple=1';
+        $response = $this->apiCoreCommunication->sendGetRequest($url);
+        if ($response->getHttpCode() == 200) {
+          return json_decode($response->getData(), true);
+        }
+        break;
+      default:
+        return [];
+    }
+  }
+
+  public function getAllApplicationsForList($type){
+    $tokenAndDate = $this->getCoreTokenAndDate();
+    $tokenCoreHashed = $tokenAndDate['token'];
+    $tokenCoreDate = $tokenAndDate['date'];
+
+    switch ($type) {
+      case 'dossier_locataire':
+        $url = '/applications-all/utilisateur?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&type_application=dossier-locataire&multiple=1';
         $response = $this->apiCoreCommunication->sendGetRequest($url);
         if ($response->getHttpCode() == 200) {
           return json_decode($response->getData(), true);

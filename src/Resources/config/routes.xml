@@ -67,4 +67,8 @@
     <route id="core_application_menu_get_first_sous_module_redirect" path="/menu/module/{id}/get-first-sous-module-redirect" >
         <default key="_controller">imanaging_core_application.menu_controller::getFirstSousModuleRedirectAction</default>
     </route>
+
+    <route id="core_application_applications_show_list" path="/applications/show-list" >
+        <default key="_controller">imanaging_core_application.applications_controller::showApplicationsListAction</default>
+    </route>
 </routes>

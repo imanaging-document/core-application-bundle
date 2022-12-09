@@ -46,6 +46,16 @@
       <argument type="service" id="security.token_storage" />
     </service>
 
+    <service id="imanaging_core_application.applications_controller" class="Imanaging\CoreApplicationBundle\Controller\ApplicationsController" public="true">
+      <call method="setContainer">
+        <argument type="service" id="service_container"/>
+      </call>
+      <tag name="container.service_subscriber"/>
+      <argument type="service" id="imanaging_core_application.core_application" />
+      <argument type="service" id="security.token_storage" />
+      <argument type="service" id="twig" />
+    </service>
+
     <service id="imanaging_core_application.user_controller" class="Imanaging\CoreApplicationBundle\Controller\UserController" public="true">
       <call method="setContainer">
         <argument type="service" id="service_container"/>
