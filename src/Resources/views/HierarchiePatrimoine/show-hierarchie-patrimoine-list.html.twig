@@ -1,0 +1,27 @@
+<table class="table table-bordered table-striped text-center">
+  <thead>
+    <tr>
+      {% for type in types %}
+        <th>{{ type.libelle }}</th>
+      {% endfor %}
+      <th>Nb contrats concernés</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% set nbContrats = 0 %}
+  {% for hierarchie in hierarchies_patrimoines %}
+    <tr>
+      {% for type in types %}
+          <td>{{ hierarchie[type.niveau].libelle}}</td>
+      {% endfor %}
+      <td>{{ hierarchie.nb_contrats }}</td>
+      {% set nbContrats = nbContrats + hierarchie.nb_contrats %}
+    </tr>
+  {% endfor %}
+  <tr>
+    <td colspan="{{ types|length }}">Total</td>
+    <td>{{ nbContrats }}</td>
+  </tr>
+  </tbody>
+</table>
+

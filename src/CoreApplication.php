@@ -2,16 +2,24 @@
 
 namespace Imanaging\CoreApplicationBundle;
 
+use App\Entity\Contrat;
+use App\Entity\HierarchiePatrimoine;
+use App\Entity\HierarchiePatrimoineType;
 use App\Entity\User;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Imanaging\ApiCommunicationBundle\ApiCoreCommunication;
+use Imanaging\CoreApplicationBundle\Interfaces\ContratInterface;
+use Imanaging\CoreApplicationBundle\Interfaces\HierarchiePatrimoineInterface;
+use Imanaging\CoreApplicationBundle\Interfaces\HierarchiePatrimoineTypeInterface;
 use Imanaging\ZeusUserBundle\Interfaces\ModuleInterface;
 use Imanaging\ZeusUserBundle\Interfaces\RoleInterface;
 use Imanaging\ZeusUserBundle\Interfaces\RoleModuleInterface;
 use Imanaging\ZeusUserBundle\Interfaces\RouteInterface;
 use Imanaging\ZeusUserBundle\Interfaces\UserInterface;
 use Imanaging\ZeusUserBundle\Interfaces\ParametrageInterface;
+use Symfony\Component\Console\Helper\ProgressBar;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 class CoreApplication
@@ -163,6 +171,246 @@ class CoreApplication
   }
 
   /**
+   * Ajout d'un nouveau segment
+   */
+  public function synchroniserHierarchiePatrimoine($output = null){
+    $token = hash('sha256', $this->apiCoreCommunication->getApiCoreToken());
+    // Etape 1 : On synchronise les types de hierarchie
+    if ($output instanceof OutputInterface) {
+      $output->writeln('Etape 1 : On synchronise les types de hierarchie');
+    }
+    $typesToRemove = [];
+    $types = $this->em->getRepository(HierarchiePatrimoineTypeInterface::class)->findAll();
+    foreach ($types as $type) {
+      $typesToRemove[$type->getLibelle()] = $type;
+    }
+
+    $resTypes = $this->apiCoreCommunication->sendGetRequest('/patrimoine-hierarchie/types?token='.$token);
+    if ($resTypes->getHttpCode() == 200) {
+      $dataTypes = json_decode($resTypes->getData(), true);
+      $dataType = $dataTypes;
+      $parent = null;
+      $niveau = 0;
+      while(isset($dataType['libelle'])) {
+        $niveau++;
+        if (array_key_exists($dataType['libelle'], $typesToRemove)) {
+          $type = $typesToRemove[$dataType['libelle']];
+          unset($typesToRemove[$dataType['libelle']]);
+        } else {
+          $className = $this->em->getRepository(HierarchiePatrimoineTypeInterface::class)->getClassName();
+          $type = new $className();
+        }
+        if ($type instanceof HierarchiePatrimoineTypeInterface) {
+          $type->setLibelle($dataType['libelle']);
+          $type->setParent($parent);
+          $type->setNiveau($niveau);
+          $this->em->persist($type);
+          $parent = $type;
+        }
+        $dataType = $dataType['enfant'];
+      }
+      $this->em->flush();
+      $this->em->clear();
+      if ($output instanceof OutputInterface) {
+        $output->writeln('Etape 1 : Fin de la synchronisation des ' . $this->em->getRepository(HierarchiePatrimoineTypeInterface::class)->count([]) . ' types');
+        $output->writeln('Etape 2 : On synchronise la hierarchie');
+      }
+
+      $dataType = $dataTypes;
+      $indexType = 0;
+      while(isset($dataType['libelle'])) {
+        $offset = 0;
+        $limit = 100;
+        $libelleType = $dataType['libelle'];
+        $indexType++;
+        $nbType = $dataType['nb'];
+        if ($output instanceof OutputInterface) {
+          $output->writeln('Synchronisation du ' . $indexType. ' - ' . $libelleType);
+          $pb = new ProgressBar($output, $nbType);
+          $pb->start();
+        }
+
+        $type = $this->em->getRepository(HierarchiePatrimoineTypeInterface::class)->findOneBy(['libelle' => $libelleType]);
+        if (!($type instanceof HierarchiePatrimoineTypeInterface)) {
+          return ['success' => false, 'error_message' => 'Impossible de récupérer le type : ' . $libelleType];
+        }
+        $hierarchiesPatrimoines = $this->em->getRepository(HierarchiePatrimoineInterface::class)->findBy(['type' => $type]);
+        $hierarchiesPatrimoineToRemove = [];
+        foreach ($hierarchiesPatrimoines as $hpType) {
+          if ($hpType instanceof HierarchiePatrimoineInterface) {
+            if ($hpType->getParent() instanceof HierarchiePatrimoineInterface) {
+              $hierarchiesPatrimoineToRemove[$hpType->getCode().'_'.$hpType->getParent()->getCode()] = $hpType;
+            } else {
+              $hierarchiesPatrimoineToRemove[$hpType->getCode().'_'] = $hpType->getId();
+            }
+          }
+        }
+
+        while ($offset < $nbType) {
+          $type = $this->em->getRepository(HierarchiePatrimoineTypeInterface::class)->findOneBy(['libelle' => $libelleType]);
+          if (!($type instanceof HierarchiePatrimoineTypeInterface)) {
+            return ['success' => false, 'error_message' => 'Impossible de récupérer le type : ' . $libelleType];
+          }
+
+          $hierarchiesPatrimoineExistants = [];
+          $hierarchiesPatrimoines = $this->em->getRepository(HierarchiePatrimoineInterface::class)->findBy(['type' => $type]);
+          foreach ($hierarchiesPatrimoines as $hpType) {
+            if ($hpType instanceof HierarchiePatrimoineInterface) {
+              if ($hpType->getParent() instanceof HierarchiePatrimoineInterface) {
+                $hierarchiesPatrimoineExistants[$hpType->getCode().'_'.$hpType->getParent()->getCode()] = $hpType;
+              } else {
+                $hierarchiesPatrimoineExistants[$hpType->getCode().'_'] = $hpType;
+              }
+            }
+          }
+          $parents = [];
+          $retry = 0;
+          $continue = false;
+          do {
+            $resHierarchie = $this->apiCoreCommunication->sendGetRequest('/patrimoine-hierarchie?token='.$token.'&type=' .
+              $type->getLibelle() . '&offset=' . $offset . '&limit=' . $limit);
+            if ($resHierarchie->getHttpCode() == 200) {
+              $hierarchiesData = json_decode($resHierarchie->getData(), true);
+              foreach ($hierarchiesData as $hierarchieData) {
+                $key = $hierarchieData['code'].'_'.$hierarchieData['parent_code'];
+                if ($hierarchieData['parent_code'] != '') {
+                  if (!array_key_exists($hierarchieData['parent_code'], $parents)) {
+                    $parents[$hierarchieData['parent_code']] = $this->em->getRepository(HierarchiePatrimoineInterface::class)->findOneBy(
+                      [
+                        'type' => $this->em->getRepository(HierarchiePatrimoineTypeInterface::class)->findOneBy(['libelle' => $hierarchieData['parent_type']]),
+                        'code' => $hierarchieData['parent_code']
+                      ]);
+                  }
+                  $parent = $parents[$hierarchieData['parent_code']];
+                } else {
+                  $parent = null;
+                }
+
+                if (array_key_exists($key, $hierarchiesPatrimoineExistants)) {
+                  $hierarchiePatrimoine = $hierarchiesPatrimoineExistants[$key];
+                  unset($hierarchiesPatrimoineToRemove[$key]);
+                } else {
+                  $className = $this->em->getRepository(HierarchiePatrimoineInterface::class)->getClassName();
+                  $hierarchiePatrimoine = new $className();
+                }
+                if ($hierarchiePatrimoine instanceof HierarchiePatrimoineInterface) {
+                  $hierarchiePatrimoine->setCode($hierarchieData['code']);
+                  $hierarchiePatrimoine->setLibelle($hierarchieData['libelle']);
+                  $hierarchiePatrimoine->setType($type);
+                  $hierarchiePatrimoine->setParent($parent);
+                  $hierarchiePatrimoine->setNbPatrimoines($hierarchieData['nb']);
+                  $this->em->persist($hierarchiePatrimoine);
+                }
+              }
+              $continue = true;
+              if ($output instanceof OutputInterface) {
+                $pb->advance(count($hierarchiesData));
+              }
+            }
+            $retry++;
+          } while (!$continue && $retry < 5);
+
+          if (!$continue) {
+            return ['success' => false, 'error_message' => 'Une erreur est survenue lors de la récupération de la hierarchie depuis le CORE : ' .
+              $resTypes->getHttpCode()];
+          }
+
+          $offset += $limit;
+
+
+
+          $this->em->flush();
+          $this->em->clear();
+        }
+
+        if ($output instanceof OutputInterface) {
+          $pb->finish();
+          $output->writeln('');
+        }
+
+        $nbRemove = 0;
+        // on remove tous les hierarchiepatrimoinetoremove
+        foreach ($hierarchiesPatrimoineToRemove as $hierarchieId) {
+          $this->em->remove($this->em->getRepository(HierarchiePatrimoine::class)->find($hierarchieId));
+          $nbRemove++;
+        }
+        $this->em->flush();
+
+        if ($output instanceof OutputInterface && $nbRemove > 0) {
+          $pb->finish();
+          $output->writeln($nbRemove . ' hierarchies historiques supprimées');
+        }
+        $dataType = $dataType['enfant'];
+      }
+
+      if ($output instanceof OutputInterface) {
+        $output->writeln('Etape 2 : Terminée');
+        $output->writeln('');
+        $output->writeln('Etape 3 : Synchronisation des codes enquêtes');
+      }
+      $className = $this->em->getRepository(ContratInterface::class)->getClassName();
+      $dql = 'UPDATE ' . $className . ' c SET c.hierarchiePatrimoine = null';
+      $this->em->createQuery($dql)->execute();
+
+      $lastType = $this->em->getRepository(HierarchiePatrimoineType::class)->findOneBy(['libelle' => $libelleType]);
+      if ($lastType instanceof HierarchiePatrimoineType) {
+        $nbHierarchiePatrimoineNiveauMin = $this->em->getRepository(HierarchiePatrimoineInterface::class)->count(['type' => $lastType]);
+        $offset = 0;
+        $limit = 100;
+        $limitDetail = 100;
+
+        $className = $this->em->getRepository(HierarchiePatrimoineInterface::class)->getClassName();
+        $dql = 'SELECT sum(c.nbPatrimoines) FROM ' . $className . ' c where c.type = :type';
+        $nbPatrimoinesTotal = $this->em->createQuery($dql)->setParameter('type', $lastType)->getSingleScalarResult();
+
+        if ($output instanceof OutputInterface) {
+          $pb = new ProgressBar($output, $nbPatrimoinesTotal);
+          $pb->start();
+        }
+
+        while ($offset < $nbHierarchiePatrimoineNiveauMin) {
+          $lastType = $this->em->getRepository(HierarchiePatrimoineType::class)->findOneBy(['libelle' => $libelleType]);
+          $hierarchiesPatrimoines = $this->em->getRepository(HierarchiePatrimoineInterface::class)->findBy(['type' => $lastType], ['id' => 'ASC'], $limit, $offset);
+          foreach ($hierarchiesPatrimoines as $hierarchiePatrimoine) {
+            if ($hierarchiePatrimoine instanceof HierarchiePatrimoine) {
+              $offsetDetail = 0;
+              $codeParent = ($hierarchiePatrimoine->getParent() instanceof HierarchiePatrimoine) ? $hierarchiePatrimoine->getParent()->getCode() : '';
+              while ($offsetDetail < $hierarchiePatrimoine->getNbPatrimoines()) {
+                $resCodesEnquetes = $this->apiCoreCommunication->sendGetRequest(
+                  '/patrimoine-hierarchie/codes-enquetes?token='.$token.'&type=' . $lastType->getLibelle() .
+                  '&code_hierarchie=' . $hierarchiePatrimoine->getCode()  . '&code_parent=' . $codeParent .
+                  '&offset=' . $offsetDetail . '&limit=' . $limitDetail);
+                if ($resCodesEnquetes->getHttpCode() == 200) {
+                  $codesEnquetes = json_decode($resCodesEnquetes->getData(), true);
+                  $className = $this->em->getRepository(ContratInterface::class)->getClassName();
+                  $dql = 'UPDATE ' . $className . ' c SET c.hierarchiePatrimoine = ' . $hierarchiePatrimoine->getId() . ' where c.codeEnquete in (:codesEnquete)';
+                  $this->em->createQuery($dql)->setParameter('codesEnquete', $codesEnquetes)->execute();
+                } else {
+                  return ['success' => false, 'error_message' => 'Une erreur est survenue lors de la récupération des codes enquêtes. Code HTTP : ' .
+                    $resCodesEnquetes->getHttpCode()];
+                }
+                $offsetDetail += $limitDetail;
+              }
+              if ($output instanceof OutputInterface) {
+                $pb->advance($hierarchiePatrimoine->getNbPatrimoines());
+              }
+            }
+          }
+          $offset += $limit;
+        }
+        if ($output instanceof OutputInterface) {
+          $pb->finish();
+        }
+        return ['success' => true];
+      }
+    } else {
+      return ['success' => false,
+        'error_message' => 'Une erreur est survenue lors de la récupération des types de hierarchie depuis le CORE : ' .
+          $resTypes->getHttpCode()];
+    }
+  }
+
+  /**
    * @param User $user
    * @return array
    */
@@ -207,10 +455,10 @@ class CoreApplication
   public function getApplicationsListing(User $user)
   {
     $keyMenu = 'list_applications';
-//    $applications = $this->requestStack->getSession()->get($keyMenu);
-//    if (!is_null($applications)) {
-//      return json_decode($applications, true);
-//    }
+    $applications = $this->requestStack->getSession()->get($keyMenu);
+    if (!is_null($applications)) {
+      return json_decode($applications, true);
+    }
 
 
     $tokenAndDate = $this->getCoreTokenAndDate();
@@ -602,4 +850,22 @@ class CoreApplication
       'date' => $nowFormat
     ];
   }
+
+  public function getNbContratsConcernes(HierarchiePatrimoineInterface $hierarchiePatrimoine)
+  {
+    $nbContrats = 0;
+    $enfants = $hierarchiePatrimoine->getEnfants();
+    if (count($enfants) > 0) {
+      foreach ($enfants as $enfant) {
+        $nbContrats += $this->getNbContratsConcernes($enfant);
+      }
+
+      return $nbContrats;
+    } else {
+      $className = $this->em->getRepository(ContratInterface::class)->getClassName();
+      $dql = 'SELECT count(c.id) nbContrats FROM ' . $className . ' c WHERE c.hierarchiePatrimoine = :hp';
+      return $this->em->createQuery($dql)->setParameter('hp', $hierarchiePatrimoine)->getSingleScalarResult();
+    }
+  }
+
 }

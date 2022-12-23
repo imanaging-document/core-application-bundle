@@ -71,4 +71,12 @@
     <route id="core_application_applications_show_list" path="/applications/show-list" >
         <default key="_controller">imanaging_core_application.applications_controller::showApplicationsListAction</default>
     </route>
+
+    <route id="core_application_hierarchie_patrimoine" path="/hierarchie-patrimoine" >
+        <default key="_controller">imanaging_core_application.hierarchie_patrimoine_controller::indexAction</default>
+    </route>
+
+    <route id="core_application_hierarchie_patrimoine_show_list_hierarchie_patrimoine" path="/hierarchie-patrimoine/show-list" >
+        <default key="_controller">imanaging_core_application.hierarchie_patrimoine_controller::showHierarchiePatrimoineListAction</default>
+    </route>
 </routes>
