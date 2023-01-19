@@ -2,30 +2,25 @@
 
 {% block body %}
   <div class="container container-90 mt-4 mb-4">
-    <h2 class="text-center">Hierarchie patrimoine</h2>
+    <h2 class="text-center">Interlocuteurs</h2>
     <div class="row">
       <div class="col-md-4">
         <table class="table table-bordered table-striped text-center">
           <thead>
           <tr>
-            <th>Niveau</th>
             <th>Libelle</th>
-            <th>Nombre</th>
           </tr>
           </thead>
           <tbody>
-          {% for type in hierarchie_patrimoine_types %}
+          {% for type in interlocuteurs_types %}
             <tr>
-              <td>{{ type.niveau }}</td>
               <td class="clickable-type" data-id="{{ type.id }}">{{ type.libelle }}</td>
-              <td>{{ type.nb }}</td>
             </tr>
           {% endfor %}
           </tbody>
         </table>
       </div>
-      <div id="list-hierarchie" class="col-md-8">
-
+      <div id="list-interlocuteur" class="col-md-8">
       </div>
     </div>
     <hr>
@@ -68,30 +63,30 @@
   </div>
 
   <style>
-    .clickable-type{
-        cursor: pointer;
-    }
-    .clickable-type:hover{
-        color: blue;
-    }
+      .clickable-type{
+          cursor: pointer;
+      }
+      .clickable-type:hover{
+          color: blue;
+      }
 
   </style>
 
   <script>
     $('.clickable-type').click(function() {
-      $("#list-hierarchie").html('<i class="fa fa-spin fa-spinner fa-fw fa-lg"></i>');
+      $("#list-interlocuteur").html('<i class="fa fa-spin fa-spinner fa-fw fa-lg"></i>');
       var idType =$(this).data('id');
       console.log(idType);
       var dataPost = {'id-type' : idType};
       $.ajax({
-        url: "{{ path('core_application_hierarchie_patrimoine_show_list_hierarchie_patrimoine') }}",
+        url: "{{ path('core_application_interlocuteurs_show_list') }}",
         type: "POST",
         data: dataPost,
         success: function (data) {
-          $("#list-hierarchie").html(data);
+          $("#list-interlocuteur").html(data);
         },
         error: function(){
-          $("#list-hierarchie").html("<h4>Echec de chargement de la liste</h4>");
+          $("#list-interlocuteur").html("<h4>Echec de chargement de la liste</h4>");
         }
       })
     })

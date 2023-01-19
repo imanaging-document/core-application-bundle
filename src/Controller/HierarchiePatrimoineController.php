@@ -5,6 +5,7 @@ namespace Imanaging\CoreApplicationBundle\Controller;
 use App\Entity\HierarchiePatrimoine;
 use App\Entity\HierarchiePatrimoineType;
 use Imanaging\CoreApplicationBundle\CoreApplication;
+use Imanaging\CoreApplicationBundle\Interfaces\CoreSynchronisationActionInterface;
 use Imanaging\CoreApplicationBundle\Interfaces\HierarchiePatrimoineInterface;
 use Imanaging\CoreApplicationBundle\Interfaces\HierarchiePatrimoineTypeInterface;
 use Imanaging\ZeusUserBundle\Controller\ImanagingController;
@@ -54,6 +55,8 @@ class HierarchiePatrimoineController extends ImanagingController
     }
     return new Response($this->twig->render("@ImanagingCoreApplication/HierarchiePatrimoine/index.html.twig", [
       'hierarchie_patrimoine_types' => $types,
+      'historiques_synchro' => $this->em->getRepository(CoreSynchronisationActionInterface::class)->findBy(
+        ['typeSynchronisation' => CoreSynchronisationActionInterface::TYPE_SYNCHRONISATION_HIERARCHIE_PATRIMOINE], ['dateCreation' => 'DESC'], 10),
       'basePath' => $this->coreApplication->getBasePath()
     ]));
   }

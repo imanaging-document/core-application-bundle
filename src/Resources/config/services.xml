@@ -31,6 +31,11 @@
       <tag name="console.command" command="core:synchronisation:hierarchie-patrimoine" />
     </service>
 
+    <service id="imanaging_core_application.synchronisation_interlocuteurs_core_command" class="Imanaging\CoreApplicationBundle\Command\SynchronisationInterlocuteursCoreCommand">
+      <argument type="service" id="imanaging_core_application.core_application" />
+      <tag name="console.command" command="core:synchronisation:interlocuteurs" />
+    </service>
+
     <service id="imanaging_core_application.twig_functions" class="Imanaging\CoreApplicationBundle\Twig\TwigFunctions">
       <argument type="service" id="imanaging_core_application.core_application" />
       <argument type="service" id="Symfony\Component\Routing\Generator\UrlGeneratorInterface" />
@@ -95,6 +100,17 @@
     </service>
 
     <service id="imanaging_core_application.hierarchie_patrimoine_controller" class="Imanaging\CoreApplicationBundle\Controller\HierarchiePatrimoineController" public="true">
+      <call method="setContainer">
+        <argument type="service" id="service_container"/>
+      </call>
+      <tag name="container.service_subscriber"/>
+      <argument type="service" id="doctrine.orm.default_entity_manager" />
+      <argument type="service" id="imanaging_core_application.core_application" />
+      <argument type="service" id="security.token_storage" />
+      <argument type="service" id="twig" />
+    </service>
+
+    <service id="imanaging_core_application.interlocuteurs_controller" class="Imanaging\CoreApplicationBundle\Controller\InterlocuteursController" public="true">
       <call method="setContainer">
         <argument type="service" id="service_container"/>
       </call>

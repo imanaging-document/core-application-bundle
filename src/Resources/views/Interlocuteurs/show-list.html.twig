@@ -1,0 +1,18 @@
+<table class="table table-bordered table-striped text-center">
+  <thead>
+  <tr>
+    <th>Type</th>
+    <th>Interlocuteur</th>
+    <th>Nb contrats concernés</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for interlocuteur in interlocuteurs %}
+    <tr>
+      <td>{{ type }}</td>
+      <td>{{ interlocuteur.libelle }}</td>
+      <td>{{ interlocuteur.nb }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>

@@ -79,4 +79,12 @@
     <route id="core_application_hierarchie_patrimoine_show_list_hierarchie_patrimoine" path="/hierarchie-patrimoine/show-list" >
         <default key="_controller">imanaging_core_application.hierarchie_patrimoine_controller::showHierarchiePatrimoineListAction</default>
     </route>
+
+    <route id="core_application_interlocuteurs" path="/interlocuteurs" >
+        <default key="_controller">imanaging_core_application.interlocuteurs_controller::indexAction</default>
+    </route>
+
+    <route id="core_application_interlocuteurs_show_list" path="/interlocuteurs/show-list" >
+        <default key="_controller">imanaging_core_application.interlocuteurs_controller::showInterlocuteursListAction</default>
+    </route>
 </routes>

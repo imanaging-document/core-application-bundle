@@ -2,7 +2,7 @@
 
 namespace Imanaging\CoreApplicationBundle;
 
-use App\Entity\Contrat;
+use App\Entity\CoreSynchronisationAction;
 use App\Entity\HierarchiePatrimoine;
 use App\Entity\HierarchiePatrimoineType;
 use App\Entity\User;
@@ -10,8 +10,12 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Imanaging\ApiCommunicationBundle\ApiCoreCommunication;
 use Imanaging\CoreApplicationBundle\Interfaces\ContratInterface;
+use Imanaging\CoreApplicationBundle\Interfaces\CoreSynchronisationActionInterface;
 use Imanaging\CoreApplicationBundle\Interfaces\HierarchiePatrimoineInterface;
 use Imanaging\CoreApplicationBundle\Interfaces\HierarchiePatrimoineTypeInterface;
+use Imanaging\CoreApplicationBundle\Interfaces\InterlocuteurContratInterface;
+use Imanaging\CoreApplicationBundle\Interfaces\InterlocuteurInterface;
+use Imanaging\CoreApplicationBundle\Interfaces\InterlocuteurTypeInterface;
 use Imanaging\ZeusUserBundle\Interfaces\ModuleInterface;
 use Imanaging\ZeusUserBundle\Interfaces\RoleInterface;
 use Imanaging\ZeusUserBundle\Interfaces\RoleModuleInterface;
@@ -173,7 +177,7 @@ class CoreApplication
   /**
    * Ajout d'un nouveau segment
    */
-  public function synchroniserHierarchiePatrimoine($output = null){
+  public function synchroniserHierarchiePatrimoine(CoreSynchronisationActionInterface $synchronisationAction, $output = null){
     $token = hash('sha256', $this->apiCoreCommunication->getApiCoreToken());
     // Etape 1 : On synchronise les types de hierarchie
     if ($output instanceof OutputInterface) {
@@ -407,6 +411,203 @@ class CoreApplication
       return ['success' => false,
         'error_message' => 'Une erreur est survenue lors de la récupération des types de hierarchie depuis le CORE : ' .
           $resTypes->getHttpCode()];
+    }
+  }
+
+  public function synchronisationInterlocuteurs(CoreSynchronisationActionInterface $synchronisationAction, $output = null): array
+  {
+    $synchronisationActionId = $synchronisationAction->getId();
+    $startTime = microtime(true);
+    $synchronisationAction->setDateLancement(new \DateTime());
+    $synchronisationAction->setStatut(CoreSynchronisationActionInterface::STATUT_EN_COURS);
+    $this->em->persist($synchronisationAction);
+    $this->em->flush();
+
+    $token = hash('sha256', $this->apiCoreCommunication->getApiCoreToken());
+    // Etape 1 : On synchronise les types d'interlocuteurs
+    if ($output instanceof OutputInterface) {
+      $output->writeln('Etape 1 : On synchronise les types d\'interlocuteurs');
+    }
+    $typesToRemove = [];
+    $types = $this->em->getRepository(InterlocuteurTypeInterface::class)->findAll();
+    foreach ($types as $type) {
+      $typesToRemove[$type->getIdCore()] = $type;
+    }
+
+    $resTypes = $this->apiCoreCommunication->sendGetRequest('/interlocuteur/types/find-all?token='.$token);
+    if ($resTypes->getHttpCode() == 200) {
+      $coreTypes = json_decode($resTypes->getData(), true);
+      foreach ($coreTypes as $groupeLabel => $coreGroupeType) {
+        foreach ($coreGroupeType['types'] as $coreType) {
+          $typeTmp = null;
+          if (array_key_exists($coreType['id'], $typesToRemove)) {
+            $typeTmp = $typesToRemove[$coreType['id']];
+            unset($typesToRemove[$coreType['id']]);
+          } else {
+            $className = $this->em->getRepository(InterlocuteurTypeInterface::class)->getClassName();
+            $typeTmp = new $className();
+            $typeTmp->setIdCore($coreType['id']);
+          }
+          $typeTmp->setGroupe($groupeLabel);
+          $typeTmp->setLibelle($coreType['libelle']);
+          $this->em->persist($typeTmp);
+        }
+      }
+      $this->em->flush();
+      foreach ($typesToRemove as $typeToRemove) {
+        $this->em->remove($typeToRemove);
+      }
+      $this->em->flush();
+      $this->em->clear();
+
+      if ($output instanceof OutputInterface) {
+        $output->writeln('Etape 2 : On synchronise les interlocuteurs');
+      }
+
+      $className = $this->em->getRepository(InterlocuteurContratInterface::class)->getClassName();
+      $dql = 'DELETE FROM ' . $className;
+      $this->em->createQuery($dql)->execute();
+
+      $nbTypes = $this->em->getRepository(InterlocuteurTypeInterface::class)->count([]);
+      if ($output instanceof OutputInterface) {
+        $pb = new ProgressBar($output, $nbTypes);
+        $pb->start();
+      }
+      for ($i = 0; $i <= $nbTypes; $i++) {
+        $types = $this->em->getRepository(InterlocuteurTypeInterface::class)->findBy([], ['id' => 'ASC'], 1, $i);
+        foreach ($types as $type) {
+          if ($type instanceof InterlocuteurTypeInterface) {
+
+            // on récupère via API les interlocuteurs
+            $resTypeDetail = $this->apiCoreCommunication->sendGetRequest('/interlocuteur/type/'.$type->getIdCore().'/find-all?token='.$token);
+            if ($resTypeDetail->getHttpCode() == 200) {
+              // GESTION DES INTERLOCUTEURS A SUPPRIMER
+              $interlocuteursToRemove = [];
+              $interlocuteursLocal = $this->em->getRepository(InterlocuteurInterface::class)->findBy(['type' => $type], []);
+              foreach ($interlocuteursLocal as $interlocuteurLocal) {
+                $interlocuteursToRemove[$interlocuteurLocal->getIdCore()] = $interlocuteurLocal;
+              }
+
+              foreach (json_decode($resTypeDetail->getData(), true)['interlocuteurs'] as $interlocuteurCore) {
+                if (array_key_exists($interlocuteurCore['id_core'], $interlocuteursToRemove)) {
+                  $interlocuteur = $interlocuteursToRemove[$interlocuteurCore['id_core']];
+                  unset($interlocuteursToRemove[$interlocuteurCore['id_core']]);
+                } else {
+                  $className = $this->em->getRepository(InterlocuteurInterface::class)->getClassName();
+                  $interlocuteur = new $className();
+                  $interlocuteur->setIdCore($interlocuteurCore['id_core']);
+                  $interlocuteur->setType($type);
+                }
+                $interlocuteur->setLibelle($interlocuteurCore['libelle']);
+
+                if ($interlocuteurCore['user'] != '') {
+                  $user = $this->em->getRepository(UserInterface::class)->findOneBy(['login' => $interlocuteurCore['user']]);
+                  $interlocuteur->setUser($user);
+                }
+                $this->em->persist($interlocuteur);
+
+
+                // on récupère les patrimoines associés
+                $moreCodesEnquete = true;
+                $offset = 0;
+                $limit = 200;
+
+                while ($moreCodesEnquete) {
+                  $resCodesEnquetes = $this->apiCoreCommunication->sendGetRequest(
+                    '/interlocuteur/'.$interlocuteur->getIdCore().'/patrimoines?token='.$token.'&offset='.$offset.'&limit='.$limit);
+                  if ($resCodesEnquetes->getHttpCode() == 200) {
+                    $dataDecoded = json_decode($resCodesEnquetes->getData(), true);
+                    $contrats = $this->em->getRepository(ContratInterface::class)->findBy(['codeEnquete' => $dataDecoded['codes_enquetes']]);
+                    $className = $this->em->getRepository(InterlocuteurContratInterface::class)->getClassName();
+                    foreach ($contrats as $contrat) {
+                      $interlocuteurContrat = new $className();
+                      $interlocuteurContrat->setContrat($contrat);
+                      $interlocuteurContrat->setInterlocuteur($interlocuteur);
+                      $this->em->persist($interlocuteurContrat);
+                    }
+                    $moreCodesEnquete = $dataDecoded['more'];
+                  } else {
+                    $duree = microtime(true) - $startTime;
+                    $errorMessage = 'Une erreur est survenue lors de la récupération des codes enquêtees depuis le core. Interlocuteur . ' .
+                      $interlocuteur->getLibelle() . '. HTTP : ' . $resCodesEnquetes->getHttpCode();
+
+                    $synchronisationAction = $this->em->getRepository(CoreSynchronisationActionInterface::class)->find($synchronisationActionId);
+                    $synchronisationAction->setDateFin(new \DateTime());
+                    $synchronisationAction->setDuree($duree);
+                    $synchronisationAction->setStatut(CoreSynchronisationActionInterface::STATUT_EN_ERREUR);
+                    $synchronisationAction->setErrorMessage($errorMessage);
+                    $this->em->persist($synchronisationAction);
+                    $this->em->flush();
+                    return ['success' => false, 'duree' => $duree,
+                      'error_message' => $errorMessage];
+                  }
+                  $offset += $limit;
+                }
+              }
+
+              foreach ($interlocuteursToRemove as $item) {
+                $this->em->remove($item);
+              }
+              $this->em->flush();
+            } else {
+              $duree = microtime(true) - $startTime;
+              $errorMessage = 'Une erreur est survenue lors de la récupération des interlocuteurs depuis le core. HTTP : ' . $resTypeDetail->getHttpCode();
+
+              $synchronisationAction = $this->em->getRepository(CoreSynchronisationActionInterface::class)->find($synchronisationActionId);
+              $synchronisationAction->setDateFin(new \DateTime());
+              $synchronisationAction->setDuree($duree);
+              $synchronisationAction->setStatut(CoreSynchronisationActionInterface::STATUT_EN_ERREUR);
+              $synchronisationAction->setErrorMessage($errorMessage);
+              $this->em->persist($synchronisationAction);
+              $this->em->flush();
+              return [
+                'success' => false,
+                'duree' => $duree,
+                'error_message' => $errorMessage
+              ];
+            }
+          } else {
+            $duree = microtime(true) - $startTime;
+            $errorMessage = 'Erreur inconnue #1';
+
+            $synchronisationAction = $this->em->getRepository(CoreSynchronisationActionInterface::class)->find($synchronisationActionId);
+            $synchronisationAction->setDateFin(new \DateTime());
+            $synchronisationAction->setDuree($duree);
+            $synchronisationAction->setStatut(CoreSynchronisationActionInterface::STATUT_EN_ERREUR);
+            $synchronisationAction->setErrorMessage($errorMessage);
+            $this->em->persist($synchronisationAction);
+            $this->em->flush();
+
+            return [
+              'success' => false,
+              'duree' => $duree,
+              'error_message' => $errorMessage
+            ];
+          }
+        }
+        if ($output instanceof OutputInterface) {
+          $pb->advance();
+        }
+      }
+
+      if ($output instanceof OutputInterface) {
+        $pb->finish();
+      }
+
+      $duree = microtime(true) - $startTime;
+
+      $synchronisationAction = $this->em->getRepository(CoreSynchronisationActionInterface::class)->find($synchronisationActionId);
+      $synchronisationAction->setDateFin(new \DateTime());
+      $synchronisationAction->setDuree($duree);
+      $synchronisationAction->setStatut(CoreSynchronisationActionInterface::STATUT_TERMINE);
+      $this->em->persist($synchronisationAction);
+      $this->em->flush();
+
+      return ['success' => true, 'duree' => $duree];
+    } else {
+      $duree = microtime(true) - $startTime;
+      return ['success' => false, 'duree' => $duree,
+        'error_message' => 'Une erreur est survenue lors de la récupération des types interlocuteurs depuis le core. HTTP : ' . $resTypes->getHttpCode()];
     }
   }
 
@@ -868,4 +1069,37 @@ class CoreApplication
     }
   }
 
+  public function createAction(string $typeSynchronisation)
+  {
+    $actionEnAttente = $this->em->getRepository(CoreSynchronisationActionInterface::class)->findBy([
+        'typeSynchronisation' => $typeSynchronisation,
+        'statut' => CoreSynchronisationActionInterface::STATUT_EN_ATTENTE
+      ]);
+
+    if (count($actionEnAttente) == 0) {
+      $className = $this->em->getRepository(CoreSynchronisationActionInterface::class)->getClassName();
+      $action = new $className();
+      if ($action instanceof CoreSynchronisationActionInterface) {
+        $action->setDateCreation(new \DateTime());
+        $action->setStatut(CoreSynchronisationActionInterface::STATUT_EN_ATTENTE);
+        $action->setTypeSynchronisation($typeSynchronisation);
+        $this->em->persist($action);
+        $this->em->flush();
+
+        return ['success' => true, 'synchronisation_action' => $action];
+      } else {
+        throw new \Exception('Impossible de créer une action de synchronisation');
+      }
+    } else {
+      return ['success' => false, 'error_message' => 'Déjà une action en attente'];
+    }
+  }
+
+  public function getActionEnAttente(string $typeSynchronisation)
+  {
+    return $this->em->getRepository(CoreSynchronisationActionInterface::class)->findOneBy([
+        'typeSynchronisation' => $typeSynchronisation,
+        'statut' => CoreSynchronisationActionInterface::STATUT_EN_ATTENTE
+      ]);
+  }
 }
