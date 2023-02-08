@@ -4,140 +4,179 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;300;600;800&display=swap">
 
   <style>
-      .app-container{
-          position: absolute;
-          min-height: calc(100vh - 60px);
-          flex-grow: 1;
-          left: 17%;
-          width: 83%;
-          transition: left .5s ease;
-      }
+    .app-container{
+      position: absolute;
+      min-height: calc(100vh - 60px);
+      flex-grow: 1;
+      left: 17%;
+      width: 83%;
+      transition: left .5s ease;
+    }
 
-      .app-container.small-cn{
-          left: 4%;
-          width: 96%;
-          transition: left .5s ease;
-      }
+    .app-container.small-cn{
+      left: 4%;
+      width: 96%;
+      transition: left .5s ease;
+    }
 
-      .left-menu{
-          left: -17%;
-          position: fixed;
-          width: 17%;
-          overflow-y: scroll;
-          height: calc(100vh - 60px);
-          background: #f4f7f6;
-          transition: left .33s ease-in;
-      }
+    .left-menu{
+      left: -17%;
+      position: fixed;
+      width: 17%;
+      overflow-y: scroll;
+      height: calc(100vh - 60px);
+      background: #f4f7f6;
+      transition: left .33s ease-in;
+    }
 
-      .left-menu-sm{
-          position: fixed;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          flex-direction: column;
-          padding: 25px;
-          width: 4%;
-          height: calc(100vh - 60px);
-          background: #f4f7f6;
-          cursor: pointer;
-      }
+    .left-menu-sm{
+      position: fixed;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      padding: 25px;
+      width: 4%;
+      height: calc(100vh - 60px);
+      background: #f4f7f6;
+      cursor: pointer;
+    }
 
-      .left-menu-sm:hover{
-          background-color: #dbd7d7;
-      }
+    .left-menu-sm div.mobile-bars{
+      display: none;
+    }
 
-      .left-menu-sm .title{
-          font-size: 26px;
-          font-family: Montserrat, sans-serif;
-          font-weight: 500;
-          writing-mode: vertical-lr;
-          transform: rotate(180deg);
-      }
+    .left-menu-sm:hover{
+      background-color: #dbd7d7;
+    }
 
+    .left-menu-sm .title{
+      font-size: 26px;
+      font-family: Montserrat, sans-serif;
+      font-weight: 500;
+      writing-mode: vertical-lr;
+      transform: rotate(180deg);
+    }
+
+    .left-menu.visible{
+      left: 0;
+    }
+
+    .cn-vertical-menu{
+      min-height: 100%;
+    }
+
+    .cn-vertical-menu ul{
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .app-container.small-cn {
+      left: 4%;
+      width: 96%;
+    }
+
+    .cn-vertical-menu ul li span{
+      position: relative;
+      display: block;
+      padding: 20px 32px;
+      font-size: 17px;
+      font-family: Montserrat, sans-serif;
+      color: #202121;
+      cursor: pointer;
+      background: #f4f7f6;
+      border-bottom: 1px solid #E6EAEA;
+      transition: background 0.3s ease-in-out, border 0.3s ease-in-out, color 0.3s ease-in-out;
+    }
+
+    .cn-vertical-menu ul li span.disabled-module{
+      cursor: not-allowed;
+    }
+
+    .cn-vertical-menu ul li.lvl-2 span{
+      padding: 16px 28px;
+      font-size: 14px;
+      text-indent: 25px;
+    }
+
+    .cn-vertical-menu ul li span a{
+      color: #202121;
+      text-decoration: none;
+      background-color: transparent;
+    }
+
+    .cn-vertical-menu ul li span:hover{
+      background: white;
+    }
+
+    .cn-vertical-menu ul li.current-item span{
+      background-color: #A1D5CF;
+      font-weight: 600;
+    }
+
+    .cn-vertical-menu ul li span.title{
+      cursor: auto;
+      font-size: 24px;
+      text-align: center;
+      border-bottom: 0;
+    }
+
+    .disabled-link{
+      color: lightgray;
+    }
+
+    .disabled-module{
+      cursor: not-allowed;
+    }
+
+    #close-menu{
+      cursor: pointer;
+    }
+
+    #close-menu:hover{
+      color: #A1D5CF;
+    }
+
+    @media all and (min-device-width: 100px) and (max-device-width: 600px) {
       .left-menu.visible{
-          left: 0;
+        width: 100%;
+        z-index: 9999;
+      }
+      .left-menu-sm{
+        position: fixed;
+        bottom: 2em;
+        right: -1em;
+        width: 1.5em;
+        height: 1.5em;
+        border-radius: 50%;
+        background: #0d6efd;
+        cursor: pointer;
+        z-index: 9999;
       }
 
-      .cn-vertical-menu{
-          min-height: 100%;
+      .left-menu-sm div{
+        display: none;
       }
 
-      .cn-vertical-menu ul{
-          list-style-type: none;
-          margin: 0;
-          padding: 0;
+      .left-menu-sm div.mobile-bars{
+        color: white;
+        display: block;
       }
 
       .app-container.small-cn {
-          left: 4%;
-          width: 96%;
+        left: 0;
+        width: 100%;
       }
-
-      .cn-vertical-menu ul li span{
-          position: relative;
-          display: block;
-          padding: 20px 32px;
-          font-size: 17px;
-          font-family: Montserrat, sans-serif;
-          color: #202121;
-          cursor: pointer;
-          background: #f4f7f6;
-          border-bottom: 1px solid #E6EAEA;
-          transition: background 0.3s ease-in-out, border 0.3s ease-in-out, color 0.3s ease-in-out;
-      }
-
-      .cn-vertical-menu ul li span.disabled-module{
-          cursor: not-allowed;
-      }
-
-      .cn-vertical-menu ul li.lvl-2 span{
-          padding: 16px 28px;
-          font-size: 14px;
-          text-indent: 25px;
-      }
-
-      .cn-vertical-menu ul li span a{
-          color: #202121;
-          text-decoration: none;
-          background-color: transparent;
-      }
-
-      .cn-vertical-menu ul li span:hover{
-          background: white;
-      }
-
-      .cn-vertical-menu ul li.current-item span{
-          background-color: #A1D5CF;
-          font-weight: 600;
-      }
-
-      .cn-vertical-menu ul li span.title{
-          cursor: auto;
-          font-size: 24px;
-          text-align: center;
-          border-bottom: 0;
-      }
-
-      .disabled-link{
-          color: lightgray;
-      }
-
-      .disabled-module{
-          cursor: not-allowed;
-      }
-
-      #close-menu{
-          cursor: pointer;
-      }
-
-      #close-menu:hover{
-          color: #A1D5CF;
-      }
+    }
   </style>
 
   <div class="left-menu-sm">
     <div class="title">
       {{ getModuleNameByRoute(app.user, app.request.get('_route')) }} <i class="fa fa-bars fa-rotate-90"></i>
+    </div>
+    <div class="mobile-bars">
+      <i class="fa fa-bars fa-lg"></i>
     </div>
   </div>
 
