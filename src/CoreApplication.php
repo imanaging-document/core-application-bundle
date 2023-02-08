@@ -1102,4 +1102,19 @@ class CoreApplication
         'statut' => CoreSynchronisationActionInterface::STATUT_EN_ATTENTE
       ]);
   }
+
+  public function getContratsIdsByUser(UserInterface $user)
+  {
+    $interlocuteurs = $this->em->getRepository(InterlocuteurInterface::class)->findBy(['user' => $user]);
+    if (count($interlocuteurs) > 0) {
+      foreach ($interlocuteurs as $interlocuteur) {
+        if ($interlocuteur instanceof InterlocuteurInterface) {
+          $interlocuteursId[] = $interlocuteur->getId();
+        }
+      }
+      return $this->em->getRepository(InterlocuteurContratInterface::class)->getContratsId($interlocuteursId);
+    }
+
+    return null;
+  }
 }
