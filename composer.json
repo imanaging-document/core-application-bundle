@@ -16,6 +16,7 @@
         "symfony/http-kernel": "^5 | ^6",
         "symfony/yaml": "^5 | ^6",
         "imanaging-document/api-communication-bundle": "dev-master",
+        "imanaging-document/check-format-bundle": "dev-master",
         "imanaging-document/zeus-user-bundle": "dev-master"
     },
     "autoload": {

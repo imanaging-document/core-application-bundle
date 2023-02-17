@@ -21,8 +21,9 @@ class ApplicationsController extends ImanagingController
 
   /**
    * MappingController constructor.
-   * @param EntityManagerInterface $em
    * @param CoreApplication $coreApplication
+   * @param TokenStorageInterface $tokenStorage
+   * @param Environment $twig
    */
   public function __construct(CoreApplication $coreApplication, TokenStorageInterface $tokenStorage, Environment $twig)
   {
@@ -39,6 +40,5 @@ class ApplicationsController extends ImanagingController
       'user' => $user,
       'types_application' => $typesApplication
     ]));
-
   }
 }

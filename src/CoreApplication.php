@@ -8,7 +8,9 @@ use App\Entity\HierarchiePatrimoineType;
 use App\Entity\User;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Imanaging\ApiCommunicationBundle\ApiCoreCommunication;
+use Imanaging\CheckFormatBundle\Interfaces\ConfigurationImportAutomatiqueMappingInterface;
 use Imanaging\CoreApplicationBundle\Interfaces\ContratInterface;
 use Imanaging\CoreApplicationBundle\Interfaces\CoreSynchronisationActionInterface;
 use Imanaging\CoreApplicationBundle\Interfaces\HierarchiePatrimoineInterface;
@@ -22,12 +24,20 @@ use Imanaging\ZeusUserBundle\Interfaces\RoleModuleInterface;
 use Imanaging\ZeusUserBundle\Interfaces\RouteInterface;
 use Imanaging\ZeusUserBundle\Interfaces\UserInterface;
 use Imanaging\ZeusUserBundle\Interfaces\ParametrageInterface;
+use phpseclib3\Net\SFTP;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 class CoreApplication
 {
+  const STATUT_EXECUTION_EN_ATTENTE = 'en_attente';
+  const STATUT_EXECUTION_EN_COURS = 'en_cours';
+  const STATUT_EXECUTION_ERREUR = 'erreur';
+  const STATUT_EXECUTION_TERMINE = 'termine';
+  const STATUT_EXECUTION_PASSEE = 'passee';
+  const TYPE_TRAITEMENT_AUTOMATIQUE_CONFIGURATION_MAPPING = 'configuration_mapping';
+  const TYPE_TRAITEMENT_AUTOMATIQUE_WEBHOOK = 'webhook';
   private $em;
   private $apiCoreCommunication;
   private $basePath;
@@ -1116,5 +1126,127 @@ class CoreApplication
     }
 
     return null;
+  }
+
+  public function updateEtatExecutionImportAutomatique($executionIdCore, $statut, $message, $dataSuivi = []): bool
+  {
+    $postData = [
+      'token' => hash('sha256', $this->apiCoreCommunication->getApiCoreToken()),
+      'execution_id' => $executionIdCore,
+      'statut' => $statut,
+      'message' => $message,
+      'data_suivi' => json_encode($dataSuivi)
+    ];
+    // on fait un retour en erreur
+    $res = $this->apiCoreCommunication->sendPostRequest('/import-automatique/execution-result', $postData);
+    return ($res->getHttpCode() == '200');
+  }
+
+  public function copyFromSftp(ConfigurationImportAutomatiqueMappingInterface $importAutomatique, $projectDir)
+  {
+    $files = [];
+    try {
+      // On récupère les fichiers sur le SFTP que l'on dépose dans le dossier associé
+      $sftp = new SFTP($importAutomatique->getSftpUrl(), $importAutomatique->getSftpPort());
+      if (!$sftp->login($importAutomatique->getSftpLogin(), $importAutomatique->getSftpPassword())) {
+        return [
+          'success' => false,
+          'continue' => false,
+          'error_message' => $importAutomatique->getMappingConfiguration()->getLibelle() . ' : la connexion SFTP a échoué.'
+        ];
+      }
+    } catch (Exception $e) {
+      return [
+        'success' => false,
+        'continue' => false,
+        'error_message' => $importAutomatique->getMappingConfiguration()->getLibelle() . ' : la connexion SFTP a échoué. ' . $e->getMessage()
+      ];
+    }
+
+    $sftp->mkdir($importAutomatique->getCheminRepertoire(), 0700, true);
+    if (!$sftp->is_dir($importAutomatique->getCheminRepertoire())) {
+      return [
+        'success' => false,
+        'continue' => false,
+        'error_message' => $importAutomatique->getMappingConfiguration()->getLibelle() . ' : Le répertoire de cet import automatique n\'existe pas sur le serveur SFTP.'
+      ];
+    }
+
+    // On regarde s'il existe des fichiers dans ce répertoire à intégrer
+    $fichiersDistants = $sftp->rawlist($importAutomatique->getCheminRepertoire());
+    $nbFichiersDistants = 0;
+    foreach ($fichiersDistants as $fichierDistant => $infos) {
+      if (!in_array($fichierDistant, ['.', '..', 'archive'])) {
+        $nbFichiersDistants++;
+      }
+    }
+
+    if ($nbFichiersDistants == 0) {
+      if ($importAutomatique->isObligatoire()) {
+        return [
+          'success' => false,
+          'continue' => false,
+          'error_message' => $importAutomatique->getMappingConfiguration()->getLibelle() . ' : Aucun fichier en attente sur le serveur.'
+        ];
+      } else {
+        return [
+          'success' => true,
+          'continue' => false,
+          'error_message' => $importAutomatique->getMappingConfiguration()->getLibelle() . ' : Aucun fichier en attente sur le serveur.'
+        ];
+      }
+    }
+
+    if ($nbFichiersDistants > 1) {
+      return [
+        'success' => false,
+        'continue' => false,
+        'error_message' => $importAutomatique->getMappingConfiguration()->getLibelle() . ' : Trop de fichiers sont en attente sur le serveur ('
+          . (count($fichiersDistants) - 2) . ').'
+      ];
+    }
+
+    $expectedLocalFilepath = $importAutomatique->getMappingConfiguration()->getType()->getFilesDirectory();
+    $expectedLocalFilename = $importAutomatique->getMappingConfiguration()->getType()->getFilename();
+    $cheminRepertoireImportAutomatique = $importAutomatique->getCheminRepertoire();
+
+    foreach ($fichiersDistants as $fichierDistant => $infos) {
+      if (!in_array($fichierDistant, ['.', '..', 'archive'])) {
+
+        if (!is_dir($projectDir . $expectedLocalFilepath)) {
+          mkdir($projectDir . $expectedLocalFilepath, 0755, true);
+        }
+
+        $now = new DateTime();
+
+        $pathFichierDistant = $cheminRepertoireImportAutomatique . '/' . $fichierDistant;
+        $extensionFichierDistant = pathinfo($pathFichierDistant)['extension'];
+
+        $finalFilename = $expectedLocalFilename . '_' . $now->format('YmdHis') . '.' . $extensionFichierDistant;
+        $fullFilepath = $projectDir . $expectedLocalFilepath . $finalFilename;
+
+        $res = $sftp->get($pathFichierDistant, $fullFilepath);
+        if (!$res) {
+          return [
+            'success' => false,
+            'continue' => false,
+            'error_message' => $importAutomatique->getMappingConfiguration()->getLibelle()
+              . ' : Une erreur est survenue lors du téléchargement du fichier (' . $pathFichierDistant . ')'
+          ];
+        }
+        // On archive ce fichier distant
+        $sftp->mkdir($importAutomatique->getCheminRepertoire() . '/archive', 0700, true);
+        $archivedPathFichierDistant = $importAutomatique->getCheminRepertoire() . '/archive/' . $now->format('YmdHis') . '_' . $fichierDistant;
+        $sftp->rename($pathFichierDistant, $archivedPathFichierDistant);
+        // Le fichier a bien été archivé
+        $files[] = [
+          'fichier_distant' => $fichierDistant,
+          'final_filename' => $finalFilename,
+          'date' => $now
+        ];
+      }
+    }
+
+    return ['success' => true, 'continue' => true, 'files' => $files];
   }
 }
