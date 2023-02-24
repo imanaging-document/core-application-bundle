@@ -37,6 +37,7 @@ class CoreApplication
   const STATUT_EXECUTION_TERMINE = 'termine';
   const STATUT_EXECUTION_PASSEE = 'passee';
   const TYPE_TRAITEMENT_AUTOMATIQUE_CONFIGURATION_MAPPING = 'configuration-mapping';
+  const TYPE_TRAITEMENT_AUTOMATIQUE_CONFIGURATION_EXPORT = 'configuration-export';
   const TYPE_TRAITEMENT_AUTOMATIQUE_WEBHOOK = 'webhook';
   private $em;
   private $apiCoreCommunication;
