@@ -1,5 +1,17 @@
 {% set modulesLvl2 = getModulesLevel2ByRoute(app.user, app.request.get('_route')) %}
 
+<style>
+    .app-container{
+        position: absolute;
+        top: 70px;
+        min-height: calc(100vh - 70px);
+        flex-grow: 1;
+        left: 0;
+        width: 100%;
+        transition: left .5s ease;
+    }
+</style>
+
 {% if modulesLvl2|length > 0 %}
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;300;600;800&display=swap">
 
