@@ -38,7 +38,6 @@ class CoreApplication
   const STATUT_EXECUTION_PASSEE = 'passee';
   const TYPE_TRAITEMENT_AUTOMATIQUE_CONFIGURATION_MAPPING = 'configuration-mapping';
   const TYPE_TRAITEMENT_AUTOMATIQUE_CONFIGURATION_EXPORT = 'configuration-export';
-  const TYPE_TRAITEMENT_AUTOMATIQUE_CONFIGURATION_TRAITEMENT_SPECIFIQUE = 'configuration-automatique-traitement-specifique';
   const TYPE_TRAITEMENT_AUTOMATIQUE_WEBHOOK = 'webhook';
   private $em;
   private $apiCoreCommunication;
@@ -190,6 +189,13 @@ class CoreApplication
    * Ajout d'un nouveau segment
    */
   public function synchroniserHierarchiePatrimoine(CoreSynchronisationActionInterface $synchronisationAction, $output = null){
+    $synchronisationActionId = $synchronisationAction->getId();
+    $startTime = microtime(true);
+    $synchronisationAction->setDateLancement(new \DateTime());
+    $synchronisationAction->setStatut(CoreSynchronisationActionInterface::STATUT_EN_COURS);
+    $this->em->persist($synchronisationAction);
+    $this->em->flush();
+
     $token = hash('sha256', $this->apiCoreCommunication->getApiCoreToken());
     // Etape 1 : On synchronise les types de hierarchie
     if ($output instanceof OutputInterface) {
@@ -248,7 +254,15 @@ class CoreApplication
 
         $type = $this->em->getRepository(HierarchiePatrimoineTypeInterface::class)->findOneBy(['libelle' => $libelleType]);
         if (!($type instanceof HierarchiePatrimoineTypeInterface)) {
-          return ['success' => false, 'error_message' => 'Impossible de récupérer le type : ' . $libelleType];
+          $errorMessage = '#1 Impossible de récupérer le type : ' . $libelleType;
+          $synchronisationAction = $this->em->getRepository(CoreSynchronisationActionInterface::class)->find($synchronisationActionId);
+          $synchronisationAction->setDateFin(new \DateTime());
+          $synchronisationAction->setDuree($duree);
+          $synchronisationAction->setStatut(CoreSynchronisationActionInterface::STATUT_EN_ERREUR);
+          $synchronisationAction->setErrorMessage($errorMessage);
+          $this->em->persist($synchronisationAction);
+          $this->em->flush();
+          return ['success' => false, 'error_message' => $errorMessage];
         }
         $hierarchiesPatrimoines = $this->em->getRepository(HierarchiePatrimoineInterface::class)->findBy(['type' => $type]);
         $hierarchiesPatrimoineToRemove = [];
@@ -265,7 +279,15 @@ class CoreApplication
         while ($offset < $nbType) {
           $type = $this->em->getRepository(HierarchiePatrimoineTypeInterface::class)->findOneBy(['libelle' => $libelleType]);
           if (!($type instanceof HierarchiePatrimoineTypeInterface)) {
-            return ['success' => false, 'error_message' => 'Impossible de récupérer le type : ' . $libelleType];
+            $errorMessage = '#2 Impossible de récupérer le type : ' . $libelleType;
+            $synchronisationAction = $this->em->getRepository(CoreSynchronisationActionInterface::class)->find($synchronisationActionId);
+            $synchronisationAction->setDateFin(new \DateTime());
+            $synchronisationAction->setDuree($duree);
+            $synchronisationAction->setStatut(CoreSynchronisationActionInterface::STATUT_EN_ERREUR);
+            $synchronisationAction->setErrorMessage($errorMessage);
+            $this->em->persist($synchronisationAction);
+            $this->em->flush();
+            return ['success' => false, 'error_message' => $errorMessage];
           }
 
           $hierarchiesPatrimoineExistants = [];
@@ -327,13 +349,18 @@ class CoreApplication
           } while (!$continue && $retry < 5);
 
           if (!$continue) {
-            return ['success' => false, 'error_message' => 'Une erreur est survenue lors de la récupération de la hierarchie depuis le CORE : ' .
-              $resTypes->getHttpCode()];
+            $errorMessage = 'Une erreur est survenue lors de la récupération de la hierarchie depuis le CORE : '.$resTypes->getHttpCode();
+            $synchronisationAction = $this->em->getRepository(CoreSynchronisationActionInterface::class)->find($synchronisationActionId);
+            $synchronisationAction->setDateFin(new \DateTime());
+            $synchronisationAction->setDuree($duree);
+            $synchronisationAction->setStatut(CoreSynchronisationActionInterface::STATUT_EN_ERREUR);
+            $synchronisationAction->setErrorMessage($errorMessage);
+            $this->em->persist($synchronisationAction);
+            $this->em->flush();
+            return ['success' => false, 'error_message' => $errorMessage];
           }
 
           $offset += $limit;
-
-
 
           $this->em->flush();
           $this->em->clear();
@@ -417,12 +444,27 @@ class CoreApplication
         if ($output instanceof OutputInterface) {
           $pb->finish();
         }
+
+        $synchronisationAction = $this->em->getRepository(CoreSynchronisationActionInterface::class)->find($synchronisationActionId);
+        $synchronisationAction->setDateFin(new \DateTime());
+        $synchronisationAction->setDuree($duree);
+        $synchronisationAction->setStatut(CoreSynchronisationActionInterface::STATUT_TERMINE);
+        $this->em->persist($synchronisationAction);
+        $this->em->flush();
+
         return ['success' => true];
       }
     } else {
+      $errorMessage = 'Une erreur est survenue lors de la récupération des types de hierarchie depuis le CORE : '.$resTypes->getHttpCode();
+      $synchronisationAction = $this->em->getRepository(CoreSynchronisationActionInterface::class)->find($synchronisationActionId);
+      $synchronisationAction->setDateFin(new \DateTime());
+      $synchronisationAction->setDuree($duree);
+      $synchronisationAction->setStatut(CoreSynchronisationActionInterface::STATUT_EN_ERREUR);
+      $synchronisationAction->setErrorMessage($errorMessage);
+      $this->em->persist($synchronisationAction);
+      $this->em->flush();
       return ['success' => false,
-        'error_message' => 'Une erreur est survenue lors de la récupération des types de hierarchie depuis le CORE : ' .
-          $resTypes->getHttpCode()];
+        'error_message' => $errorMessage];
     }
   }
 
@@ -617,9 +659,17 @@ class CoreApplication
 
       return ['success' => true, 'duree' => $duree];
     } else {
+      $errorMessage = 'Une erreur est survenue lors de la récupération des types interlocuteurs depuis le core. HTTP : ' . $resTypes->getHttpCode();
+      $synchronisationAction = $this->em->getRepository(CoreSynchronisationActionInterface::class)->find($synchronisationActionId);
+      $synchronisationAction->setDateFin(new \DateTime());
+      $synchronisationAction->setDuree($duree);
+      $synchronisationAction->setStatut(CoreSynchronisationActionInterface::STATUT_EN_ERREUR);
+      $synchronisationAction->setErrorMessage($errorMessage);
+      $this->em->persist($synchronisationAction);
+      $this->em->flush();
       $duree = microtime(true) - $startTime;
       return ['success' => false, 'duree' => $duree,
-        'error_message' => 'Une erreur est survenue lors de la récupération des types interlocuteurs depuis le core. HTTP : ' . $resTypes->getHttpCode()];
+        'error_message' => $errorMessage];
     }
   }
 
