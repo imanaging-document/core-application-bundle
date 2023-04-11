@@ -5,6 +5,7 @@ namespace Imanaging\CoreApplicationBundle;
 use App\Entity\CoreSynchronisationAction;
 use App\Entity\HierarchiePatrimoine;
 use App\Entity\HierarchiePatrimoineType;
+use App\Entity\Interlocuteur;
 use App\Entity\User;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -538,12 +539,12 @@ class CoreApplication
               $interlocuteursToRemove = [];
               $interlocuteursLocal = $this->em->getRepository(InterlocuteurInterface::class)->findBy(['type' => $type], []);
               foreach ($interlocuteursLocal as $interlocuteurLocal) {
-                $interlocuteursToRemove[$interlocuteurLocal->getIdCore()] = $interlocuteurLocal;
+                $interlocuteursToRemove[$interlocuteurLocal->getIdCore()] = $interlocuteurLocal->getId();
               }
 
               foreach (json_decode($resTypeDetail->getData(), true)['interlocuteurs'] as $interlocuteurCore){
                 if (array_key_exists($interlocuteurCore['id_core'], $interlocuteursToRemove)) {
-                  $interlocuteur = $interlocuteursToRemove[$interlocuteurCore['id_core']];
+                  $interlocuteur = $this->em->getRepository(InterlocuteurInterface::class)->find($interlocuteursToRemove[$interlocuteurCore['id_core']]);
                   unset($interlocuteursToRemove[$interlocuteurCore['id_core']]);
                 } else {
                   $className = $this->em->getRepository(InterlocuteurInterface::class)->getClassName();
@@ -558,7 +559,8 @@ class CoreApplication
                   $interlocuteur->setUser($user);
                 }
                 $this->em->persist($interlocuteur);
-
+                $this->em->flush();
+                $currentInterlocuteurId = $interlocuteur->getId();
 
                 // on récupère les patrimoines associés
                 $moreCodesEnquete = true;
@@ -566,6 +568,7 @@ class CoreApplication
                 $limit = 200;
 
                 while ($moreCodesEnquete) {
+                  $interlocuteur = $this->em->getRepository(InterlocuteurInterface::class)->find($currentInterlocuteurId);
                   $resCodesEnquetes = $this->apiCoreCommunication->sendGetRequest(
                     '/interlocuteur/'.$interlocuteur->getIdCore().'/patrimoines?token='.$token.'&offset='.$offset.'&limit='.$limit);
                   if ($resCodesEnquetes->getHttpCode() == 200) {
@@ -595,11 +598,16 @@ class CoreApplication
                       'error_message' => $errorMessage];
                   }
                   $offset += $limit;
+                  $this->em->flush();
+                  $this->em->clear();
                 }
               }
 
               foreach ($interlocuteursToRemove as $item) {
-                $this->em->remove($item);
+                $interlocuteurToRm = $this->em->getRepository(InterlocuteurInterface::class)->find($item);
+                if ($interlocuteurToRm instanceof InterlocuteurInterface){
+                  $this->em->remove($interlocuteurToRm);
+                }
               }
               $this->em->flush();
             } else {
