@@ -529,9 +529,8 @@ class CoreApplication
       }
       for ($i = 0; $i <= $nbTypes; $i++) {
         $types = $this->em->getRepository(InterlocuteurTypeInterface::class)->findBy([], ['id' => 'ASC'], 1, $i);
-        foreach ($types as $type) {
+        foreach ($types as $type){
           if ($type instanceof InterlocuteurTypeInterface) {
-
             // on récupère via API les interlocuteurs
             $resTypeDetail = $this->apiCoreCommunication->sendGetRequest('/interlocuteur/type/'.$type->getIdCore().'/find-all?token='.$token);
             if ($resTypeDetail->getHttpCode() == 200) {
@@ -542,7 +541,7 @@ class CoreApplication
                 $interlocuteursToRemove[$interlocuteurLocal->getIdCore()] = $interlocuteurLocal;
               }
 
-              foreach (json_decode($resTypeDetail->getData(), true)['interlocuteurs'] as $interlocuteurCore) {
+              foreach (json_decode($resTypeDetail->getData(), true)['interlocuteurs'] as $interlocuteurCore){
                 if (array_key_exists($interlocuteurCore['id_core'], $interlocuteursToRemove)) {
                   $interlocuteur = $interlocuteursToRemove[$interlocuteurCore['id_core']];
                   unset($interlocuteursToRemove[$interlocuteurCore['id_core']]);
@@ -642,6 +641,7 @@ class CoreApplication
         if ($output instanceof OutputInterface) {
           $pb->advance();
         }
+        $this->em->clear();
       }
 
       if ($output instanceof OutputInterface) {
