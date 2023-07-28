@@ -1178,7 +1178,6 @@ class CoreApplication
 
   public function getActionEnAttente(string $typeSynchronisation)
   {
-    return $this->em->getRepository(CoreSynchronisationAction::class)->find(3);
     return $this->em->getRepository(CoreSynchronisationActionInterface::class)->findOneBy([
         'typeSynchronisation' => $typeSynchronisation,
         'statut' => CoreSynchronisationActionInterface::STATUT_EN_ATTENTE
