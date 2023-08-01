@@ -1,0 +1,12 @@
+{% if hps|length > 0 %}
+  <div class="mb-2">
+    <label for="hp_select_{{ hps[0].type_id }}">{{ hps[0].type_libelle }}</label>
+    <select name="hp_select_{{ hps[0].type_id }}" id="hp_select_{{ hps[0].type_id }}" class="form-control select_hp">
+      <option value="">Tous</option>
+      {% for hp in hps %}
+        <option value="{{ hp.hp_id }}">{% if hp.hp_code != hp.hp_libelle %}{{ hp.hp_code }} - {% endif %} {{ hp.hp_libelle }}</option>
+      {% endfor %}
+    </select>
+    <div class="hps_enfants"></div>
+  </div>
+{% endif %}

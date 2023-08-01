@@ -106,4 +106,17 @@ class HierarchiePatrimoineController extends ImanagingController
     return new JsonResponse(['error_message' => 'Type introuvable'], 500);
 
   }
+
+  public function getSelectHpsAction(Request $request) {
+    $params = $request->request->all();
+    if (isset($params['hp_id'])) {
+      $hps = $this->coreApplication->getHierarchiesPatrimoines($params['hp_id']);
+    } else {
+      $hps = [];
+    }
+    return new Response($this->twig->render("@ImanagingCoreApplication/HierarchiePatrimoine/partials/select-hps.html.twig", [
+      'hps' => $hps
+    ]));
+
+  }
 }

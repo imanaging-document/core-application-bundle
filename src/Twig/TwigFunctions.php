@@ -32,7 +32,10 @@ class TwigFunctions extends AbstractExtension
       new TwigFunction('getUrlProfile', [$this, 'getUrlProfile']),
       new TwigFunction('getUrlUpdatePassword', [$this, 'getUrlUpdatePassword']),
       new TwigFunction('getUrlHomepage', [$this, 'getUrlHomepage']),
-      new TwigFunction('isRouteExiste', [$this, 'isRouteExiste'])
+      new TwigFunction('isRouteExiste', [$this, 'isRouteExiste']),
+      new TwigFunction('getHierarchiesPatrimoines', [$this, 'getHierarchiesPatrimoines']),
+      new TwigFunction('getInterlocuteurs', [$this, 'getInterlocuteurs'])
+
     );
   }
 
@@ -102,5 +105,23 @@ class TwigFunctions extends AbstractExtension
     } catch (RouteNotFoundException $e) {
       return false;
     }
+  }
+
+  /**
+   * @param $dynamiqueRoute
+   * @return bool
+   */
+  public function getHierarchiesPatrimoines($hpParentId = null)
+  {
+    return $this->coreService->getHierarchiesPatrimoines($hpParentId);
+  }
+
+  /**
+   * @param $dynamiqueRoute
+   * @return bool
+   */
+  public function getInterlocuteurs()
+  {
+    return $this->coreService->getInterlocuteurs();
   }
 }

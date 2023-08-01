@@ -1,0 +1,13 @@
+{% if interlocuteurs|length > 0 %}
+  {% for id_type, type_interlocuteur in interlocuteurs %}
+    <div class="mb-2">
+      <label for="hp_interlocuteur_{{ id_type }}">{{ type_interlocuteur.libelle }}</label>
+      <select name="hp_interlocuteur_{{ id_type }}" id="hp_interlocuteur_{{ id_type }}" class="form-control select_hp">
+        <option value="">Tous</option>
+        {% for interlocuteur in type_interlocuteur.interlocuteurs %}
+          <option value="{{ interlocuteur.interlocuteur_id }}">{{ interlocuteur.interlocuteur_libelle }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  {% endfor %}
+{% endif %}

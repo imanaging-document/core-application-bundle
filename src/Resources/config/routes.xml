@@ -80,6 +80,10 @@
         <default key="_controller">imanaging_core_application.hierarchie_patrimoine_controller::showHierarchiePatrimoineListAction</default>
     </route>
 
+    <route id="core_application_hierarchie_patrimoine_get_select_hierarchies_patrimoines" path="/hierarchie-patrimoine/get-hps-select" >
+        <default key="_controller">imanaging_core_application.hierarchie_patrimoine_controller::getSelectHpsAction</default>
+    </route>
+
     <route id="core_application_interlocuteurs" path="/interlocuteurs" >
         <default key="_controller">imanaging_core_application.interlocuteurs_controller::indexAction</default>
     </route>

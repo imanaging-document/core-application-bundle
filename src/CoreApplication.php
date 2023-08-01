@@ -1129,6 +1129,49 @@ class CoreApplication
     return null;
   }
 
+  public function getContratsIdsMatchInterlocuteursIds($ids)
+  {
+    $first = true;
+    $contratsIds = [];
+    foreach ($ids as $id) {
+      if ($first) {
+        $contratsIds = $this->em->getRepository(InterlocuteurContratInterface::class)->getContratsId([$id]);
+        $first = false;
+      } else {
+        $contratsIds = array_intersect($contratsIds, $this->em->getRepository(InterlocuteurContratInterface::class)->getContratsId([$id]));
+      }
+    }
+
+    return count($contratsIds) > 0 ? $contratsIds : null;
+  }
+
+  public function getContratsIdsByHpId($id)
+  {
+    $hierarchiePatrimoine = $this->em->getRepository(HierarchiePatrimoineInterface::class)->find($id);
+    if ($hierarchiePatrimoine instanceof HierarchiePatrimoineInterface) {
+      return $this->getContratsIdsByHp($hierarchiePatrimoine);
+    }
+
+    return null;
+  }
+
+  public function getContratsIdsByHp(HierarchiePatrimoineInterface $hierarchiePatrimoine)
+  {
+    $idsContrat = [];
+    $enfants = $hierarchiePatrimoine->getEnfants();
+    if (count($enfants) > 0) {
+      foreach ($enfants as $enfant) {
+        $idsContrat = array_merge($idsContrat, $this->getContratsIdsByHp($enfant));
+      }
+
+      return $idsContrat;
+    } else {
+      $className = $this->em->getRepository(ContratInterface::class)->getClassName();
+      $dql = 'SELECT c.id FROM ' . $className . ' c WHERE c.hierarchiePatrimoine = :hp';
+      return $this->em->createQuery($dql)->setParameter('hp', $hierarchiePatrimoine)->getSingleColumnResult();
+    }
+  }
+
   public function updateEtatExecutionImportAutomatique($executionIdCore, $statut, $message, $dataSuivi = []): bool
   {
     $postData = [
@@ -1249,5 +1292,17 @@ class CoreApplication
     }
 
     return ['success' => true, 'continue' => true, 'files' => $files];
+  }
+
+  public function getHierarchiesPatrimoines(mixed $hpParentId)
+  {
+    $hps = $this->em->getRepository(HierarchiePatrimoineInterface::class)->getByParentId($hpParentId);
+    return $hps;
+  }
+
+  public function getInterlocuteurs()
+  {
+    $interlocuteursTypes = $this->em->getRepository(InterlocuteurInterface::class)->groupByType();
+    return $interlocuteursTypes;
   }
 }
