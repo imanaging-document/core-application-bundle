@@ -5,6 +5,7 @@ namespace Imanaging\CoreApplicationBundle;
 use App\Entity\CoreSynchronisationAction;
 use App\Entity\HierarchiePatrimoine;
 use App\Entity\HierarchiePatrimoineType;
+use App\Entity\Interlocuteur;
 use App\Entity\User;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -189,6 +190,13 @@ class CoreApplication
    * Ajout d'un nouveau segment
    */
   public function synchroniserHierarchiePatrimoine(CoreSynchronisationActionInterface $synchronisationAction, $output = null){
+    $synchronisationActionId = $synchronisationAction->getId();
+    $startTime = microtime(true);
+    $synchronisationAction->setDateLancement(new \DateTime());
+    $synchronisationAction->setStatut(CoreSynchronisationActionInterface::STATUT_EN_COURS);
+    $this->em->persist($synchronisationAction);
+    $this->em->flush();
+
     $token = hash('sha256', $this->apiCoreCommunication->getApiCoreToken());
     // Etape 1 : On synchronise les types de hierarchie
     if ($output instanceof OutputInterface) {
@@ -247,7 +255,16 @@ class CoreApplication
 
         $type = $this->em->getRepository(HierarchiePatrimoineTypeInterface::class)->findOneBy(['libelle' => $libelleType]);
         if (!($type instanceof HierarchiePatrimoineTypeInterface)) {
-          return ['success' => false, 'error_message' => 'Impossible de récupérer le type : ' . $libelleType];
+          $duree = microtime(true) - $startTime;
+          $errorMessage = '#1 Impossible de récupérer le type : ' . $libelleType;
+          $synchronisationAction = $this->em->getRepository(CoreSynchronisationActionInterface::class)->find($synchronisationActionId);
+          $synchronisationAction->setDateFin(new \DateTime());
+          $synchronisationAction->setDuree($duree);
+          $synchronisationAction->setStatut(CoreSynchronisationActionInterface::STATUT_EN_ERREUR);
+          $synchronisationAction->setErrorMessage($errorMessage);
+          $this->em->persist($synchronisationAction);
+          $this->em->flush();
+          return ['success' => false, 'error_message' => $errorMessage];
         }
         $hierarchiesPatrimoines = $this->em->getRepository(HierarchiePatrimoineInterface::class)->findBy(['type' => $type]);
         $hierarchiesPatrimoineToRemove = [];
@@ -264,7 +281,14 @@ class CoreApplication
         while ($offset < $nbType) {
           $type = $this->em->getRepository(HierarchiePatrimoineTypeInterface::class)->findOneBy(['libelle' => $libelleType]);
           if (!($type instanceof HierarchiePatrimoineTypeInterface)) {
-            return ['success' => false, 'error_message' => 'Impossible de récupérer le type : ' . $libelleType];
+            $errorMessage = '#2 Impossible de récupérer le type : ' . $libelleType;
+            $synchronisationAction = $this->em->getRepository(CoreSynchronisationActionInterface::class)->find($synchronisationActionId);
+            $synchronisationAction->setDateFin(new \DateTime());
+            $synchronisationAction->setStatut(CoreSynchronisationActionInterface::STATUT_EN_ERREUR);
+            $synchronisationAction->setErrorMessage($errorMessage);
+            $this->em->persist($synchronisationAction);
+            $this->em->flush();
+            return ['success' => false, 'error_message' => $errorMessage];
           }
 
           $hierarchiesPatrimoineExistants = [];
@@ -326,13 +350,19 @@ class CoreApplication
           } while (!$continue && $retry < 5);
 
           if (!$continue) {
-            return ['success' => false, 'error_message' => 'Une erreur est survenue lors de la récupération de la hierarchie depuis le CORE : ' .
-              $resTypes->getHttpCode()];
+            $duree = microtime(true) - $startTime;
+            $errorMessage = 'Une erreur est survenue lors de la récupération de la hierarchie depuis le CORE : '.$resTypes->getHttpCode();
+            $synchronisationAction = $this->em->getRepository(CoreSynchronisationActionInterface::class)->find($synchronisationActionId);
+            $synchronisationAction->setDateFin(new \DateTime());
+            $synchronisationAction->setDuree($duree);
+            $synchronisationAction->setStatut(CoreSynchronisationActionInterface::STATUT_EN_ERREUR);
+            $synchronisationAction->setErrorMessage($errorMessage);
+            $this->em->persist($synchronisationAction);
+            $this->em->flush();
+            return ['success' => false, 'error_message' => $errorMessage];
           }
 
           $offset += $limit;
-
-
 
           $this->em->flush();
           $this->em->clear();
@@ -367,61 +397,83 @@ class CoreApplication
       $dql = 'UPDATE ' . $className . ' c SET c.hierarchiePatrimoine = null';
       $this->em->createQuery($dql)->execute();
 
-      $lastType = $this->em->getRepository(HierarchiePatrimoineType::class)->findOneBy(['libelle' => $libelleType]);
-      if ($lastType instanceof HierarchiePatrimoineType) {
-        $nbHierarchiePatrimoineNiveauMin = $this->em->getRepository(HierarchiePatrimoineInterface::class)->count(['type' => $lastType]);
-        $offset = 0;
-        $limit = 100;
-        $limitDetail = 100;
+      if (isset($libelleType) && !is_null($libelleType)) {
+        $lastType = $this->em->getRepository(HierarchiePatrimoineType::class)->findOneBy(['libelle' => $libelleType]);
+        if ($lastType instanceof HierarchiePatrimoineType) {
+          $nbHierarchiePatrimoineNiveauMin = $this->em->getRepository(HierarchiePatrimoineInterface::class)->count(['type' => $lastType]);
+          $offset = 0;
+          $limit = 100;
+          $limitDetail = 100;
 
-        $className = $this->em->getRepository(HierarchiePatrimoineInterface::class)->getClassName();
-        $dql = 'SELECT sum(c.nbPatrimoines) FROM ' . $className . ' c where c.type = :type';
-        $nbPatrimoinesTotal = $this->em->createQuery($dql)->setParameter('type', $lastType)->getSingleScalarResult();
+          $className = $this->em->getRepository(HierarchiePatrimoineInterface::class)->getClassName();
+          $dql = 'SELECT sum(c.nbPatrimoines) FROM ' . $className . ' c where c.type = :type';
+          $nbPatrimoinesTotal = $this->em->createQuery($dql)->setParameter('type', $lastType)->getSingleScalarResult();
 
-        if ($output instanceof OutputInterface) {
-          $pb = new ProgressBar($output, $nbPatrimoinesTotal);
-          $pb->start();
-        }
+          if ($output instanceof OutputInterface) {
+            $pb = new ProgressBar($output, $nbPatrimoinesTotal);
+            $pb->start();
+          }
 
-        while ($offset < $nbHierarchiePatrimoineNiveauMin) {
-          $lastType = $this->em->getRepository(HierarchiePatrimoineType::class)->findOneBy(['libelle' => $libelleType]);
-          $hierarchiesPatrimoines = $this->em->getRepository(HierarchiePatrimoineInterface::class)->findBy(['type' => $lastType], ['id' => 'ASC'], $limit, $offset);
-          foreach ($hierarchiesPatrimoines as $hierarchiePatrimoine) {
-            if ($hierarchiePatrimoine instanceof HierarchiePatrimoine) {
-              $offsetDetail = 0;
-              $codeParent = ($hierarchiePatrimoine->getParent() instanceof HierarchiePatrimoine) ? $hierarchiePatrimoine->getParent()->getCode() : '';
-              while ($offsetDetail < $hierarchiePatrimoine->getNbPatrimoines()) {
-                $resCodesEnquetes = $this->apiCoreCommunication->sendGetRequest(
-                  '/patrimoine-hierarchie/codes-enquetes?token='.$token.'&type=' . $lastType->getLibelle() .
-                  '&code_hierarchie=' . $hierarchiePatrimoine->getCode()  . '&code_parent=' . $codeParent .
-                  '&offset=' . $offsetDetail . '&limit=' . $limitDetail);
-                if ($resCodesEnquetes->getHttpCode() == 200) {
-                  $codesEnquetes = json_decode($resCodesEnquetes->getData(), true);
-                  $className = $this->em->getRepository(ContratInterface::class)->getClassName();
-                  $dql = 'UPDATE ' . $className . ' c SET c.hierarchiePatrimoine = ' . $hierarchiePatrimoine->getId() . ' where c.codeEnquete in (:codesEnquete)';
-                  $this->em->createQuery($dql)->setParameter('codesEnquete', $codesEnquetes)->execute();
-                } else {
-                  return ['success' => false, 'error_message' => 'Une erreur est survenue lors de la récupération des codes enquêtes. Code HTTP : ' .
-                    $resCodesEnquetes->getHttpCode()];
+          while ($offset < $nbHierarchiePatrimoineNiveauMin) {
+            $lastType = $this->em->getRepository(HierarchiePatrimoineType::class)->findOneBy(['libelle' => $libelleType]);
+            $hierarchiesPatrimoines = $this->em->getRepository(HierarchiePatrimoineInterface::class)->findBy(['type' => $lastType], ['id' => 'ASC'], $limit, $offset);
+            foreach ($hierarchiesPatrimoines as $hierarchiePatrimoine) {
+              if ($hierarchiePatrimoine instanceof HierarchiePatrimoine) {
+                $offsetDetail = 0;
+                $codeParent = ($hierarchiePatrimoine->getParent() instanceof HierarchiePatrimoine) ? $hierarchiePatrimoine->getParent()->getCode() : '';
+                while ($offsetDetail < $hierarchiePatrimoine->getNbPatrimoines()) {
+                  $resCodesEnquetes = $this->apiCoreCommunication->sendGetRequest(
+                    '/patrimoine-hierarchie/codes-enquetes?token='.$token.'&type=' . $lastType->getLibelle() .
+                    '&code_hierarchie=' . $hierarchiePatrimoine->getCode()  . '&code_parent=' . $codeParent .
+                    '&offset=' . $offsetDetail . '&limit=' . $limitDetail);
+                  if ($resCodesEnquetes->getHttpCode() == 200) {
+                    $codesEnquetes = json_decode($resCodesEnquetes->getData(), true);
+                    $className = $this->em->getRepository(ContratInterface::class)->getClassName();
+                    $dql = 'UPDATE ' . $className . ' c SET c.hierarchiePatrimoine = ' . $hierarchiePatrimoine->getId() . ' where c.codeEnquete in (:codesEnquete)';
+                    $this->em->createQuery($dql)->setParameter('codesEnquete', $codesEnquetes)->execute();
+                  } else {
+                    return ['success' => false, 'error_message' => 'Une erreur est survenue lors de la récupération des codes enquêtes. Code HTTP : ' .
+                      $resCodesEnquetes->getHttpCode()];
+                  }
+                  $offsetDetail += $limitDetail;
                 }
-                $offsetDetail += $limitDetail;
-              }
-              if ($output instanceof OutputInterface) {
-                $pb->advance($hierarchiePatrimoine->getNbPatrimoines());
+                if ($output instanceof OutputInterface) {
+                  $pb->advance($hierarchiePatrimoine->getNbPatrimoines());
+                }
               }
             }
+            $offset += $limit;
           }
-          $offset += $limit;
+          if ($output instanceof OutputInterface) {
+            $pb->finish();
+          }
+
+          $duree = microtime(true) - $startTime;
+          $synchronisationAction = $this->em->getRepository(CoreSynchronisationActionInterface::class)->find($synchronisationActionId);
+          $synchronisationAction->setDateFin(new \DateTime());
+          $synchronisationAction->setDuree($duree);
+          $synchronisationAction->setStatut(CoreSynchronisationActionInterface::STATUT_TERMINE);
+          $this->em->persist($synchronisationAction);
+          $this->em->flush();
+
+          return ['success' => true];
         }
-        if ($output instanceof OutputInterface) {
-          $pb->finish();
-        }
+      } else {
         return ['success' => true];
       }
+
     } else {
+      $duree = microtime(true) - $startTime;
+      $errorMessage = 'Une erreur est survenue lors de la récupération des types de hierarchie depuis le CORE : '.$resTypes->getHttpCode();
+      $synchronisationAction = $this->em->getRepository(CoreSynchronisationActionInterface::class)->find($synchronisationActionId);
+      $synchronisationAction->setDateFin(new \DateTime());
+      $synchronisationAction->setDuree($duree);
+      $synchronisationAction->setStatut(CoreSynchronisationActionInterface::STATUT_EN_ERREUR);
+      $synchronisationAction->setErrorMessage($errorMessage);
+      $this->em->persist($synchronisationAction);
+      $this->em->flush();
       return ['success' => false,
-        'error_message' => 'Une erreur est survenue lors de la récupération des types de hierarchie depuis le CORE : ' .
-          $resTypes->getHttpCode()];
+        'error_message' => $errorMessage];
     }
   }
 
@@ -486,9 +538,9 @@ class CoreApplication
       }
       for ($i = 0; $i <= $nbTypes; $i++) {
         $types = $this->em->getRepository(InterlocuteurTypeInterface::class)->findBy([], ['id' => 'ASC'], 1, $i);
-        foreach ($types as $type) {
+        foreach ($types as $type){
           if ($type instanceof InterlocuteurTypeInterface) {
-
+            $typeId = $type->getId();
             // on récupère via API les interlocuteurs
             $resTypeDetail = $this->apiCoreCommunication->sendGetRequest('/interlocuteur/type/'.$type->getIdCore().'/find-all?token='.$token);
             if ($resTypeDetail->getHttpCode() == 200) {
@@ -496,12 +548,14 @@ class CoreApplication
               $interlocuteursToRemove = [];
               $interlocuteursLocal = $this->em->getRepository(InterlocuteurInterface::class)->findBy(['type' => $type], []);
               foreach ($interlocuteursLocal as $interlocuteurLocal) {
-                $interlocuteursToRemove[$interlocuteurLocal->getIdCore()] = $interlocuteurLocal;
+                $interlocuteursToRemove[$interlocuteurLocal->getIdCore()] = $interlocuteurLocal->getId();
               }
 
-              foreach (json_decode($resTypeDetail->getData(), true)['interlocuteurs'] as $interlocuteurCore) {
+              foreach (json_decode($resTypeDetail->getData(), true)['interlocuteurs'] as $interlocuteurCore){
+                $type = $this->em->getRepository(InterlocuteurTypeInterface::class)->find($typeId);
+                
                 if (array_key_exists($interlocuteurCore['id_core'], $interlocuteursToRemove)) {
-                  $interlocuteur = $interlocuteursToRemove[$interlocuteurCore['id_core']];
+                  $interlocuteur = $this->em->getRepository(InterlocuteurInterface::class)->find($interlocuteursToRemove[$interlocuteurCore['id_core']]);
                   unset($interlocuteursToRemove[$interlocuteurCore['id_core']]);
                 } else {
                   $className = $this->em->getRepository(InterlocuteurInterface::class)->getClassName();
@@ -516,7 +570,8 @@ class CoreApplication
                   $interlocuteur->setUser($user);
                 }
                 $this->em->persist($interlocuteur);
-
+                $this->em->flush();
+                $currentInterlocuteurId = $interlocuteur->getId();
 
                 // on récupère les patrimoines associés
                 $moreCodesEnquete = true;
@@ -524,6 +579,7 @@ class CoreApplication
                 $limit = 200;
 
                 while ($moreCodesEnquete) {
+                  $interlocuteur = $this->em->getRepository(InterlocuteurInterface::class)->find($currentInterlocuteurId);
                   $resCodesEnquetes = $this->apiCoreCommunication->sendGetRequest(
                     '/interlocuteur/'.$interlocuteur->getIdCore().'/patrimoines?token='.$token.'&offset='.$offset.'&limit='.$limit);
                   if ($resCodesEnquetes->getHttpCode() == 200) {
@@ -553,11 +609,16 @@ class CoreApplication
                       'error_message' => $errorMessage];
                   }
                   $offset += $limit;
+                  $this->em->flush();
+                  $this->em->clear();
                 }
               }
 
               foreach ($interlocuteursToRemove as $item) {
-                $this->em->remove($item);
+                $interlocuteurToRm = $this->em->getRepository(InterlocuteurInterface::class)->find($item);
+                if ($interlocuteurToRm instanceof InterlocuteurInterface){
+                  $this->em->remove($interlocuteurToRm);
+                }
               }
               $this->em->flush();
             } else {
@@ -599,6 +660,7 @@ class CoreApplication
         if ($output instanceof OutputInterface) {
           $pb->advance();
         }
+        $this->em->clear();
       }
 
       if ($output instanceof OutputInterface) {
@@ -617,8 +679,16 @@ class CoreApplication
       return ['success' => true, 'duree' => $duree];
     } else {
       $duree = microtime(true) - $startTime;
+      $errorMessage = 'Une erreur est survenue lors de la récupération des types interlocuteurs depuis le core. HTTP : ' . $resTypes->getHttpCode();
+      $synchronisationAction = $this->em->getRepository(CoreSynchronisationActionInterface::class)->find($synchronisationActionId);
+      $synchronisationAction->setDateFin(new \DateTime());
+      $synchronisationAction->setDuree($duree);
+      $synchronisationAction->setStatut(CoreSynchronisationActionInterface::STATUT_EN_ERREUR);
+      $synchronisationAction->setErrorMessage($errorMessage);
+      $this->em->persist($synchronisationAction);
+      $this->em->flush();
       return ['success' => false, 'duree' => $duree,
-        'error_message' => 'Une erreur est survenue lors de la récupération des types interlocuteurs depuis le core. HTTP : ' . $resTypes->getHttpCode()];
+        'error_message' => $errorMessage];
     }
   }
 
