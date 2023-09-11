@@ -937,7 +937,7 @@ class CoreApplication
       }
     }
 
-    $modules = $this->em->getRepository(ModuleInterface::class)->findBy(['parent' => null, 'droite' => $isDroite]);
+    $modules = $this->em->getRepository(ModuleInterface::class)->findBy(['parent' => null, 'droite' => $isDroite], ['ordre' => 'ASC']);
     $role = $user->getRole();
     $topLevelModules = [];
     foreach ($modules as $module) {
