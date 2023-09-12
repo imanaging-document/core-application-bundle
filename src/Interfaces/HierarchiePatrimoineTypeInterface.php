@@ -22,4 +22,8 @@ interface HierarchiePatrimoineTypeInterface
   public function setParent($parent);
 
   public function getParent();
+
+  public function isVisibleRecherche() : bool;
+
+  public function setVisibleRecherche(bool $visibleRecherche);
 }

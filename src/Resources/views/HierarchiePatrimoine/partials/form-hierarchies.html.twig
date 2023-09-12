@@ -1,26 +1,25 @@
 {% set hps_parents = getHierarchiesPatrimoines() %}
 {% set interlocuteurs = getInterlocuteurs() %}
-{% if hps_parents|length > 0 %}
+{% if (hps_parents|length > 0) or (interlocuteurs|length > 0) %}
   <div id="hierarchies_selects">
     <div id="hps_selects">
-    {% include '@ImanagingCoreApplication/HierarchiePatrimoine/partials/select-hps.html.twig' with {'hps' : hps_parents} %}
+      {% include '@ImanagingCoreApplication/HierarchiePatrimoine/partials/select-hps.html.twig' with {'hps' : hps_parents} %}
     </div>
+
     <div id="interlocuteurs_selects">
       {% include '@ImanagingCoreApplication/HierarchiePatrimoine/partials/select-interlocuteurs.html.twig' with {'interlocuteurs' : interlocuteurs} %}
     </div>
   </div>
-
 {% endif %}
-
 <style>
-  #hierarchies_selects{
-    border: 1px solid lightgrey;
-    padding: 5px;
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 1em;
-    border-radius: 5px;
-  }
+    #hierarchies_selects{
+        border: 1px solid lightgrey;
+        padding: 5px;
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1em;
+        border-radius: 5px;
+    }
 </style>
 
 <script>

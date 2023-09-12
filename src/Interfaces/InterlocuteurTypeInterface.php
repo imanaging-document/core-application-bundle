@@ -20,4 +20,8 @@ interface InterlocuteurTypeInterface
   public function getIdCore() : string;
 
   public function setIdCore($idCore);
+
+  public function isVisibleRecherche() : bool;
+
+  public function setVisibleRecherche(bool $visibleRecherche);
 }
