@@ -80,6 +80,10 @@
         <default key="_controller">imanaging_core_application.hierarchie_patrimoine_controller::showHierarchiePatrimoineListAction</default>
     </route>
 
+    <route id="core_application_hierarchie_patrimoine_save_visibilite_hierarchie_patrimoine" path="/hierarchie-patrimoine/save-visibilite" >
+        <default key="_controller">imanaging_core_application.hierarchie_patrimoine_controller::saveVisibiliteHierarchiePatrimoineAction</default>
+    </route>
+
     <route id="core_application_hierarchie_patrimoine_get_select_hierarchies_patrimoines" path="/hierarchie-patrimoine/get-hps-select" >
         <default key="_controller">imanaging_core_application.hierarchie_patrimoine_controller::getSelectHpsAction</default>
     </route>
@@ -90,5 +94,9 @@
 
     <route id="core_application_interlocuteurs_show_list" path="/interlocuteurs/show-list" >
         <default key="_controller">imanaging_core_application.interlocuteurs_controller::showInterlocuteursListAction</default>
+    </route>
+
+    <route id="core_application_interlocuteurs_save_visibilite" path="/interlocuteurs/save-visibilite" >
+        <default key="_controller">imanaging_core_application.interlocuteurs_controller::saveVisibiliteInterlocuteurAction</default>
     </route>
 </routes>

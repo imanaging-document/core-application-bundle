@@ -51,6 +51,7 @@ class InterlocuteursController extends ImanagingController
         $types[] = [
           'id' => $type->getId(),
           'libelle' => $type->getLibelle(),
+          'visible_recherche' => $type->isVisibleRecherche(),
         ];
       }
     }
@@ -63,7 +64,7 @@ class InterlocuteursController extends ImanagingController
   }
 
   public function showInterlocuteursListAction(Request $request) {
-    if (!$this->userCanAccess($this->tokenStorage->getToken()->getUser(), ['core_application_hierarchie_patrimoine'])){
+    if (!$this->userCanAccess($this->tokenStorage->getToken()->getUser(), ['core_application_interlocuteurs'])){
       return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
     }
 
@@ -88,6 +89,25 @@ class InterlocuteursController extends ImanagingController
       ]));
     }
     return new JsonResponse(['error_message' => 'Type introuvable'], 500);
+  }
 
+  public function saveVisibiliteInterlocuteurAction(Request $request) {
+    if (!$this->userCanAccess($this->tokenStorage->getToken()->getUser(), ['core_application_interlocuteurs'])){
+      return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
+    }
+
+    $params = $request->request->all();
+    $idType = $params['id-type'];
+    $visible = $params['visible'] == 'true';
+    $typesFormatted = [];
+    $interlocuteurType = $this->em->getRepository(InterlocuteurTypeInterface::class)->find($idType);
+    if ($interlocuteurType instanceof InterlocuteurTypeInterface) {
+      $interlocuteurType->setVisibleRecherche($visible);
+      $this->em->persist($interlocuteurType);
+      $this->em->flush();
+      return $this->json([]);
+    } else {
+      return $this->json([], 500);
+    }
   }
 }

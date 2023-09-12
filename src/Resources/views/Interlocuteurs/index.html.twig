@@ -9,12 +9,16 @@
           <thead>
           <tr>
             <th>Libelle</th>
+            <th><i class="fa fa-search fa-lg"></i></th>
           </tr>
           </thead>
           <tbody>
           {% for type in interlocuteurs_types %}
             <tr>
               <td class="clickable-type" data-id="{{ type.id }}">{{ type.libelle }}</td>
+              <td>
+                <input type="checkbox" {% if type.visible_recherche %}checked{% endif %} class="update-visibilite" data-id="{{ type.id }}">
+              </td>
             </tr>
           {% endfor %}
           </tbody>
@@ -76,7 +80,6 @@
     $('.clickable-type').click(function() {
       $("#list-interlocuteur").html('<i class="fa fa-spin fa-spinner fa-fw fa-lg"></i>');
       var idType =$(this).data('id');
-      console.log(idType);
       var dataPost = {'id-type' : idType};
       $.ajax({
         url: "{{ path('core_application_interlocuteurs_show_list') }}",
@@ -89,7 +92,28 @@
           $("#list-interlocuteur").html("<h4>Echec de chargement de la liste</h4>");
         }
       })
-    })
+    });
 
+    $('.update-visibilite').click(function(){
+      var thisTd = $(this).closest('td');
+      var idType = $(this).data('id');
+      var checked = $(this).prop('checked');
+      thisTd.css('background-color', '#0a6bd3');
+      $.ajax({
+        url: "{{ path('core_application_interlocuteurs_save_visibilite') }}",
+        type: "POST",
+        data: {'id-type' : idType, 'visible' : checked},
+        success: function () {
+          thisTd.css('background-color', '#2db32d');
+          setTimeout(function(){
+            thisTd.css('background-color', '#FFFFFF');
+          }, 500);
+        },
+        error: function(){
+          thisTd.css('background-color', 'red');
+          location.reload();
+        }
+      })
+    });
   </script>
 {% endblock %}

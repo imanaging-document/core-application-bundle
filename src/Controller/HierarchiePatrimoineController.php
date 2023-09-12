@@ -49,6 +49,7 @@ class HierarchiePatrimoineController extends ImanagingController
           'id' => $type->getId(),
           'libelle' => $type->getLibelle(),
           'niveau' => $type->getNiveau(),
+          'visible_recherche' => $type->isVisibleRecherche(),
           'nb' => $this->em->getRepository(HierarchiePatrimoineInterface::class)->count(['type' => $type]),
         ];
       }
@@ -104,7 +105,26 @@ class HierarchiePatrimoineController extends ImanagingController
       ]));
     }
     return new JsonResponse(['error_message' => 'Type introuvable'], 500);
+  }
 
+  public function saveVisibiliteHierarchiePatrimoineAction(Request $request) {
+    if (!$this->userCanAccess($this->tokenStorage->getToken()->getUser(), ['core_application_hierarchie_patrimoine'])){
+      return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
+    }
+
+    $params = $request->request->all();
+    $idType = $params['id-type'];
+    $visible = $params['visible'] == 'true';
+    $typesFormatted = [];
+    $hierarchieType = $this->em->getRepository(HierarchiePatrimoineTypeInterface::class)->find($idType);
+    if ($hierarchieType instanceof HierarchiePatrimoineTypeInterface) {
+      $hierarchieType->setVisibleRecherche($visible);
+      $this->em->persist($hierarchieType);
+      $this->em->flush();
+      return $this->json([]);
+    } else {
+      return $this->json([], 500);
+    }
   }
 
   public function getSelectHpsAction(Request $request) {
