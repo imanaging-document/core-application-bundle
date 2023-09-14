@@ -104,6 +104,23 @@
 
                       </li>
 
+                      {% if module.fonctions|length > 0 %}
+                        {% for fonction in module.fonctions %}
+                          {% if not fonction.zeusOnly %}
+                            <ul>
+                              <li class="list-style-none">
+                                <div class="checkbox">
+                                  <label>
+                                    <input type="checkbox" name="fonctions[]" value="{{ fonction.id }}" {% if role.canDo(fonction.code) %}checked{% endif %}>
+                                    <i class="text-info">{{ fonction.libelle }} (<i>fonction</i>)</i>
+                                  </label>
+                                </div>
+                              </li>
+                            </ul>
+                          {% endif %}
+                        {% endfor %}
+                      {% endif %}
+
                       {% if module.enfants is not empty %}
                         {% for sousModule in module.enfants %}
                           {% if not sousModule.zeusOnly %}
