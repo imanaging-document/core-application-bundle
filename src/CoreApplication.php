@@ -351,7 +351,7 @@ class CoreApplication
 
           if (!$continue) {
             $duree = microtime(true) - $startTime;
-            $errorMessage = 'Une erreur est survenue lors de la récupération de la hierarchie depuis le CORE : '.$resTypes->getHttpCode();
+            $errorMessage = 'Une erreur est survenue lors de la récupération de la hierarchie depuis le CORE : '.$resHierarchie->getHttpCode();
             $synchronisationAction = $this->em->getRepository(CoreSynchronisationActionInterface::class)->find($synchronisationActionId);
             $synchronisationAction->setDateFin(new \DateTime());
             $synchronisationAction->setDuree($duree);
