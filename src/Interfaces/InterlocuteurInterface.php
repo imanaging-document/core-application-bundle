@@ -1,9 +1,6 @@
 <?php
 
-
 namespace Imanaging\CoreApplicationBundle\Interfaces;
-
-use Imanaging\ZeusUserBundle\Interfaces\UserInterface;
 
 interface InterlocuteurInterface
 {
@@ -23,9 +20,9 @@ interface InterlocuteurInterface
 
   public function setType($type);
 
-  public function getUser() : ?UserInterface;
+  public function getUsers();
 
-  public function setUser($user);
+  public function setUsers($users);
 
   public function getContratsInterlocuteurs();
 }

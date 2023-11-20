@@ -5,6 +5,7 @@ namespace Imanaging\CoreApplicationBundle\Controller;
 use App\Entity\CoreSynchronisationAction;
 use App\Entity\HierarchiePatrimoineType;
 use App\Entity\Interlocuteur;
+use App\Entity\User;
 use Imanaging\CoreApplicationBundle\CoreApplication;
 use Imanaging\CoreApplicationBundle\Interfaces\CoreSynchronisationActionInterface;
 use Imanaging\CoreApplicationBundle\Interfaces\HierarchiePatrimoineInterface;
@@ -14,6 +15,7 @@ use Imanaging\CoreApplicationBundle\Interfaces\InterlocuteurInterface;
 use Imanaging\CoreApplicationBundle\Interfaces\InterlocuteurTypeInterface;
 use Imanaging\ZeusUserBundle\Controller\ImanagingController;
 use Doctrine\ORM\EntityManagerInterface;
+use Imanaging\ZeusUserBundle\Interfaces\UserInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -75,9 +77,16 @@ class InterlocuteursController extends ImanagingController
       $interlocuteurs = $this->em->getRepository(InterlocuteurInterface::class)->findBy(['type' => $idType]);
       foreach ($interlocuteurs as $interlocuteur) {
         if ($interlocuteur instanceof InterlocuteurInterface) {
+          $interlocuteurUsers = [];
+          foreach ($interlocuteur->getUsers() as $user) {
+            if ($user instanceof UserInterface) {
+              $interlocuteurUsers[] = $user->__toString();
+            }
+          }
           $interlocuteursFormatted[] = [
             'libelle' => $interlocuteur->getLibelle(),
-            'nb' => $this->em->getRepository(InterlocuteurContratInterface::class)->count(['interlocuteur' => $interlocuteur])
+            'nb' => $this->em->getRepository(InterlocuteurContratInterface::class)->count(['interlocuteur' => $interlocuteur]),
+            'users' => $interlocuteurUsers
           ];
         }
       }

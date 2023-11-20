@@ -565,10 +565,14 @@ class CoreApplication
                 }
                 $interlocuteur->setLibelle($interlocuteurCore['libelle']);
 
-                if ($interlocuteurCore['user'] != '') {
-                  $user = $this->em->getRepository(UserInterface::class)->findOneBy(['login' => $interlocuteurCore['user']]);
-                  $interlocuteur->setUser($user);
+                $interlocuteurUsers = [];
+                if (count($interlocuteurCore['users']) > 0) {
+                  foreach ($interlocuteurCore['users'] as $loginUser) {
+                    $user = $this->em->getRepository(UserInterface::class)->findOneBy(['login' => $loginUser]);
+                    $interlocuteurUsers[] = $user;
+                  }
                 }
+                $interlocuteur->setUsers($interlocuteurUsers);
                 $this->em->persist($interlocuteur);
                 $this->em->flush();
                 $currentInterlocuteurId = $interlocuteur->getId();

@@ -3,6 +3,7 @@
   <tr>
     <th>Type</th>
     <th>Interlocuteur</th>
+    <th>Utilisateurs liés</th>
     <th>Nb contrats concernés</th>
   </tr>
   </thead>
@@ -11,6 +12,11 @@
     <tr>
       <td>{{ type }}</td>
       <td>{{ interlocuteur.libelle }}</td>
+      <td>
+        {% for interlocuteur_user in interlocuteur.users %}
+        <span class="badge badge-info">{{ interlocuteur_user }}</span>
+        {% endfor %}
+      </td>
       <td>{{ interlocuteur.nb }}</td>
     </tr>
   {% endfor %}
