@@ -569,7 +569,10 @@ class CoreApplication
                 if (count($interlocuteurCore['users']) > 0) {
                   foreach ($interlocuteurCore['users'] as $loginUser) {
                     $user = $this->em->getRepository(UserInterface::class)->findOneBy(['login' => $loginUser]);
-                    $interlocuteurUsers[] = $user;
+                    
+                    if ($user instanceof UserInterface) {
+                      $interlocuteurUsers[] = $user;
+                    }
                   }
                 }
                 $interlocuteur->setUsers($interlocuteurUsers);
