@@ -41,7 +41,7 @@ class UserController extends ImanagingController
     }
 
     return new Response($this->twig->render("@ImanagingCoreApplication/User/index.html.twig", [
-      'utilisateurs' => $this->em->getRepository(UserInterface::class)->findAll(),
+      'utilisateurs' => $this->em->getRepository(UserInterface::class)->findBy(['utilisateurCore' => 'true']),
       'basePath' => $this->coreApplication->getBasePath()
     ]));
   }

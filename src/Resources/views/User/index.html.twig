@@ -1,70 +1,60 @@
 {% extends basePath %}
 
 {% block body %}
-  <div class="container container-90 mt-4 mb-4">
-    <h2 class="text-center">Liste des utilisateurs</h2>
-
-    <div class="text-right">
-      <button id="btn-synchroniser-users" class="btn btn-primary">Synchroniser les utilisateurs</button>
-    </div>
-
-    <div id="resultat-synchro">
-    </div>
-
-    <div class="card mt-2">
+  <div class="container">
+    <div class="card">
       <div class="card-body">
-        <div class="container-fluid">
-          <table class="table table-striped table-bordered text-center" id="table-utilisateurs">
-            <thead>
-            <tr>
-              <th>Nom</th>
-              <th>Prénom</th>
-              <th>login</th>
-              <th>Username</th>
-              <th>Mail</th>
-              <th>Role</th>
-              <th>Utilisateur Zeus</th>
-              <th>Utilisateur Core</th>
-              <th>Actif</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for utilisateur in utilisateurs %}
-              {% if app.user.role.zeusOnly or not utilisateur.utilisateurZeus %}
-                <tr data-utilisateur-id="{{ utilisateur.id }}">
-                  <td>{{ utilisateur.nom }}</td>
-                  <td>{{ utilisateur.prenom }}</td>
-                  <td>{{ utilisateur.login }}</td>
-                  <td>{{ utilisateur.username }}</td>
-                  <td>{{ utilisateur.mail }}</td>
-                  <td>{% if utilisateur.role != null %} {{ utilisateur.role.libelle }} {% endif %}</td>
-                  <td>
-                    {% if utilisateur.utilisateurZeus %}
-                      <span class="text-success"><i class="fa fa-check-circle"></i></span>
-                    {% else %}
-                      <span class="text-danger"><i class="fa fa-times-circle"></i></span>
-                    {% endif %}
-                  </td>
-                  <td>
-                    {% if utilisateur.utilisateurCore %}
-                      <span class="text-success"><i class="fa fa-check-circle"></i></span>
-                    {% else %}
-                      <span class="text-danger"><i class="fa fa-times-circle"></i></span>
-                    {% endif %}
-                  </td>
-                  <td>
-                    {% if utilisateur.actif %}
-                      <span class="text-success"><i class="fa fa-check-circle"></i></span>
-                    {% else %}
-                      <span class="text-danger"><i class="fa fa-times-circle"></i></span>
-                    {% endif %}
-                  </td>
-                </tr>
-              {% endif %}
-            {% endfor %}
-            </tbody>
-          </table>
+        <lottie-player class="ml-3" src="https://lottie.host/c5b347ba-b90c-413b-a526-8fd6bf56d635/YzDVcCYSjy.json" style="height: 200px;" speed="1" autoplay loop></lottie-player>
+
+        <div class="text-right">
+          <button id="btn-synchroniser-users" class="btn btn-primary mb-2"><i class="fa fa-refresh fa-fw"></i>Synchroniser les utilisateurs</button>
         </div>
+
+        <div id="loader-synchro" class="alert alert-primary d-none">
+          <lottie-player class="ml-3" src="https://lottie.host/ecdb987c-0738-4e70-a324-dfbc5fdc0895/Ly9nmVlAZv.json" style="height: 100px;" speed="1" autoplay loop></lottie-player>
+          <div class="text-center">
+            Synchronisation en cours .. Merci de bien vouloir patienter
+          </div>
+        </div>
+
+        <div id="resultat-synchro">
+        </div>
+
+        <h5>Liste des utilisateurs</h5>
+        <table class="table table-striped table-bordered text-center" id="table-utilisateurs">
+          <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Prénom</th>
+            <th>Login</th>
+            <th>Mail</th>
+            <th>Role</th>
+            <th>Actif</th>
+          </tr>
+          </thead>
+          <tbody>
+          {% for utilisateur in utilisateurs %}
+            <tr data-utilisateur-id="{{ utilisateur.id }}">
+              <td>{{ utilisateur.nom }}</td>
+              <td>{{ utilisateur.prenom }}</td>
+              <td>{{ utilisateur.login }}</td>
+              <td>{{ utilisateur.mail }}</td>
+              <td>
+                {% if utilisateur.role is not null %}
+                  {{ utilisateur.role.libelle }}
+                {% endif %}
+              </td>
+              <td>
+                {% if utilisateur.actif %}
+                  <span class="text-success"><i class="fa fa-check-circle"></i></span>
+                {% else %}
+                  <span class="text-danger"><i class="fa fa-times-circle"></i></span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -75,15 +65,19 @@
     })
 
     $("#btn-synchroniser-users").click(function(){
+      $("#loader-synchro").removeClass('d-none');
+
       $.ajax({
         url: "{{ path('core_application_user_synchroniser') }}",
         type: 'GET',
         success: function(){
-          $("#resultat-synchro").html('<h4 class="text-success">Les utilisateurs ont été synchronisés avec succès</h4>');
+          $("#resultat-synchro").html('<div class="alert alert-success">Les utilisateurs ont été synchronisés avec succès</div>');
           toastr.success('Les utilisateurs ont été synchronisés avec succès');
+          $("#loader-synchro").addClass('d-none');
         },
-        error: function(data){
-          $("#resultat-synchro").html('<h4 class="danger">Une erreur est survenue lors de la synchronisation des utilisateurs</h4>');
+        error: function(){
+          $("#resultat-synchro").html('<div class="alert alert-danger">Une erreur est survenue lors de la synchronisation des utilisateurs</div>');
+          $("#loader-synchro").addClass('d-none');
         }
       });
     });
