@@ -2,6 +2,7 @@
 
 namespace Imanaging\CoreApplicationBundle\Controller;
 
+use Imanaging\ApiCommunicationBundle\ApiCoreCommunication;
 use Imanaging\CoreApplicationBundle\CoreApplication;
 use Symfony\Component\HttpFoundation\Response;
 use Imanaging\ZeusUserBundle\Controller\ImanagingController;
@@ -41,9 +42,50 @@ class UserController extends ImanagingController
     }
 
     return new Response($this->twig->render("@ImanagingCoreApplication/User/index.html.twig", [
-      'utilisateurs' => $this->em->getRepository(UserInterface::class)->findBy(['utilisateurCore' => 'true']),
+      'utilisateurs' => $this->em->getRepository(UserInterface::class)->findBy(['utilisateurCore' => true]),
       'basePath' => $this->coreApplication->getBasePath()
     ]));
+  }
+
+  public function addPageAction()
+  {
+    if (!$this->userCanAccess($this->tokenStorage->getToken()->getUser(), ['core_application_user'])){
+      return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
+    }
+
+    return new Response($this->twig->render("@ImanagingCoreApplication/User/add.html.twig", [
+      'roles' => $this->em->getRepository(RoleInterface::class)->findBy(['zeusOnly' => false]),
+      'basePath' => $this->coreApplication->getBasePath()
+    ]));
+  }
+
+  public function addAction(Request $request, ApiCoreCommunication $apiCoreCommunication)
+  {
+    if (!$this->userCanAccess($this->tokenStorage->getToken()->getUser(), ['core_application_user'])){
+      return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
+    }
+
+    $params = $request->request->all();
+
+    $login = $params['login'];
+
+    $postData = array(
+      'token' => $tokenCoreHashed,
+      'token_date' => $tokenCoreDate,
+      'json_data' => json_encode($json_data)
+    );
+    $url = '/utilisateur/add';
+
+    $response = $apiCoreCommunication->sendPostRequest($url, $postData);
+    if ($response->getHttpCode() == 200) {
+
+    } elseif ($response->getHttpCode() == 201) {
+
+    } else {
+
+    }
+
+    return $this->redirectToRoute('core_application_user');
   }
 
   public function synchroniserAction()

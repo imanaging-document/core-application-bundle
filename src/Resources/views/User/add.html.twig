@@ -1,0 +1,68 @@
+{% extends basePath %}
+
+{% block body %}
+  <div class="container">
+    <div class="card">
+      <div class="card-body">
+        <h4 class="text-center">Nouvel utilisateur</h4>
+
+        <form action="" method="post">
+          <div class="row mb-3">
+            <label for="nom" class="col-sm-2 col-form-label">Nom</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="nom" name="nom">
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="prenom" class="col-sm-2 col-form-label">Prénom</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="prenom" name="prenom">
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="login" class="col-sm-2 col-form-label">Login</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="login" name="login">
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="mail" class="col-sm-2 col-form-label">Email</label>
+            <div class="col-sm-10">
+              <input type="email" class="form-control" id="mail" name="mail">
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="password" class="col-sm-2 col-form-label">Mot de passe</label>
+            <div class="col-sm-10">
+              <input type="password" class="form-control" id="password" name="password">
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="role" class="col-sm-2 col-form-label">Rôle</label>
+            <div class="col-sm-10">
+              <select name="role" id="role" class="form-control">
+                <option value=""></option>
+                {% for role in roles %}
+                  <option value="{{ role.id }}">{{ role.libelle }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-sm-10 offset-sm-2">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="actif" name="actif">
+                <label class="form-check-label" for="actif">
+                  Actif
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="text-center">
+            <button type="submit" class="btn btn-primary"><i class="fa fa-plus-circle fa-fw"></i>Ajouter</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

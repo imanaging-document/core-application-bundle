@@ -7,7 +7,10 @@
         <lottie-player class="ml-3" src="https://lottie.host/c5b347ba-b90c-413b-a526-8fd6bf56d635/YzDVcCYSjy.json" style="height: 200px;" speed="1" autoplay loop></lottie-player>
 
         <div class="text-right">
-          <button id="btn-synchroniser-users" class="btn btn-primary mb-2"><i class="fa fa-refresh fa-fw"></i>Synchroniser les utilisateurs</button>
+          <div class="btn-group">
+            <a href="{{ path('core_application_user_add_page') }}" class="btn btn-success"><i class="fa fa-plus-circle fa-fw"></i>Nouvel utilisateur</a>
+            <button id="btn-synchroniser-users" class="btn btn-primary"><i class="fa fa-refresh fa-fw"></i>Synchroniser les utilisateurs</button>
+          </div>
         </div>
 
         <div id="loader-synchro" class="alert alert-primary d-none">

@@ -8,6 +8,14 @@
         <default key="_controller">imanaging_core_application.user_controller::indexAction</default>
     </route>
 
+    <route id="core_application_user_add_page" path="/user/add-page">
+        <default key="_controller">imanaging_core_application.user_controller::addPageAction</default>
+    </route>
+
+    <route id="core_application_user_add" path="/user/add">
+        <default key="_controller">imanaging_core_application.user_controller::addAction</default>
+    </route>
+
     <route id="core_application_user_synchroniser" path="/user/synchroniser">
         <default key="_controller">imanaging_core_application.user_controller::synchroniserAction</default>
     </route>
