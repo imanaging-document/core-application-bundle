@@ -59,33 +59,21 @@ class UserController extends ImanagingController
     ]));
   }
 
-  public function addAction(Request $request, ApiCoreCommunication $apiCoreCommunication)
+  public function addAction(Request $request)
   {
     if (!$this->userCanAccess($this->tokenStorage->getToken()->getUser(), ['core_application_user'])){
       return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
     }
 
     $params = $request->request->all();
-
-    $login = $params['login'];
-
-    $postData = array(
-      'token' => $tokenCoreHashed,
-      'token_date' => $tokenCoreDate,
-      'json_data' => json_encode($json_data)
-    );
-    $url = '/utilisateur/add';
-
-    $response = $apiCoreCommunication->sendPostRequest($url, $postData);
-    if ($response->getHttpCode() == 200) {
-
-    } elseif ($response->getHttpCode() == 201) {
-
+    $res = $this->coreApplication->addUser($params['login'], $params['mail'], $params['nom'], $params['prenom'], $params['password'], isset($params['actif']), $params['role']);
+    if ($res['added']){
+      $this->addFlash('success', 'Nouvel utilisateur ajouté avec succès : '.$params['login']);
+      return $this->redirectToRoute('core_application_user');
     } else {
-
+      $this->addFlash('error', 'L\'ajout a échoué : '.$res['error_message']);
+      return $this->redirectToRoute('core_application_user_add_page');
     }
-
-    return $this->redirectToRoute('core_application_user');
   }
 
   public function synchroniserAction()

@@ -124,6 +124,37 @@ class CoreApplication
     return $this->apiCoreCommunication->sendPostRequest($url, $postData);
   }
 
+  public function addUser($login, $mail, $nom, $prenom, $password, $actif, $roleId){
+    $postData = [
+      'token' => hash('sha256', $this->apiCoreCommunication->getApiCoreToken()),
+      'url' => $this->ownUrl,
+      'type_application' => $this->coreApiType,
+      'login' => $login,
+      'mail' => $mail,
+      'nom' => $nom,
+      'prenom' => $prenom,
+      'password' => $password,
+      'actif' => $actif,
+      'role_id' => $roleId
+    ];
+    $url = '/utilisateur/add';
+
+    $response = $this->apiCoreCommunication->sendPostRequest($url, $postData);
+    if ($response->getHttpCode() == 200) {
+      // Cet utilisateur existe déjà
+      $data = json_decode($response->getData(), true);
+      return ['added' => false, 'error_message' => $data['error_message']];
+    } elseif ($response->getHttpCode() == 201) {
+      // L'utilisateur a bien été créé
+      // On lance directement la methode de synchronisation des utilisateurs!
+      $this->synchroniserUsers();
+      return ['added' => true];
+    } else {
+      // Autre erreur
+      return ['added' => false, 'error_message' => 'Erreur inconnue (code HTTP '.$response->getHttpCode().'). Veuillez contacter un administrateur.'];
+    }
+  }
+
   /**
    * Ajout d'un nouveau segment
    */
@@ -133,7 +164,6 @@ class CoreApplication
     $tokenCoreDate = $tokenAndDate['date'];
     $url = '/application?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&type_application='.$this->coreApiType.'&client_traitement='.$this->clientTraitement;
     $response = $this->apiCoreCommunication->sendGetRequest($url);
-
 
     if ($response->getHttpCode() == 200) {
       $data = json_decode($response->getData());
