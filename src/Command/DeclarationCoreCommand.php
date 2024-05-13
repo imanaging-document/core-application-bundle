@@ -26,7 +26,8 @@ class DeclarationCoreCommand extends Command
     $this->coreApplicationService = $coreApplicationService;
   }
 
-  protected function configure(){
+  protected function configure(): void
+  {
     $this
       ->setName('core:declaration')
       ->setDescription("Déclaration du site sur le CORE.")
@@ -37,9 +38,10 @@ class DeclarationCoreCommand extends Command
   /**
    * @param InputInterface $input
    * @param OutputInterface $output
-   * @return int|null|void
+   * @return int
    */
-  protected function execute(InputInterface $input, OutputInterface $output){
+  protected function execute(InputInterface $input, OutputInterface $output): int
+  {
     $response = $this->coreApplicationService->declaration();
     if ($response->getHttpCode() == 200){
       $output->writeln("<fg=green>L'application a bien été mise à jour sur le CORE.</>");

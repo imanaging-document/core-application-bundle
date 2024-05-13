@@ -25,7 +25,8 @@ class SynchronisationHierarchiePatrimoineCoreCommand extends Command
     $this->coreApplicationService = $coreApplicationService;
   }
 
-  protected function configure(){
+  protected function configure(): void
+  {
     $this
       ->setName('core:synchronisation:hierarchie-patrimoine')
       ->setDescription("Synchronisation de la hierarchie patrimoine depuis le CORE")
@@ -38,7 +39,8 @@ class SynchronisationHierarchiePatrimoineCoreCommand extends Command
    * @param OutputInterface $output
    * @return int|null|void
    */
-  protected function execute(InputInterface $input, OutputInterface $output){
+  protected function execute(InputInterface $input, OutputInterface $output): int
+  {
     $action = $this->coreApplicationService->getActionEnAttente(CoreSynchronisationActionInterface::TYPE_SYNCHRONISATION_HIERARCHIE_PATRIMOINE);
     if ($action instanceof CoreSynchronisationActionInterface) {
       $res = $this->coreApplicationService->synchroniserHierarchiePatrimoine($action, $output);

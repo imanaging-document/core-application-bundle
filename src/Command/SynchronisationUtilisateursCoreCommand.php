@@ -23,7 +23,8 @@ class SynchronisationUtilisateursCoreCommand extends Command
     $this->coreApplicationService = $coreApplicationService;
   }
 
-  protected function configure(){
+  protected function configure(): void
+  {
     $this
       ->setName('core:synchronisation:utilisateurs')
       ->setDescription("Synchronisation des utilisateurs depuis le CORE")
@@ -35,7 +36,8 @@ class SynchronisationUtilisateursCoreCommand extends Command
    * @param OutputInterface $output
    * @return int|null|void
    */
-  protected function execute(InputInterface $input, OutputInterface $output){
+  protected function execute(InputInterface $input, OutputInterface $output): int
+  {
     $res = $this->coreApplicationService->synchroniserUsers();
     if ($res['success']){
       $output->writeln("<fg=green>La synchronisation des utilisateurs depuis le CORE a réussi..</>");

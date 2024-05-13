@@ -19,7 +19,8 @@ class SynchronisationInterlocuteursCoreCommand extends Command
     $this->coreApplicationService = $coreApplicationService;
   }
 
-  protected function configure(){
+  protected function configure(): void
+  {
     $this
       ->setName('core:synchronisation:interlocuteurs')
       ->setDescription("Synchronisation des interlocuteurs depuis le CORE")
@@ -32,7 +33,8 @@ class SynchronisationInterlocuteursCoreCommand extends Command
    * @param OutputInterface $output
    * @return int|null|void
    */
-  protected function execute(InputInterface $input, OutputInterface $output){
+  protected function execute(InputInterface $input, OutputInterface $output): int
+  {
     $action = $this->coreApplicationService->getActionEnAttente(CoreSynchronisationActionInterface::TYPE_SYNCHRONISATION_INTERLOCUTEURS);
     if ($action instanceof CoreSynchronisationActionInterface) {
       $res = $this->coreApplicationService->synchronisationInterlocuteurs($action, $output);
