@@ -124,7 +124,18 @@ class CoreApplication
     return $this->apiCoreCommunication->sendPostRequest($url, $postData);
   }
 
-  public function addUser($login, $mail, $nom, $prenom, $password, $actif, $roleId){
+  /**
+   * @param $login
+   * @param $mail
+   * @param $nom
+   * @param $prenom
+   * @param $password
+   * @param $actif
+   * @param $roleId
+   * @return array|true[]
+   */
+  public function addUser($login, $mail, $nom, $prenom, $password, $actif, $roleId): array
+  {
     $postData = [
       'token' => hash('sha256', $this->apiCoreCommunication->getApiCoreToken()),
       'url' => $this->ownUrl,
@@ -137,9 +148,7 @@ class CoreApplication
       'actif' => $actif,
       'role_id' => $roleId
     ];
-    $url = '/utilisateur/add';
-
-    $response = $this->apiCoreCommunication->sendPostRequest($url, $postData);
+    $response = $this->apiCoreCommunication->sendPostRequest('/utilisateur/add', $postData);
     if ($response->getHttpCode() == 200) {
       // Cet utilisateur existe déjà
       $data = json_decode($response->getData(), true);
@@ -156,9 +165,98 @@ class CoreApplication
   }
 
   /**
-   * Ajout d'un nouveau segment
+   * @param $login
+   * @param $mail
+   * @param $nom
+   * @param $prenom
+   * @param $roleId
+   * @return array|true[]
    */
-  public function synchroniserUsers(){
+  public function editUser($login, $mail, $nom, $prenom, $roleId): array
+  {
+    $postData = [
+      'token' => hash('sha256', $this->apiCoreCommunication->getApiCoreToken()),
+      'login' => $login,
+      'mail' => $mail,
+      'nom' => $nom,
+      'prenom' => $prenom,
+      'role_id' => $roleId
+    ];
+    $response = $this->apiCoreCommunication->sendPostRequest('/utilisateur/edit', $postData);
+    if ($response->getHttpCode() == 200) {
+      // L'utilisateur a bien été mis à jour
+      // On lance directement la methode de synchronisation des utilisateurs!
+      $res = $this->synchroniserUsers();
+      if ($res['success']){
+        return ['updated' => true];
+      } else {
+        return ['updated' => false, 'error_message' => 'La mise à jour sur le CORE a réeussi mais pas la synchronisation sur ce satellite : '.$res['error_message']];
+      }
+    } else {
+      // Autre erreur
+      return ['updated' => false, 'error_message' => 'Erreur inconnue (code HTTP '.$response->getHttpCode().'). Veuillez contacter un administrateur.'];
+    }
+  }
+
+  public function disableUser(UserInterface $user): array
+  {
+    $postData = [
+      'token' => hash('sha256', $this->apiCoreCommunication->getApiCoreToken()),
+      'login' => $user->getLogin()
+    ];
+    $response = $this->apiCoreCommunication->sendPostRequest('/utilisateur/disable', $postData);
+    if ($response->getHttpCode() == 200) {
+      $user->setActif(false);
+      $this->em->persist($user);
+      $this->em->flush();
+      return ['success' => true];
+    } else {
+      // Autre erreur
+      return ['success' => false, 'error_message' => 'Erreur inconnue (code HTTP '.$response->getHttpCode().'). Veuillez contacter un administrateur.'];
+    }
+  }
+
+  public function getUsersInfos(): array
+  {
+    $response = $this->apiCoreCommunication->sendGetRequest('/utilisateurs/infos?token='.hash('sha256', $this->apiCoreCommunication->getApiCoreToken()));
+    if ($response->getHttpCode() == 200) {
+      $data = json_decode($response->getData(), true);
+      return ['success' => true, 'notifications' => $data['logins_users_notifies'], 'dernieres_connexions' => $data['dernieres_connexions']];
+    } else {
+      // Autre erreur
+      return ['success' => false, 'error_message' => 'Erreur inconnue (code HTTP '.$response->getHttpCode().'). Veuillez contacter un administrateur.'];
+    }
+  }
+
+  public function getUserNotifications($login): array
+  {
+    $response = $this->apiCoreCommunication->sendGetRequest('/utilisateur/'.$login.'/notifications?token='
+      .hash('sha256', $this->apiCoreCommunication->getApiCoreToken()));
+    if ($response->getHttpCode() == 200) {
+      return json_decode($response->getData(), true);
+    } else {
+      // Autre erreur
+      return [];
+    }
+  }
+
+  public function sendNotification(UserInterface $user): array
+  {
+    $response = $this->apiCoreCommunication->sendGetRequest('/utilisateur/'.$user->getLogin().'/send-notification?type_application='.$this->coreApiType.'&url='
+      .$this->ownUrl.'&token='.hash('sha256', $this->apiCoreCommunication->getApiCoreToken()));
+    if ($response->getHttpCode() == 200) {
+      return ['success' => true];
+    } else {
+      // Autre erreur
+      return ['success' => false, 'error_message' => 'Erreur inconnue (code HTTP '.$response->getHttpCode().'). Veuillez contacter un administrateur.'];
+    }
+  }
+
+  /**
+   * @return array
+   */
+  public function synchroniserUsers(): array
+  {
     $tokenAndDate = $this->getCoreTokenAndDate();
     $tokenCoreHashed = $tokenAndDate['token'];
     $tokenCoreDate = $tokenAndDate['date'];
@@ -190,7 +288,6 @@ class CoreApplication
               $utilisateurLocalCore->setUtilisateurCore(true);
               $utilisateurLocalCore->setUtilisateurZeus(false);
               $utilisateurLocalCore->setLogin($utilisateur->login);
-
             }
           }
 

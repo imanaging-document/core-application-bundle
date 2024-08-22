@@ -1,0 +1,104 @@
+{% extends basePath %}
+
+{% block body %}
+  <div class="container">
+    <a href="{{ path('core_application_user') }}"><i class="fa fa-chevron-left fa-fw"></i>Retour</a>
+    <div class="card">
+      <div class="card-body">
+        <h4 class="text-center">{{ utilisateur.prenom }} {{ utilisateur.nom }} - Edition</h4>
+
+        <form action="{{ path('core_application_user_save', {id: utilisateur.id}) }}" method="post">
+          <div class="row mb-3">
+            <label for="nom" class="col-sm-2 col-form-label">Nom</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="nom" name="nom" value="{{ utilisateur.nom }}">
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="prenom" class="col-sm-2 col-form-label">Prénom</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="prenom" name="prenom" value="{{ utilisateur.prenom }}">
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="login" class="col-sm-2 col-form-label">Login</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="login" value="{{ utilisateur.login }}" disabled>
+              <small><i class="fa fa-info-circle fa-fw"></i>La modification du login est impossible.</small>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="mail" class="col-sm-2 col-form-label">Email</label>
+            <div class="col-sm-10">
+              <input type="email" class="form-control" id="mail" name="mail" value="{{ utilisateur.mail }}">
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="role" class="col-sm-2 col-form-label">Rôle</label>
+            <div class="col-sm-10">
+              <select name="role" id="role" class="form-control">
+                <option value=""></option>
+                {% for role in roles %}
+                  <option value="{{ role.id }}" {% if utilisateur.role == role %}selected{% endif %}>{{ role.libelle }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="text-center">
+            <button type="submit" class="btn btn-primary"><i class="fa fa-save fa-fw"></i>Enregistrer</button>
+          </div>
+        </form>
+
+        <div class="mt-2">
+          <div>
+            La désactivation sera effective pour tout l'écosystème applicatif. L'utilisateur ne pourra plus se connecter à aucun satellite.
+          </div>
+          <a href="{{ path('core_application_user_disable', {id: utilisateur.id}) }}" class="btn btn-danger w-100">
+            <i class="fa fa-times-circle fa-fw"></i>Désactiver cet utilisateur
+          </a>
+        </div>
+
+        <div class="mt-4">
+          <b><i class="fa fa-paper-plane fa-fw"></i>Historique des notifications</b>
+
+          <a href="{{ path('core_application_user_send_notification', {id: utilisateur.id}) }}" class="btn btn-success w-100 mb-2">
+            <i class="fa fa-paper-plane fa-fw"></i>Envoyer une notification de création de compte à {{ utilisateur.mail }}
+          </a>
+
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>Date d'envoi</th>
+                <th>Expediteur</th>
+                <th>Destinataire</th>
+                <th>Envoye</th>
+                <th>Contenu</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for notification in notifications %}
+                <tr>
+                  <td>{{ notification.date_envoi }}</td>
+                  <td>{{ notification.expediteur }}</td>
+                  <td>{{ notification.destinataire }}</td>
+                  <td>
+                    {% if notification.envoye %}
+                      <i class="fa fa-check-circle fa-lg text-success"></i>
+                    {% else %}
+                      <i class="fa fa-times-circle fa-lg text-danger"></i>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {{ notification.contenu|raw }}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

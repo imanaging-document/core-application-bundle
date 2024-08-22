@@ -16,6 +16,22 @@
         <default key="_controller">imanaging_core_application.user_controller::addAction</default>
     </route>
 
+    <route id="core_application_user_edit" path="/user/{id}/edit">
+        <default key="_controller">imanaging_core_application.user_controller::editAction</default>
+    </route>
+
+    <route id="core_application_user_save" path="/user/{id}/save">
+        <default key="_controller">imanaging_core_application.user_controller::saveAction</default>
+    </route>
+
+    <route id="core_application_user_disable" path="/user/{id}/disable">
+        <default key="_controller">imanaging_core_application.user_controller::disableAction</default>
+    </route>
+
+    <route id="core_application_user_send_notification" path="/user/{id}/send-notification">
+        <default key="_controller">imanaging_core_application.user_controller::sendNotificationAction</default>
+    </route>
+
     <route id="core_application_user_synchroniser" path="/user/synchroniser">
         <default key="_controller">imanaging_core_application.user_controller::synchroniserAction</default>
     </route>

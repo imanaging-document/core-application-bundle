@@ -32,7 +32,9 @@
             <th>Login</th>
             <th>Mail</th>
             <th>Role</th>
+            <th>Notifié</th>
             <th>Actif</th>
+            <th>Dernière connexion</th>
           </tr>
           </thead>
           <tbody>
@@ -40,7 +42,7 @@
             <tr data-utilisateur-id="{{ utilisateur.id }}">
               <td>{{ utilisateur.nom }}</td>
               <td>{{ utilisateur.prenom }}</td>
-              <td>{{ utilisateur.login }}</td>
+              <td><a href="{{ path('core_application_user_edit', {id: utilisateur.id}) }}">{{ utilisateur.login }}</a></td>
               <td>{{ utilisateur.mail }}</td>
               <td>
                 {% if utilisateur.role is not null %}
@@ -48,10 +50,22 @@
                 {% endif %}
               </td>
               <td>
+                {% if utilisateur.login in utilisateurs_notifications %}
+                  <span class="text-success"><i class="fa fa-check-circle"></i></span>
+                {% else %}
+                  <span class="text-danger"><i class="fa fa-times-circle"></i></span>
+                {% endif %}
+              </td>
+              <td>
                 {% if utilisateur.actif %}
                   <span class="text-success"><i class="fa fa-check-circle"></i></span>
                 {% else %}
                   <span class="text-danger"><i class="fa fa-times-circle"></i></span>
+                {% endif %}
+              </td>
+              <td>
+                {% if dernieres_connexions[utilisateur.login] is defined %}
+                  {{ dernieres_connexions[utilisateur.login] }}
                 {% endif %}
               </td>
             </tr>
