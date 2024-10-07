@@ -2,30 +2,32 @@
 {% set interlocuteurs = getInterlocuteurs() %}
 {% if (hps_parents|length > 0) or (interlocuteurs|length > 0) %}
   <div id="hierarchies_selects">
-    <div id="hps_selects">
+    <div id="hps_selects" class="col-sm">
       {% include '@ImanagingCoreApplication/HierarchiePatrimoine/partials/select-hps.html.twig' with {'hps' : hps_parents} %}
     </div>
 
-    <div id="interlocuteurs_selects">
+    <div id="interlocuteurs_selects" class="col-sm">
       {% include '@ImanagingCoreApplication/HierarchiePatrimoine/partials/select-interlocuteurs.html.twig' with {'interlocuteurs' : interlocuteurs} %}
     </div>
   </div>
 {% endif %}
 <style>
-    #hierarchies_selects{
-        border: 1px solid lightgrey;
-        padding: 5px;
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 1em;
-        border-radius: 5px;
-    }
+  #hierarchies_selects{
+    border: 1px solid lightgrey;
+    padding: 5px;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1em;
+    border-radius: 5px;
+  }
 </style>
 
 <script>
   $(document).ready(function() {
     $(".select_hp").trigger('change');
+    transformToSelect2();
   })
+
   $(document).on('change', '.select_hp', function() {
     var val = $(this).val();
     var postData = {'hp_id' : val};
@@ -37,10 +39,19 @@
       data: postData,
       success: function(data){
         enfantsDiv.html(data);
+        transformToSelect2();
       },
       error: function (data) {
         showSweetAlert('top-end', 'error', data.responseJSON.message_error, true, 5000);
       }
     });
   })
+
+  function transformToSelect2(){
+    $(".select_hp").each(function(){
+      $(this).select2({
+        width: '100%'
+      });
+    });
+  }
 </script>
