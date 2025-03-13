@@ -1083,6 +1083,7 @@ class CoreApplication
             'libelle' => $roleModule->getLibelle(),
             'acces' => $roleModule->isAcces(),
             'type' => $module->getTypeApplication(),
+            'icon_classes' => $module->getIconClasses(),
             'apps' => $roleModule->getApps(),
             'data_application' => json_decode($module->getDataApplication()),
             'route' => $module->getRoute(),
@@ -1210,6 +1211,7 @@ class CoreApplication
               'libelle' => $roleModule->getLibelle(),
               'acces' => $roleModule->isAcces(),
               'type' => $module->getTypeApplication(),
+              'icon_classes' => $roleModule->getModule()->getIconClasses(),
               'data_application' => json_decode($module->getDataApplication()),
               'route' => $enfant->getRoute(),
               'children' => $this->getChildren($enfant, $role)
