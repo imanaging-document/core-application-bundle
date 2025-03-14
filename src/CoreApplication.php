@@ -1084,6 +1084,7 @@ class CoreApplication
             'acces' => $roleModule->isAcces(),
             'type' => $module->getTypeApplication(),
             'icon_classes' => $module->getIconClasses(),
+            'has_child_with_children' => $module->hasChildWithChildren(),
             'apps' => $roleModule->getApps(),
             'data_application' => json_decode($module->getDataApplication()),
             'route' => $module->getRoute(),
@@ -1212,6 +1213,7 @@ class CoreApplication
               'acces' => $roleModule->isAcces(),
               'type' => $module->getTypeApplication(),
               'icon_classes' => $roleModule->getModule()->getIconClasses(),
+              'has_child_with_children' => $module->hasChildWithChildren(),
               'data_application' => json_decode($module->getDataApplication()),
               'route' => $enfant->getRoute(),
               'children' => $this->getChildren($enfant, $role)
