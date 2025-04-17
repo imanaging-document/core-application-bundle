@@ -1065,9 +1065,9 @@ class CoreApplication
     if (!is_null($topLevelModules)) {
       if ($roleModuleHash instanceof ParametrageInterface){
         $currentMenuHash = $this->requestStack->getSession()->get($keyMenuHash);
-//        if ($currentMenuHash == $roleModuleHash->getValeur()){
-//          return json_decode($topLevelModules);
-//        }
+        if ($currentMenuHash == $roleModuleHash->getValeur()){
+          return json_decode($topLevelModules);
+        }
       }
     }
 
