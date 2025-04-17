@@ -5,6 +5,8 @@ namespace Imanaging\CoreApplicationBundle\Twig;
 use Imanaging\CoreApplicationBundle\CoreApplication;
 use Imanaging\ZeusUserBundle\Interfaces\ModuleInterface;
 use Imanaging\ZeusUserBundle\Interfaces\UserInterface;
+use Symfony\Component\HttpFoundation\Exception\SessionNotFoundException;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Twig\Extension\AbstractExtension;
@@ -12,14 +14,11 @@ use Twig\TwigFunction;
 
 class TwigFunctions extends AbstractExtension
 {
-  private $coreService;
-  private $generator;
 
-  public function __construct(CoreApplication $coreService, UrlGeneratorInterface $generator)
+  public function __construct(private readonly CoreApplication $coreService, private readonly UrlGeneratorInterface $generator, private readonly RequestStack $requestStack)
   {
-    $this->coreService = $coreService;
-    $this->generator = $generator;
   }
+
   public function getFunctions() : array
   {
     return array(
@@ -34,8 +33,9 @@ class TwigFunctions extends AbstractExtension
       new TwigFunction('getUrlHomepage', [$this, 'getUrlHomepage']),
       new TwigFunction('isRouteExiste', [$this, 'isRouteExiste']),
       new TwigFunction('getHierarchiesPatrimoines', [$this, 'getHierarchiesPatrimoines']),
-      new TwigFunction('getInterlocuteurs', [$this, 'getInterlocuteurs'])
-
+      new TwigFunction('getInterlocuteurs', [$this, 'getInterlocuteurs']),
+      new TwigFunction('gravatar', [$this, 'gravatar']),
+      new TwigFunction('isConnectedAsOtherUser', [$this, 'isConnectedAsOtherUser']),
     );
   }
 
@@ -48,7 +48,8 @@ class TwigFunctions extends AbstractExtension
   }
 
   /**
-   * @param $user
+   * @param $moduleId
+   * @param null $clientTraitement
    * @return array
    */
   public function getApplicationInformation($moduleId, $clientTraitement = null){
@@ -56,7 +57,7 @@ class TwigFunctions extends AbstractExtension
   }
 
   /**
-   * @param User $user
+   * @param UserInterface $user
    * @param bool $isDroite
    * @return array|mixed|null
    */
@@ -123,5 +124,30 @@ class TwigFunctions extends AbstractExtension
   public function getInterlocuteurs()
   {
     return $this->coreService->getInterlocuteurs();
+  }
+
+  /**
+   * @param $mail
+   * @return string
+   */
+  public function gravatar($mail): string
+  {
+    $url = 'https://www.gravatar.com/avatar/';
+    $url .= md5( strtolower( trim( $mail ) ) );
+    $url .= '?s=80&d=mp&r=g';
+    return $url;
+  }
+
+  /**
+   * @return bool
+   */
+  public function isConnectedAsOtherUser(): bool
+  {
+    try {
+      $this->session = $this->requestStack->getSession();
+    } catch (SessionNotFoundException $sessionNotFoundException) {
+      return false;
+    }
+    return !is_null($this->session->get('zeus-connected-core'));
   }
 }

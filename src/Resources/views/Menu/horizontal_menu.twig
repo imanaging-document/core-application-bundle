@@ -1,131 +1,238 @@
-<nav class="navbar navbar-expand-md" aria-label="Fourth navbar example">
-  <div class="container-fluid">
+<nav class="navbar navbar-expand-lg navbar-custom">
+  <div class="brand-cn">
     <a class="navbar-brand" {% if isRouteExiste(getUrlHomepage()) %}href="{{ path(getUrlHomepage()) }}"{% endif %}>
-      <img alt="{{ client }}" src="{{ asset(publicStorageDir ~ 'images/logo-client.png') }}" class="logo-client">
+      <img alt="logo-client" src="{{ asset(publicStorageDir ~ 'images/logo-client.png') }}">
     </a>
+  </div>
 
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsHorizontalMenu" aria-controls="navbarsHorizontalMenu" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-
-    <div class="collapse navbar-collapse" id="navbarsHorizontalMenu">
-      {# PARTIE OPERATION (gauche) #}
-      <ul class="navbar-nav me-auto">
+  <div class="menu-cn">
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        {# Récuperation de tous les modules de niveau 1 côté gauche #}
         {% set modules = getTopLevelModules(app.user, false) %}
         {% for module in modules %}
-          {% if module.type == 'module' %}
-            <li class="nav-item">
-              <a class="nav-link link-with-loader" {% if module.route != ""  %}href="{{ path(module.route) }}"
-                  {% else %} href="{{ path('core_application_menu_get_first_sous_module_redirect', {id: module.id}) }}"{% endif %}>
-                {{ module.libelle }}
-              </a>
-            </li>
-          {% elseif module.type in ['dossier_locataire', 'portail_extranet', 'core', 'hqmc', 'quittance'] %}
-            {% for app in module.apps %}
-              {% if app.acces and app.url != ownUrl %}
-                {% set dataApplication = getApplicationInformation(module.id, app.client_traitement) %}
-                {% if dataApplication.urlSso is defined %}
-                  <li class="nav-item active">
-                    <div data-sso-method="{{dataApplication.urlSso}}" data-redirection-route="{{ module.redirection_route }}"
-                         data-url="{{ path('zeus_user_get_data_for_redirect') }}"
-                         class="nav-link changeApplication link-with-loader" style="cursor:pointer;">
-                      {{ module.libelle }}
-                    </div>
-                  </li>
-                {% endif %}
-              {% endif %}
-            {% endfor %}
-          {% endif %}
+          <li class="nav-item {% if module.children|length > 0 %} dropdown {% endif %} {% if module.route == app.request.get('_route') %} active {% endif %}">
+            <a {% if module.children|length > 0 %}href="#" class="nav-link main-menu-nav-link dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside"{% else %} class="nav-link main-menu-nav-link" href="{% if module.route != "" %}{{ path(module.route) }}{% else %}#{% endif %}"{% endif %}>
+              {{ module.libelle }}
+            </a>
+            {% if module.children|length > 0 %}
+              <div class="dropdown-menu box-shadow-homepage {% if not module.has_child_with_children %}single-lvl{% else %}multi-lvl{% endif %}">
+                <div class="cn-items">
+                  {% for sousModule in module.children %}
+                    {% if sousModule.route == '' %}
+                      <div class="cn-last-menu">
+                        <div class="cn-items-last">
+                          <div class="item-cn sous-menu-title">{{ sousModule.libelle }}</div>
+                          {% for sousSousModule in sousModule.children %}
+                            {% if isRouteExiste(sousSousModule.route) %}
+                              <div class="item-cn{% if sousSousModule.route == app.request.get('_route') %} active {% endif %}">
+                                <a {% if sousSousModule.children|length > 0 %}href="#" class="dropdown-item dropdown-toggle"{% else %} href="{% if sousSousModule.route != "" %}{{ path(sousSousModule.route) }}{% else %}#{% endif %}" class="dropdown-item"{% endif %}>
+                                  <div class="cn-icon">
+                                    <i class="{{ sousSousModule.icon_classes }}"></i>
+                                  </div>
+                                  <div>
+                                    {{ sousSousModule.libelle }}
+                                  </div>
+                                </a>
+                              </div>
+                            {% endif %}
+                          {% endfor %}
+                        </div>
+                      </div>
+                    {% elseif isRouteExiste(sousModule.route) %}
+                      <div class="{% if sousModule.route == app.request.get('_route') %} active {% endif %}">
+                        <a {% if sousModule.children|length > 0 %}href="#" class="dropdown-item dropdown-toggle"{% else %} href="{% if sousModule.route != "" %}{{ path(sousModule.route) }}{% else %}#{% endif %}" class="dropdown-item"{% endif %}>
+                          <div class="cn-icon">
+                            <i class="{{ sousModule.icon_classes }}"></i>
+                          </div>
+                          <div>
+                            {{ sousModule.libelle }}
+                          </div>
+                        </a>
+                      </div>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              </div>
+            {% endif %}
+          </li>
         {% endfor %}
-      </ul>
 
-      {# PARTIE ADMINISTRATION (droite) #}
-      <ul class="navbar-nav">
+        {# Récuperation de tous les modules de niveau 1 côté droit #}
         {% set modules = getTopLevelModules(app.user, true) %}
         {% for module in modules %}
-          {% if module.type == 'module' %}
-            <li class="nav-item">
-              <a class="nav-link link-with-loader" {% if module.route != ""  %}href="{{ path(module.route) }}"
-                  {% else %} href="{{ path('core_application_menu_get_first_sous_module_redirect', {id: module.id}) }}"{% endif %}>
-                {{ module.libelle }}
-              </a>
-            </li>
-          {% elseif module.type in ['dossier_locataire', 'portail_extranet', 'core', 'hqmc', 'quittance'] %}
-            {% for app in module.apps %}
-              {% if app.acces and app.url != ownUrl %}
-                {% set dataApplication = getApplicationInformation(module.id, app.client_traitement) %}
-                {% if dataApplication.urlSso is defined %}
-                  <li class="nav-item active">
-                    <div data-sso-method="{{dataApplication.urlSso}}" data-redirection-route="{{ module.redirection_route }}"
-                         data-url="{{ path('zeus_user_get_data_for_redirect') }}"
-                         class="nav-link changeApplication link-with-loader" style="cursor:pointer;">
-                      {{ module.libelle }}
-                    </div>
-                  </li>
-                {% endif %}
-              {% endif %}
-            {% endfor %}
-          {% endif %}
+          <li class="nav-item {% if module.children|length > 0 %} dropdown {% endif %} {% if module.route == app.request.get('_route') %} active {% endif %}">
+            <a {% if module.children|length > 0 %}href="#" class="nav-link main-menu-nav-link dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside"{% else %} href="{% if module.route != "" %}{{ path(module.route) }}{% else %}#{% endif %}"{% endif %}>
+              {{ module.libelle }}
+            </a>
+            {% if module.children|length > 0 %}
+              <div class="dropdown-menu box-shadow-homepage {% if not module.has_child_with_children %}single-lvl{% else %}multi-lvl{% endif %}">
+                <div class="cn-items">
+                  {% for sousModule in module.children %}
+                    {% if sousModule.route == '' %}
+                      <div class="cn-last-menu">
+                        <div class="cn-items-last">
+                          <div class="item-cn sous-menu-title">{{ sousModule.libelle }}</div>
+                          {% for sousSousModule in sousModule.children %}
+                            {% if isRouteExiste(sousSousModule.route) %}
+                              <div class="item-cn{% if sousSousModule.route == app.request.get('_route') %} active {% endif %}">
+                                <a {% if sousSousModule.children|length > 0 %}href="#" class="dropdown-item dropdown-toggle"{% else %} href="{% if sousSousModule.route != "" %}{{ path(sousSousModule.route) }}{% else %}#{% endif %}" class="dropdown-item"{% endif %}>
+                                  <div class="cn-icon">
+                                    <i class="{{ sousSousModule.icon_classes }}"></i>
+                                  </div>
+                                  <div>
+                                    {{ sousSousModule.libelle }}
+                                  </div>
+                                </a>
+                              </div>
+                            {% endif %}
+                          {% endfor %}
+                        </div>
+                      </div>
+                    {% elseif isRouteExiste(sousModule.route) %}
+                      <div class="{% if sousModule.route == app.request.get('_route') %} active {% endif %}">
+                        <a {% if sousModule.children|length > 0 %}href="#" class="dropdown-item dropdown-toggle"{% else %} href="{% if sousModule.route != "" %}{{ path(sousModule.route) }}{% else %}#{% endif %}" class="dropdown-item"{% endif %}>
+                          <div class="cn-icon">
+                            <i class="{{ sousModule.icon_classes }}"></i>
+                          </div>
+                          <div>
+                            {{ sousModule.libelle }}
+                          </div>
+                        </a>
+                      </div>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              </div>
+            {% endif %}
+          </li>
         {% endfor %}
       </ul>
 
-      {# PARTIE USER (droite) #}
-      <ul class="navbar-nav me-5">
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="dropdownProfile" data-bs-toggle="dropdown" aria-expanded="false">
-            {{ app.user.prenom }} {{ app.user.nom }}
-          </a>
-          <ul class="dropdown-menu" aria-labelledby="dropdownProfile">
-            {% if getUrlUpdatePassword() != "" %}
-              <li>
-                <a class="dropdown-item" href="{{ path(getUrlUpdatePassword()) }}">Modifier mon mot de passe</a>
-              </li>
-            {% endif %}
-            {% if getUrlProfile() != "" %}
-              <li>
-                <a class="dropdown-item" href="{{ path(getUrlProfile()) }}">Profil</a>
-              </li>
-            {% endif %}
-            {% if getUrlLogout() != "" %}
-              <li>
-                <a class="dropdown-item" href="{{ path(getUrlLogout()) }}">Déconnexion</a>
-              </li>
-            {% endif %}
-          </ul>
-        </li>
-      </ul>
-
+      <div class="cn-menu-right">
+        <div>
+          <input type="text" class="inp-menu-search" placeholder="Recherche">
+        </div>
+        <div>
+          <img class="btn-apps" src="{{ asset("build/core-application/img/btn-apps.svg") }}" alt="applications">
+        </div>
+        <div>
+          <img class="pull-right gravatar-bordered" src="{{ gravatar(app.user.mail) }}" alt="gravatar" />
+        </div>
+        <div>
+          {{ app.user.prenom }} {{ app.user.nom }}
+        </div>
+        <div>
+          <a href="{{ path(getUrlLogout()) }}"><i class="fa fa-power-off"></i></a>
+        </div>
+      </div>
     </div>
   </div>
 </nav>
 
-<style>
-  .navbar{
-    background-color: #FAFBFC;
-    box-shadow: 0 0.46875rem 2.1875rem rgba(4,9,20,0.03), 0 0.9375rem 1.40625rem rgba(4,9,20,0.03), 0 0.25rem 0.53125rem rgba(4,9,20,0.05), 0 0.125rem 0.1875rem rgba(4,9,20,0.03);
-    width: 100vw;
-    height: 70px;
-    position: fixed;
-    z-index: 1000;
-  }
-  
-  .navbar-brand img{
-    max-height: 50px;
-  }
+<div class="apps-sous-menu d-none">
+</div>
 
-  .global-loader{
-    z-index: 999;
+<div class="search-result d-none">
+</div>
+
+{% if isConnectedAsOtherUser() %}
+  <div class="connected-as-other-user">
+    <i class="fa fa-exclamation-triangle fa-fw"></i>Vous êtes connecté dans la peau d'un autre utilisateur
+    <span class="ml-2">(<a href="{{ path('hephaistos_logout_from_connected_as_core') }}">Se déconnecter</a>)</span>
+  </div>
+{% endif %}
+
+<script>
+  var searchRequest = null;
+
+  $(".btn-apps").click(function(){
+    $(".apps-sous-menu").toggleClass('d-none');
+  });
+
+  $(".inp-menu-search").keyup(function(e){
+    if(e.key === "Escape") {
+      $(this).val("");
+      $(".search-result").addClass('d-none')
+    }
+
+    if ($(this).val().length > 1){
+      if (searchRequest !== null){
+        searchRequest.abort();
+      }
+
+      $(".search-result").removeClass('d-none').html('<div class="d-flex justify-content-center align-items-center"><i class="fa fa-spinner fa-spin fa-fw"></i><b>Recherche en cours ...</b></div>');
+
+      var critere = $(this).val();
+      searchRequest = $.ajax({
+        url: "{{ path('hephaistos_global_search') }}",
+        data: {critere: critere},
+        type: 'POST',
+        success: function(data){
+          $(".search-result").html(data);
+        },
+        error: function(){
+        }
+      });
+    } else {
+      $(".search-result").addClass('d-none')
+    }
+  });
+
+  $(document).ready(function(){
+    $.ajax({
+      url: '{{ path('core_application_applications_show_list') }}',
+      type: 'GET',
+      success: function(data){
+        $('.apps-sous-menu').html(data);
+      },
+      error: function(data) {
+        if (data.responseJSON !== undefined){
+          $('.apps-sous-menu').html(data.responseJSON.error_message);
+        } else {
+          $('.apps-sous-menu').html('Impossible de récupérer les applications.');
+        }
+      }
+    });
+  });
+</script>
+
+<style>
+  .connected-as-other-user{
     position: fixed;
+    top: 0;
+    background: coral;
+    width: 100%;
+    height: 35px;
     display: flex;
+    color: white;
     justify-content: center;
     align-items: center;
-    font-family: Montserrat-Medium, sans-serif;
-    font-size: 18px;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #E5F1F5;
-    opacity: .95;
+    font-weight: 600;
+    font-family: 'Montserrat', sans-serif;
+    opacity: .7;
+  }
+
+  .connected-as-other-user:hover {
+    opacity: 1;
+  }
+
+  .navbar-light .navbar-nav .nav-link {
+    color: rgb(64, 64, 64);
+  }
+  .btco-menu li > a {
+    padding: 10px 15px;
+    color: #000;
+  }
+
+  .btco-menu .active a:focus,
+  .btco-menu li a:focus ,
+  .navbar > .show > a:focus{
+    background: transparent;
+    outline: 0;
+  }
+
+  .dropdown-menu .show > .dropdown-toggle::after{
+    transform: rotate(-90deg);
   }
 </style>

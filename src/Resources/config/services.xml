@@ -39,6 +39,7 @@
     <service id="imanaging_core_application.twig_functions" class="Imanaging\CoreApplicationBundle\Twig\TwigFunctions">
       <argument type="service" id="imanaging_core_application.core_application" />
       <argument type="service" id="Symfony\Component\Routing\Generator\UrlGeneratorInterface" />
+      <argument type="service" id="Symfony\Component\HttpFoundation\RequestStack" />
       <tag name="twig.extension" function="getApplications" />
     </service>
 
