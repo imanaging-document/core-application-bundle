@@ -893,7 +893,7 @@ class CoreApplication
         $res = json_decode($resultRequest->getData(), true);
         $typesApplication = $res['apps'];
         $pageAccueilSimplifiee = $res['page_accueil_simplifiee'];
-        $this->requestStack->getSession()->set($keyMenu, json_encode($typesApplication));
+        $this->requestStack->getSession()->set($keyMenu, json_encode(['types_applications' => $typesApplication, 'page_accueil_simplifiee' => $pageAccueilSimplifiee]));
       } else {
         $typesApplication = [];
       }
