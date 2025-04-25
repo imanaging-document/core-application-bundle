@@ -876,10 +876,10 @@ class CoreApplication
       return json_decode($applications, true);
     }
 
-
     $tokenAndDate = $this->getCoreTokenAndDate();
     $tokenCoreHashed = $tokenAndDate['token'];
     $tokenCoreDate = $tokenAndDate['date'];
+    $pageAccueilSimplifiee = true;
 
     // on va récupèrer directement sur le CORE les applications disponibles pour cet utilisateur
     $url = '/application?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&type_application='.$this->coreApiType.'&client_traitement='.$this->clientTraitement;
@@ -890,7 +890,9 @@ class CoreApplication
       $url = '/applications-all/utilisateur?token='.$tokenCoreHashed.'&token_date='.$tokenCoreDate.'&application='.$applicationId.'&login='.$user->getLogin();
       $resultRequest = $this->apiCoreCommunication->sendGetRequest($url);
       if ($resultRequest->getHttpCode() == 200) {
-        $typesApplication = json_decode($resultRequest->getData(), true);
+        $res = json_decode($resultRequest->getData(), true);
+        $typesApplication = $res['apps'];
+        $pageAccueilSimplifiee = $res['page_accueil_simplifiee'];
         $this->requestStack->getSession()->set($keyMenu, json_encode($typesApplication));
       } else {
         $typesApplication = [];
@@ -899,7 +901,7 @@ class CoreApplication
       $typesApplication = [];
     }
 
-    return $typesApplication;
+    return ['types_applications' => $typesApplication, 'page_accueil_simplifiee' => $pageAccueilSimplifiee];;
   }
 
   public function getApplicationInformation($moduleId, $clientTraitement = null){

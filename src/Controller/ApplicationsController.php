@@ -35,9 +35,10 @@ class ApplicationsController extends ImanagingController
   public function showApplicationsListAction()
   {
     $user = $this->tokenStorage->getToken()->getUser();
-    $typesApplication = $this->coreApplication->getApplicationsListing($user);
+    $res = $this->coreApplication->getApplicationsListing($user);
     return new Response($this->twig->render("@ImanagingCoreApplication/Applications/list.html.twig", [
-      'typesApplication' => $typesApplication,
+      'types_applications' => $res['types_applications'],
+      'page_accueil_simplifiee' => $res['page_accueil_simplifiee'],
     ]));
   }
 }
