@@ -1,5 +1,5 @@
 <div class="cn-apps">
-  {% for type_app in typesApplication %}
+  {% for type_app in types_applications %}
     {% if type_app.visible_menu_apps and type_app.apps|length > 0 and type_app.user_access %}
       {% set app_url = '' %}
       {% for app in type_app.apps %}
@@ -17,8 +17,8 @@
     {% endif %}
   {% endfor %}
 
-  {% for type_app in typesApplication %}
-    {% if type_app.visible_menu_apps and type_app.apps|length > 0 and not type_app.user_access and not app.user.role.canDo('page_accueil_simplifiee') %}
+  {% for type_app in types_applications %}
+    {% if type_app.visible_menu_apps and type_app.apps|length > 0 and not type_app.user_access and not page_accueil_simplifiee %}
       <a href="#" class="disabled">
         <div class="logo-cn" style="--type-application-bg-color: {{ type_app.color }};--type-application-bg-color-gradient: {{ type_app.color_gradient }};">
           <img src="{{ type_app.logo_base }}" alt="logo_base">
@@ -34,7 +34,7 @@
   {% endfor %}
 </div>
 
-{% if not app.user.role.canDo('page_accueil_simplifiee') %}
+{% if not page_accueil_simplifiee %}
   <div class="cn-non-installees">
     <div class="header-non-installees">
       <div class="decoration">
@@ -47,7 +47,7 @@
     </div>
 
     <div class="cn-apps">
-      {% for type_app in typesApplication %}
+      {% for type_app in types_applications %}
         {% if type_app.visible_menu_apps and type_app.apps|length == 0 %}
           <a href="#">
             <div class="logo-cn" style="--type-application-bg-color: {{ type_app.color }};--type-application-bg-color-gradient: {{ type_app.color_gradient }};">
