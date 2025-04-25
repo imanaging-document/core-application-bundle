@@ -8,6 +8,7 @@ use Imanaging\ZeusUserBundle\Interfaces\ModuleInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Imanaging\ZeusUserBundle\Interfaces\RoleInterface;
 use Imanaging\ZeusUserBundle\Interfaces\UserInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -40,5 +41,12 @@ class ApplicationsController extends ImanagingController
       'types_applications' => $res['types_applications'],
       'page_accueil_simplifiee' => $res['page_accueil_simplifiee'],
     ]));
+  }
+
+  public function removeCacheAction(Request $request)
+  {
+    $keyMenu = 'list_applications';
+    $applications = $request->getSession()->remove($keyMenu);
+    return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
   }
 }

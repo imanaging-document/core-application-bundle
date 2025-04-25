@@ -62,3 +62,17 @@
     </div>
   </div>
 {% endif %}
+
+{% if app.user.utilisateurZeus %}
+  <div class="d-flex align-items-center px-4 gap-4 mt-4 bg-light p-2 rounded">
+    <i class="fa fa-bolt text-warning"></i>
+    <div>
+      <div>
+        <a href="{{ path('core_application_applications_remove_cache') }}"><i class="fa fa-refresh fa-fw"></i>Recharger les apps</a>
+      </div>
+      <div class="fs-6 fw-lighter text-muted">
+        <small>Administrateurs uniquement</small>
+      </div>
+    </div>
+  </div>
+{% endif %}

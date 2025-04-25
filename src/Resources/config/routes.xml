@@ -96,6 +96,10 @@
         <default key="_controller">imanaging_core_application.applications_controller::showApplicationsListAction</default>
     </route>
 
+    <route id="core_application_applications_remove_cache" path="/applications/remove-cache" >
+        <default key="_controller">imanaging_core_application.applications_controller::removeCacheAction</default>
+    </route>
+
     <route id="core_application_hierarchie_patrimoine" path="/hierarchie-patrimoine" >
         <default key="_controller">imanaging_core_application.hierarchie_patrimoine_controller::indexAction</default>
     </route>
