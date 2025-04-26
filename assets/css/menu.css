@@ -493,6 +493,15 @@ ul.navbar-nav li.dropdown:hover > div.dropdown-menu {
   transform: scale(1.05);
 }
 
+.mes-apps a.enabled.vous-etes-ici{
+  opacity: .4;
+}
+
+.mes-apps a.enabled.vous-etes-ici:hover{
+  cursor: default;
+  transform: scale(1);
+}
+
 .mes-apps div.logo-cn .cn-icon-plus{
   height: 3rem;
   width: 3rem;
@@ -518,6 +527,12 @@ ul.navbar-nav li.dropdown:hover > div.dropdown-menu {
   justify-content: center;
   border-bottom-left-radius: .75rem;;
   border-bottom-right-radius: .75rem;;
+  flex-direction: column;
+}
+
+.mes-apps .libelle-app .libelle-vous-etes-ici{
+  font-style: italic;
+  font-weight: 300;
 }
 
 .mes-apps div.cn-lock{
@@ -530,6 +545,21 @@ ul.navbar-nav li.dropdown:hover > div.dropdown-menu {
   background-color: white;
   border-radius: 50%;
   padding: 8px;
+}
+
+.mes-apps div.cn-vous-etes-ici{
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 10px;
+  right: 10px;
+  background-color: white;
+  border-radius: 15px;
+  padding: 4px 10px;
+  font-size: 14px;
+  font-weight: 300;
+  color: #6A7280;
 }
 
 .mes-apps div.cn-lock img.img-lock{
@@ -818,8 +848,23 @@ ul.navbar-nav li.dropdown:hover > div.dropdown-menu {
   transform: scale(1.05);
 }
 
+.apps-sous-menu a.enabled.vous-etes-ici{
+  opacity: .4;
+}
+
+.apps-sous-menu a.enabled.vous-etes-ici:hover{
+  cursor: default;
+  transform: scale(1);
+}
+
 .apps-sous-menu .cn-apps .libelle-app{
   font-size: 14px;
+  flex-direction: column;
+}
+
+.apps-sous-menu .cn-apps .libelle-app .libelle-vous-etes-ici{
+  font-weight: 300;
+  font-style: italic;
 }
 
 .apps-sous-menu .cn-apps div.cn-lock{
@@ -832,6 +877,21 @@ ul.navbar-nav li.dropdown:hover > div.dropdown-menu {
   background-color: white;
   border-radius: 50%;
   padding: 4px;
+}
+
+.apps-sous-menu .cn-apps div.cn-vous-etes-ici{
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 5px;
+  right: 5px;
+  background-color: white;
+  border-radius: 15px;
+  padding: 5px;
+  font-size: 8px;
+  font-weight: 300;
+  color: #6A7280;
 }
 
 .apps-sous-menu .cn-apps div.cn-lock img.img-lock{

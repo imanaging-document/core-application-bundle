@@ -6,12 +6,24 @@
         {% set app_url = app.url %}
       {% endfor %}
 
-      <a href="{{ app_url }}" class="enabled">
+      <a href="{{ app_url }}" class="enabled {% if type_app.application_active %}vous-etes-ici{% endif %}">
         <div class="logo-cn" style="--type-application-bg-color: {{ type_app.color }};--type-application-bg-color-gradient: {{ type_app.color_gradient }};">
           <img src="{{ type_app.logo_base }}" alt="logo_base">
+          {% if type_app.application_active %}
+            <div class="cn-vous-etes-ici">
+              ICI
+            </div>
+          {% endif %}
         </div>
         <div class="libelle-app">
-          {{ type_app.libelle_operationnel }}
+          <div>
+            {{ type_app.libelle_operationnel }}
+          </div>
+          {% if type_app.application_active %}
+            <div class="libelle-vous-etes-ici">
+              Vous êtes ici
+            </div>
+          {% endif %}
         </div>
       </a>
     {% endif %}
