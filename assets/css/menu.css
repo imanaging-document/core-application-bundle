@@ -913,13 +913,122 @@ ul.navbar-nav li.dropdown:hover > div.dropdown-menu {
   height: 30px;
 }
 
+.connected-as-other-user{
+  background: coral;
+  width: 100%;
+  height: 35px;
+  display: flex;
+  color: white;
+  justify-content: center;
+  align-items: center;
+  font-weight: 600;
+  font-family: 'Montserrat', sans-serif;
+  opacity: .3;
+}
 
-@media all and (min-device-width: 100px) and (max-device-width: 600px) {
-  #debugIcon{
-    display: none !important;
+.connected-as-other-user:hover {
+  opacity: 1;
+}
+
+.navbar-light .navbar-nav .nav-link {
+  color: rgb(64, 64, 64);
+}
+.btco-menu li > a {
+  padding: 10px 15px;
+  color: #000;
+}
+
+.btco-menu .active a:focus,
+.btco-menu li a:focus ,
+.navbar > .show > a:focus{
+  background: transparent;
+  outline: 0;
+}
+
+.dropdown-menu .show > .dropdown-toggle::after{
+  transform: rotate(-90deg);
+}
+
+@media (max-width: 991.98px) {
+  body {
+    padding-top: 56px;
   }
 
-  .navbar.navbar-custom {
+  .mobile-navbar {
+    background-color: #ffffff;
+    border-bottom: 1px solid rgba(0,0,0,.1);
+    box-shadow: 0 2px 4px rgba(0,0,0,.05);
+  }
+
+  .offcanvas {
+    background-color: #f8f9fa;
+  }
+
+  .mobile-menu-content .nav-link {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(0,0,0,.1);
+    color: #212529;
+  }
+
+  .mobile-menu-content .nav-link:active,
+  .mobile-menu-content .nav-link:focus {
+    background-color: rgba(0,0,0,.03);
+  }
+
+  .mobile-menu-content .dropdown-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .mobile-menu-content .collapse {
+    background-color: rgba(0,0,0,.02);
+  }
+
+  /* Style pour le bouton hamburger */
+  .navbar-toggler {
+    border-color: rgba(0,0,0,.2);
+  }
+
+  .navbar-toggler:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0,0,0,.1);
+  }
+
+  /* Style pour le bouton Apps */
+  .btn-outline-primary {
+    border-width: 2px;
+  }
+
+  .accordion-item.link .accordion-button::after {
     display: none;
+  }
+
+  .accordion-item.link a.accordion-button{
+    text-decoration: none;
+  }
+
+  .accordion-item .accordion-button{
+    font-weight: 500;
+    color: white;
+    background-color: hsl(218, 7%, 32%);
+    font-family: Montserrat, sans-serif;
+  }
+
+  .accordion-item .accordion-button.depth-2{
+    font-weight: 400;
+    text-indent: 15px;
+    background-color: hsl(218, 7%, calc(32%*0.65));
+  }
+
+  .accordion-item .accordion-button.depth-3{
+    font-weight: 300;
+    text-indent: 30px;
+    background-color: hsl(218, 7%, calc(32%*0.65));
+  }
+
+  .accordion {
+    --bs-accordion-btn-icon: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='white'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+    --bs-accordion-btn-active-icon: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='white'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+    --bs-accordion-border-color: none;
   }
 }

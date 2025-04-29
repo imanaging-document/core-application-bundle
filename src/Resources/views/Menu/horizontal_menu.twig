@@ -1,4 +1,5 @@
-<nav class="navbar navbar-expand-lg navbar-custom">
+<!-- Desktop Navbar -->
+<nav class="navbar navbar-expand-lg navbar-custom d-none d-lg-flex">
   <div class="brand-cn">
     <a class="navbar-brand" {% if isRouteExiste(getUrlHomepage()) %}href="{{ path(getUrlHomepage()) }}"{% endif %}>
       <img alt="logo-client" src="{{ asset(publicStorageDir ~ 'images/logo-client.png') }}">
@@ -130,6 +131,41 @@
   </div>
 </nav>
 
+<!-- Mobile Navbar -->
+<nav class="navbar navbar-light fixed-top d-lg-none mobile-navbar"> <!-- Remplacé navbar-dark bg-dark par navbar-light -->
+  <div class="container-fluid">
+    <!-- Logo -->
+    <a class="navbar-brand" href="#">
+      <img src="{{ asset(publicStorageDir ~ 'images/logo-client.png') }}" alt="Logo" height="30">
+    </a>
+
+    <div class="d-flex gap-4">
+      <!-- Bouton Apps -->
+      <div>
+        <img class="btn-apps" src="{{ asset("build/core-application/img/btn-apps.svg") }}" alt="applications">
+      </div>
+
+      <!-- Bouton Menu Mobile -->
+      <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu" aria-controls="mobileMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- Menu Mobile Full Page -->
+<div class="offcanvas offcanvas-end w-100" tabindex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="mobileMenuLabel">Menu</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Fermer"></button>
+  </div>
+  <div class="offcanvas-body">
+    <div class="mobile-menu-content">
+      {% include '@ImanagingCoreApplication/Menu/menu-mobile.html.twig' %}
+    </div>
+  </div>
+</div>
+
 <div class="apps-sous-menu d-none">
 </div>
 
@@ -196,41 +232,3 @@
     });
   });
 </script>
-
-<style>
-  .connected-as-other-user{
-    background: coral;
-    width: 100%;
-    height: 35px;
-    display: flex;
-    color: white;
-    justify-content: center;
-    align-items: center;
-    font-weight: 600;
-    font-family: 'Montserrat', sans-serif;
-    opacity: .3;
-  }
-
-  .connected-as-other-user:hover {
-    opacity: 1;
-  }
-
-  .navbar-light .navbar-nav .nav-link {
-    color: rgb(64, 64, 64);
-  }
-  .btco-menu li > a {
-    padding: 10px 15px;
-    color: #000;
-  }
-
-  .btco-menu .active a:focus,
-  .btco-menu li a:focus ,
-  .navbar > .show > a:focus{
-    background: transparent;
-    outline: 0;
-  }
-
-  .dropdown-menu .show > .dropdown-toggle::after{
-    transform: rotate(-90deg);
-  }
-</style>

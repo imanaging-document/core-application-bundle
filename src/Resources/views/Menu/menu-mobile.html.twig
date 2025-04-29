@@ -1,0 +1,40 @@
+{% for module in getTopLevelModules(app.user, false) %}
+  {{ _self.showModule(module, 1) }}
+{% endfor %}
+{% for module in getTopLevelModules(app.user, true) %}
+  {{ _self.showModule(module, 1) }}
+{% endfor %}
+
+{% macro showModule(module, depth) %}
+  {% if module.type == 'module' %}
+    {% if module.children|length > 0 %}
+      <div class="accordion accordion-flush" id="{{ 'accordion-menu-'~module.id }}">
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headingMenu{{ module.id }}">
+            <button class="accordion-button {{ "depth-"~depth }} collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMenu{{ module.id }}" aria-expanded="false" aria-controls="collapseMenu{{ module.id }}">
+              <i class="{{ module.icon_classes }}"></i>
+              {{ module.libelle }}
+            </button>
+          </h2>
+          <div id="collapseMenu{{ module.id }}" class="accordion-collapse collapse" aria-labelledby="headingMenu{{ module.id }}" data-bs-parent="#{{ 'accordion-menu-'~module.id }}">
+            {% for sousModule in module.children %}
+              {{ _self.showModule(sousModule, depth+1) }}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <div class="accordion accordion-flush" id="{{ 'accordion-menu-'~module.id }}">
+        <div class="accordion-item link">
+          <h2 class="accordion-header" id="headingMenu{{ module.id }}">
+            <a class="accordion-button {{ "depth-"~depth }} collapsed" {% if module.route != ""  %}href="{{ path(module.route) }}"
+              {% else %} href="{{ path('core_application_menu_get_first_sous_module_redirect', {id: module.id}) }}"{% endif %}>
+              <i class="{{ module.icon_classes }}"></i>
+              {{ module.libelle }}
+            </a>
+          </h2>
+        </div>
+      </div>
+    {% endif %}
+  {% endif %}
+{% endmacro %}
