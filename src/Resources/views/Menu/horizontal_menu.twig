@@ -1,7 +1,7 @@
 <!-- Desktop Navbar -->
 <nav class="navbar navbar-expand-lg navbar-custom d-none d-lg-flex">
   <div class="brand-cn">
-    <a class="navbar-brand" {% if isRouteExiste(getUrlHomepage()) %}href="{{ path(getUrlHomepage()) }}"{% endif %}>
+    <a class="navbar-brand" href="{% if isRouteExiste(getUrlHomepage()) %}{{ path(getUrlHomepage()) }}{% else %}/{% endif %}">
       <img alt="logo-client" src="{{ asset(publicStorageDir ~ 'images/logo-client.png') }}">
     </a>
   </div>
@@ -135,11 +135,16 @@
 <nav class="navbar navbar-light fixed-top d-lg-none mobile-navbar"> <!-- Remplacé navbar-dark bg-dark par navbar-light -->
   <div class="container-fluid">
     <!-- Logo -->
-    <a class="navbar-brand" href="#">
+    <a class="navbar-brand" href="{% if isRouteExiste(getUrlHomepage()) %}{{ path(getUrlHomepage()) }}{% else %}/{% endif %}">
       <img src="{{ asset(publicStorageDir ~ 'images/logo-client.png') }}" alt="Logo" height="30">
     </a>
 
-    <div class="d-flex gap-4">
+    <div class="d-flex gap-3">
+      <!-- Bouton Search -->
+      <div>
+        <img class="btn-search" src="{{ asset("build/core-application/img/icon-search.svg") }}" alt="recherche" data-bs-toggle="offcanvas" data-bs-target="#mobileSearch" aria-controls="mobileSearch">
+      </div>
+
       <!-- Bouton Apps -->
       <div>
         <img class="btn-apps" src="{{ asset("build/core-application/img/btn-apps.svg") }}" alt="applications">
@@ -162,6 +167,21 @@
   <div class="offcanvas-body">
     <div class="mobile-menu-content">
       {% include '@ImanagingCoreApplication/Menu/menu-mobile.html.twig' %}
+    </div>
+  </div>
+</div>
+
+<!-- Menu Search Full Page -->
+<div class="offcanvas offcanvas-end w-100" tabindex="-1" id="mobileSearch" aria-labelledby="mobileSearchLabel">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="mobileMenuLabel">Recherche</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Fermer"></button>
+  </div>
+  <div class="offcanvas-body">
+    <div class="mobile-menu-content">
+      <div class="cn-input-search">
+        <input type="text" class="inp-menu-search" placeholder="Recherche">
+      </div>
     </div>
   </div>
 </div>

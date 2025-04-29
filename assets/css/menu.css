@@ -298,13 +298,13 @@ ul.navbar-nav li.dropdown:hover > div.dropdown-menu {
   border-radius: 50%;
 }
 
-.btn-apps{
+.btn-apps, .btn-search{
   height: 40px;
   cursor: pointer;
   transition: all ease 250ms;
 }
 
-.btn-apps:hover{
+.btn-apps:hover, .btn-search:hover{
   height: 40px;
   cursor: pointer;
   transform: scale(1.1);
@@ -1030,5 +1030,38 @@ ul.navbar-nav li.dropdown:hover > div.dropdown-menu {
     --bs-accordion-btn-icon: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='white'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
     --bs-accordion-btn-active-icon: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='white'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
     --bs-accordion-border-color: none;
+  }
+
+  .search-result {
+    top: 10em;
+    right: unset;
+    background: white;
+    padding: 1em;
+    box-shadow: none;
+    width: 90%;
+    z-index: 1045;
+    left: 5%;
+  }
+
+  .cn-input-search{
+    width: 90%;
+    margin: auto;
+  }
+
+  .cn-input-search input{
+    border: 1px solid #A2AAAE80;
+    border-radius: 8px;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 22px;
+    color: #353535;
+    padding: 0.5em 1em;
+    background: white url("../img/icon-search.svg") no-repeat right 10px center;
+    background-size: 30px;
+    width: 100%;
+  }
+
+  .search-result .cn-global-search {
+    max-height: 30em;
   }
 }
