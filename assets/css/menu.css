@@ -48,6 +48,10 @@ body {
   max-width: 225px;
 }
 
+.navbar.navbar-custom .brand-cn .navbar-brand img.logo-app{
+  margin-left: 1em;
+}
+
 .navbar.navbar-custom .menu-cn{
   padding: 0 25px;
   border-bottom-left-radius: 35px;

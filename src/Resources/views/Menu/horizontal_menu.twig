@@ -3,6 +3,7 @@
   <div class="brand-cn">
     <a class="navbar-brand" href="{% if isRouteExiste(getUrlHomepage()) %}{{ path(getUrlHomepage()) }}{% else %}/{% endif %}">
       <img alt="logo-client" src="{{ asset(publicStorageDir ~ 'images/logo-client.png') }}">
+      <img class="logo-app" src="https://dashboard.imanaging-document.fr/build/img/types_applications/{{ coreApiTypeApplication }}.svg" alt="">
     </a>
   </div>
 
@@ -137,6 +138,7 @@
     <!-- Logo -->
     <a class="navbar-brand" href="{% if isRouteExiste(getUrlHomepage()) %}{{ path(getUrlHomepage()) }}{% else %}/{% endif %}">
       <img src="{{ asset(publicStorageDir ~ 'images/logo-client.png') }}" alt="Logo" height="30">
+      <img class="logo-app" src="https://dashboard.imanaging-document.fr/build/img/types_applications/{{ coreApiTypeApplication }}.svg" alt="" height="30">
     </a>
 
     <div class="d-flex gap-3">
