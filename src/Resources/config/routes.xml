@@ -60,6 +60,18 @@
         <default key="_controller">imanaging_core_application.role_controller::indexAction</default>
     </route>
 
+    <route id="core_application_role_mass_edit" path="/role/mass-edition">
+        <default key="_controller">imanaging_core_application.role_controller::editRolesEnMasseAction</default>
+    </route>
+
+    <route id="core_application_role_mass_edit_save_module" path="/role/mass-edition/save-module">
+        <default key="_controller">imanaging_core_application.role_controller::editRolesEnMasseSaveModuleAction</default>
+    </route>
+
+    <route id="core_application_role_mass_edit_save_fonction" path="/role/mass-edition/save-fonction">
+        <default key="_controller">imanaging_core_application.role_controller::editRolesEnMasseSaveFonctionAction</default>
+    </route>
+
     <route id="core_application_role_add" path="/role/add">
         <default key="_controller">imanaging_core_application.role_controller::addRoleAction</default>
     </route>

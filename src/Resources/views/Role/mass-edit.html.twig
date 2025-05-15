@@ -1,0 +1,169 @@
+{% extends basePath %}
+
+{% block body %}
+  {% import _self as macros %}
+
+  <div class="container container-90 mt-4 mb-4">
+    <h2 class="text-center">Edition en masse</h2>
+
+    <div class="card mt-2">
+      <div class="card-body">
+        <div class="mb-2">
+          <a href="{{ path('core_application_role') }}"><i class="fa fa-chevron-left fa-fw"></i>Retour</a>
+        </div>
+
+        <table class="table table-striped table-bordered mass-edit" id="table-roles">
+          <thead>
+            <tr>
+              <th>Fonction/Module</th>
+              {% for role in roles %}
+                {% if not role.zeusOnly %}
+                  <th class="text-center role-libelle">{{ role.libelle }}</th>
+                {% endif %}
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for fonction in standalone_fonctions %}
+              <tr>
+                <td>
+                  <i class="fa fa-sm fa-asterisk fa-fw"></i>{{ fonction.libelle }} <span class="badge bg-primary">Fonction globale</span>
+                </td>
+                {% for role in roles %}
+                  {% if not role.zeusOnly %}
+                    <td class="text-center"><input class="update-fonction"
+                               data-fonction-id="{{ fonction.id }}"
+                               data-role-id="{{ role.id }}"
+                               type="checkbox" {% if role.canDo(fonction.code) %}checked{% endif %}></td>
+                  {% endif %}
+                {% endfor %}
+              </tr>
+            {% endfor %}
+            {% for module in root_modules %}
+              <tr>
+                <td>
+                  <b>{{ module.libelle }}</b>
+                </td>
+                {% for role in roles %}
+                  {% if not role.zeusOnly %}
+                    <td class="text-center"><input class="update-module"
+                               data-module-id="{{ module.id }}"
+                               data-role-id="{{ role.id }}"
+                               type="checkbox" {% if role.canAccess(module.id) %}checked{% endif %}></td>
+                  {% endif %}
+                {% endfor %}
+              </tr>
+              {{ _self.showSousModules(module, roles) }}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {% macro showSousModules(module, roles) %}
+    {% for module in module.enfants %}
+      <tr>
+        <td class="module-niveau-{{ module.niveau }}">
+          {{ module.libelle }} <span class="badge bg-primary">Niv. {{ module.niveau }}</span>
+        </td>
+        {% for role in roles %}
+          {% if not role.zeusOnly %}
+            <td class="text-center"><input class="update-module"
+                       data-module-id="{{ module.id }}"
+                       data-role-id="{{ role.id }}"
+                       type="checkbox" {% if role.canAccess(module.id) %}checked{% endif %}></td>
+          {% endif %}
+        {% endfor %}
+      </tr>
+      {% for fonction in module.fonctions %}
+        <tr>
+          <td class="module-niveau-{{ module.niveau }} fw-lighter">
+            <i class="fa fa-asterisk fa-sm fa-fw"></i>{{ fonction.libelle }}
+          </td>
+          {% for role in roles %}
+            {% if not role.zeusOnly %}
+              <td class="text-center"><input class="update-fonction"
+                         data-fonction-id="{{ fonction.id }}"
+                         data-role-id="{{ role.id }}"
+                         type="checkbox" {% if role.canDo(fonction.code) %}checked{% endif %}></td>
+            {% endif %}
+          {% endfor %}
+        </tr>
+      {% endfor %}
+      {{ _self.showSousModules(module, roles) }}
+    {% endfor %}
+  {% endmacro %}
+
+  <script>
+    $(".update-module").change(function(){
+      var td = $(this).closest("td");
+      var checked= $(this).prop('checked');
+      var moduleId = $(this).data('module-id');
+      var roleId = $(this).data('role-id');
+
+      var data = {module_id: moduleId, role_id: roleId, checked: checked};
+      $.ajax({
+        url: "{{ path('core_application_role_mass_edit_save_module') }}",
+        type: "POST",
+        data: data,
+        success: function () {
+          td.css('background-color', '#2db32d');
+          setTimeout(function(){
+            td.css('background-color', '#FFFFFF');
+          }, 500);
+        },
+        error: function(){
+          td.css('background-color', '#cc0c3a');
+          setTimeout(function(){
+            td.css('background-color', '#FFFFFF');
+          }, 500);
+        }
+      })
+    });
+
+    $(".update-fonction").change(function(){
+      var td = $(this).closest("td");
+      var checked= $(this).prop('checked');
+      var fonctionId = $(this).data('fonction-id');
+      var roleId = $(this).data('role-id');
+
+      var data = {fonction_id: fonctionId, role_id: roleId, checked: checked};
+      $.ajax({
+        url: "{{ path('core_application_role_mass_edit_save_fonction') }}",
+        type: "POST",
+        data: data,
+        success: function () {
+          td.css('background-color', '#2db32d');
+          setTimeout(function(){
+            td.css('background-color', '#FFFFFF');
+          }, 500);
+        },
+        error: function(){
+          td.css('background-color', '#cc0c3a');
+          setTimeout(function(){
+            td.css('background-color', '#FFFFFF');
+          }, 500);
+        }
+      })
+    });
+  </script>
+
+  <style>
+    .table.mass-edit { border-spacing: 1px; }
+    .table.mass-edit thead th { position: sticky; top: 0; }
+
+    .table th.role-libelle {
+      font-size: .8em;
+      max-width: 8em;
+    }
+    .table td.module-niveau-2{
+      padding-left: 3em;
+      font-weight: 500;
+    }
+    .table td.module-niveau-3{
+      padding-left: 6em;
+      font-weight: 300;
+    }
+  </style>
+{% endblock %}

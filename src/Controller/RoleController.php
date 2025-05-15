@@ -52,6 +52,85 @@ class RoleController extends ImanagingController
     ]));
   }
 
+  public function editRolesEnMasseAction()
+  {
+    if (!$this->userCanAccess($this->tokenStorage->getToken()->getUser(), ['core_application_role'])){
+      return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
+    }
+
+    return new Response($this->twig->render("@ImanagingCoreApplication/Role/mass-edit.html.twig", [
+      'roles' => $this->em->getRepository(RoleInterface::class)->findAll(),
+      'root_modules' => $this->em->getRepository(ModuleInterface::class)->findBy(['parent' => null]),
+      'standalone_fonctions' => $this->em->getRepository(FonctionInterface::class)->findBy(['module' => null]),
+      'basePath' => $this->coreApplication->getBasePath()
+    ]));
+  }
+
+  public function editRolesEnMasseSaveModuleAction(Request $request)
+  {
+    if (!$this->userCanAccess($this->tokenStorage->getToken()->getUser(), ['core_application_role'])){
+      return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
+    }
+
+    $params = $request->request->all();
+    $role = $this->em->getRepository(RoleInterface::class)->find($params['role_id']);
+    $module = $this->em->getRepository(ModuleInterface::class)->find($params['module_id']);
+    if ($role instanceof RoleInterface && $module instanceof ModuleInterface){
+      if ($params['checked'] == 'true'){
+        // On ajoute le module s'il n'y est pas déjà
+        $roleModule = $this->em->getRepository(RoleModuleInterface::class)->findOneBy(['role' => $role, 'module' => $module]);
+        if (!($roleModule instanceof RoleModuleInterface)){
+          $className = $this->em->getRepository(RoleModuleInterface::class)->getClassName();
+          $roleModule = new $className();
+          $roleModule->setModule($module);
+          $roleModule->setRole($role);
+          $roleModule->setAcces(true);
+          $roleModule->setLibelle($module->getLibelle());
+          $roleModule->setOrdre($module->getOrdre());
+          $this->em->persist($roleModule);
+        }
+      } else {
+        // On supprime le module
+        $roleModule = $this->em->getRepository(RoleModuleInterface::class)->findOneBy(['role' => $role, 'module' => $module]);
+        if ($roleModule instanceof RoleModuleInterface){
+          $this->em->remove($roleModule);
+        }
+      }
+      $this->em->flush();
+      return $this->json([]);
+    } else {
+      return $this->json(['error_message' => 'Module ou rôle introuvable'], 500);
+    }
+  }
+
+  public function editRolesEnMasseSaveFonctionAction(Request $request)
+  {
+    if (!$this->userCanAccess($this->tokenStorage->getToken()->getUser(), ['core_application_role'])){
+      return $this->redirectToRoute($this->coreApplication->getUrlHomepage());
+    }
+
+    $params = $request->request->all();
+    $role = $this->em->getRepository(RoleInterface::class)->find($params['role_id']);
+    $fonction = $this->em->getRepository(FonctionInterface::class)->find($params['fonction_id']);
+    if ($role instanceof RoleInterface && $fonction instanceof FonctionInterface){
+      $fonctions = $role->getFonctions();
+      if ($params['checked'] == 'true'){
+        // On ajoute le module s'il n'y est pas déjà
+        $fonctions->add($fonction);
+        $role->setFonctions($fonctions);
+      } else {
+        // On supprime le module
+        $fonctions->removeElement($fonction);
+        $role->setFonctions($fonctions);
+      }
+      $this->em->persist($role);
+      $this->em->flush();
+      return $this->json([]);
+    } else {
+      return $this->json(['error_message' => 'Module ou rôle introuvable'], 500);
+    }
+  }
+
   public function addRoleAction(Request $request)
   {
     if (!$this->userCanAccess($this->tokenStorage->getToken()->getUser(), ['core_application_role'])){
