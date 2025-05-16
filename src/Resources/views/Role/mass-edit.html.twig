@@ -14,47 +14,62 @@
 
         <table class="table table-striped table-bordered mass-edit" id="table-roles">
           <thead>
+          <tr>
+            <th>Fonction/Module</th>
+            {% for role in roles %}
+              {% if not role.zeusOnly %}
+                <th class="text-center role-libelle">{{ role.libelle }}</th>
+              {% endif %}
+            {% endfor %}
+          </tr>
+          </thead>
+          <tbody>
+          {% for fonction in standalone_fonctions %}
             <tr>
-              <th>Fonction/Module</th>
+              <td>
+                <i class="fa fa-sm fa-asterisk fa-fw"></i>{{ fonction.libelle }} <span class="badge bg-primary">Fonction globale</span>
+              </td>
               {% for role in roles %}
                 {% if not role.zeusOnly %}
-                  <th class="text-center role-libelle">{{ role.libelle }}</th>
+                  <td class="text-center"><input class="update-fonction"
+                                                 data-fonction-id="{{ fonction.id }}"
+                                                 data-role-id="{{ role.id }}"
+                                                 type="checkbox" {% if role.canDo(fonction.code) %}checked{% endif %}></td>
                 {% endif %}
               {% endfor %}
             </tr>
-          </thead>
-          <tbody>
-            {% for fonction in standalone_fonctions %}
+          {% endfor %}
+          {% for module in root_modules %}
+            <tr>
+              <td>
+                <b>{{ module.libelle }}</b>
+              </td>
+              {% for role in roles %}
+                {% if not role.zeusOnly %}
+                  <td class="text-center"><input class="update-module"
+                                                 data-module-id="{{ module.id }}"
+                                                 data-role-id="{{ role.id }}"
+                                                 type="checkbox" {% if role.canAccess(module.id) %}checked{% endif %}></td>
+                {% endif %}
+              {% endfor %}
+            </tr>
+            {% for fonction in module.fonctions %}
               <tr>
-                <td>
-                  <i class="fa fa-sm fa-asterisk fa-fw"></i>{{ fonction.libelle }} <span class="badge bg-primary">Fonction globale</span>
+                <td class="module-niveau-{{ module.niveau }} fw-lighter">
+                  <i class="fa fa-asterisk fa-sm fa-fw"></i>{{ fonction.libelle }}
                 </td>
                 {% for role in roles %}
                   {% if not role.zeusOnly %}
                     <td class="text-center"><input class="update-fonction"
-                               data-fonction-id="{{ fonction.id }}"
-                               data-role-id="{{ role.id }}"
-                               type="checkbox" {% if role.canDo(fonction.code) %}checked{% endif %}></td>
+                                                   data-fonction-id="{{ fonction.id }}"
+                                                   data-role-id="{{ role.id }}"
+                                                   type="checkbox" {% if role.canDo(fonction.code) %}checked{% endif %}></td>
                   {% endif %}
                 {% endfor %}
               </tr>
             {% endfor %}
-            {% for module in root_modules %}
-              <tr>
-                <td>
-                  <b>{{ module.libelle }}</b>
-                </td>
-                {% for role in roles %}
-                  {% if not role.zeusOnly %}
-                    <td class="text-center"><input class="update-module"
-                               data-module-id="{{ module.id }}"
-                               data-role-id="{{ role.id }}"
-                               type="checkbox" {% if role.canAccess(module.id) %}checked{% endif %}></td>
-                  {% endif %}
-                {% endfor %}
-              </tr>
-              {{ _self.showSousModules(module, roles) }}
-            {% endfor %}
+            {{ _self.showSousModules(module, roles) }}
+          {% endfor %}
           </tbody>
         </table>
       </div>
@@ -70,9 +85,9 @@
         {% for role in roles %}
           {% if not role.zeusOnly %}
             <td class="text-center"><input class="update-module"
-                       data-module-id="{{ module.id }}"
-                       data-role-id="{{ role.id }}"
-                       type="checkbox" {% if role.canAccess(module.id) %}checked{% endif %}></td>
+                                           data-module-id="{{ module.id }}"
+                                           data-role-id="{{ role.id }}"
+                                           type="checkbox" {% if role.canAccess(module.id) %}checked{% endif %}></td>
           {% endif %}
         {% endfor %}
       </tr>
@@ -84,9 +99,9 @@
           {% for role in roles %}
             {% if not role.zeusOnly %}
               <td class="text-center"><input class="update-fonction"
-                         data-fonction-id="{{ fonction.id }}"
-                         data-role-id="{{ role.id }}"
-                         type="checkbox" {% if role.canDo(fonction.code) %}checked{% endif %}></td>
+                                             data-fonction-id="{{ fonction.id }}"
+                                             data-role-id="{{ role.id }}"
+                                             type="checkbox" {% if role.canDo(fonction.code) %}checked{% endif %}></td>
             {% endif %}
           {% endfor %}
         </tr>
