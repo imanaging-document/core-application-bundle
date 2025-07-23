@@ -12,6 +12,34 @@
       <ul class="navbar-nav mr-auto">
         {# Récuperation de tous les modules de niveau 1 côté gauche #}
         {% set modules = getTopLevelModules(app.user, false) %}
+
+        {% if coreApiTypeApplication == 'enquete' %}
+          {% set listing = getApplicationsListing(app.user) %}
+
+          <select name="enquete-select" id="enquete-select" class="form-select">
+            {% for type, application in listing['types_applications'] %}
+              {% if type == 'enquete' %}
+                {% for app in application['apps'] %}
+                  {% if app['user_access'] %}
+                    {% set nom = app['nom'] %}
+                    {% set annee = nom|split(' ')|last %}
+                    <option value="{{ app['url'] }}" {% if annee == annee_traitement %}selected{% endif %}>{{ annee }}</option>
+                  {% endif %}
+                {% endfor %}
+              {% endif %}
+            {% endfor %}
+          </select>
+
+          <script>
+            document.getElementById('enquete-select').addEventListener('change', function () {
+              const selectedUrl = this.value;
+              if (selectedUrl) {
+                window.location.href = selectedUrl;
+              }
+            });
+          </script>
+        {% endif %}
+
         {% for module in modules %}
           <li class="nav-item {% if module.children|length > 0 %} dropdown {% endif %} {% if module.route == app.request.get('_route') %} active {% endif %}">
             <a {% if module.children|length > 0 %}href="#" class="nav-link main-menu-nav-link dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside"{% else %} class="nav-link main-menu-nav-link" href="{% if module.route != "" %}{{ path(module.route) }}{% else %}#{% endif %}"{% endif %}>
