@@ -23,6 +23,7 @@ class TwigFunctions extends AbstractExtension
   {
     return array(
       new TwigFunction('getApplications', array($this, 'getApplications')),
+      new TwigFunction('getApplicationsListing', array($this, 'getApplicationsListing')),
       new TwigFunction('getTopLevelModules', [$this, 'getTopLevelModules']),
       new TwigFunction('getModuleNameByRoute', [$this, 'getModuleNameByRoute']),
       new TwigFunction('getModulesLevel2ByRoute', [$this, 'getModulesLevel2ByRoute']),
@@ -45,6 +46,14 @@ class TwigFunctions extends AbstractExtension
    */
   public function getApplications($user){
     return $this->coreService->getMenuApplications($user);
+  }
+
+  /**
+   * @param $user
+   * @return array
+   */
+  public function getApplicationsListing($user){
+    return $this->coreService->getApplicationsListing($user);
   }
 
   /**
