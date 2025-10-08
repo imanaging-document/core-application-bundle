@@ -613,6 +613,18 @@ class CoreApplication
     $this->em->persist($synchronisationAction);
     $this->em->flush();
 
+    $className = $this->em->getRepository(InterlocuteurContratInterface::class)->getClassName();
+    $dql = 'DELETE FROM ' . $className;
+    $this->em->createQuery($dql)->execute();
+
+    $className = $this->em->getRepository(InterlocuteurInterface::class)->getClassName();
+    $dql = 'DELETE FROM ' . $className;
+    $this->em->createQuery($dql)->execute();
+
+    $className = $this->em->getRepository(InterlocuteurTypeInterface::class)->getClassName();
+    $dql = 'DELETE FROM ' . $className;
+    $this->em->createQuery($dql)->execute();
+
     $token = hash('sha256', $this->apiCoreCommunication->getApiCoreToken());
     // Etape 1 : On synchronise les types d'interlocuteurs
     if ($output instanceof OutputInterface) {
@@ -654,10 +666,6 @@ class CoreApplication
         $output->writeln('Etape 2 : On synchronise les interlocuteurs');
       }
 
-      $className = $this->em->getRepository(InterlocuteurContratInterface::class)->getClassName();
-      $dql = 'DELETE FROM ' . $className;
-      $this->em->createQuery($dql)->execute();
-
       $nbTypes = $this->em->getRepository(InterlocuteurTypeInterface::class)->count([]);
       if ($output instanceof OutputInterface) {
         $pb = new ProgressBar($output, $nbTypes);
@@ -671,32 +679,19 @@ class CoreApplication
             // on récupère via API les interlocuteurs
             $resTypeDetail = $this->apiCoreCommunication->sendGetRequest('/interlocuteur/type/'.$type->getIdCore().'/find-all?token='.$token);
             if ($resTypeDetail->getHttpCode() == 200) {
-              // GESTION DES INTERLOCUTEURS A SUPPRIMER
-              $interlocuteursToRemove = [];
-              $interlocuteursLocal = $this->em->getRepository(InterlocuteurInterface::class)->findBy(['type' => $type], []);
-              foreach ($interlocuteursLocal as $interlocuteurLocal) {
-                $interlocuteursToRemove[$interlocuteurLocal->getIdCore()] = $interlocuteurLocal->getId();
-              }
-
               foreach (json_decode($resTypeDetail->getData(), true)['interlocuteurs'] as $interlocuteurCore){
                 $type = $this->em->getRepository(InterlocuteurTypeInterface::class)->find($typeId);
-                
-                if (array_key_exists($interlocuteurCore['id_core'], $interlocuteursToRemove)) {
-                  $interlocuteur = $this->em->getRepository(InterlocuteurInterface::class)->find($interlocuteursToRemove[$interlocuteurCore['id_core']]);
-                  unset($interlocuteursToRemove[$interlocuteurCore['id_core']]);
-                } else {
-                  $className = $this->em->getRepository(InterlocuteurInterface::class)->getClassName();
-                  $interlocuteur = new $className();
-                  $interlocuteur->setIdCore($interlocuteurCore['id_core']);
-                  $interlocuteur->setType($type);
-                }
+
+                $className = $this->em->getRepository(InterlocuteurInterface::class)->getClassName();
+                $interlocuteur = new $className();
+                $interlocuteur->setIdCore($interlocuteurCore['id_core']);
+                $interlocuteur->setType($type);
                 $interlocuteur->setLibelle($interlocuteurCore['libelle']);
 
                 $interlocuteurUsers = [];
                 if (count($interlocuteurCore['users']) > 0) {
                   foreach ($interlocuteurCore['users'] as $loginUser) {
                     $user = $this->em->getRepository(UserInterface::class)->findOneBy(['login' => $loginUser]);
-                    
                     if ($user instanceof UserInterface) {
                       $interlocuteurUsers[] = $user;
                     }
@@ -710,21 +705,31 @@ class CoreApplication
                 // on récupère les patrimoines associés
                 $moreCodesEnquete = true;
                 $offset = 0;
-                $limit = 200;
-
+                $limit = 10000;
                 while ($moreCodesEnquete) {
                   $interlocuteur = $this->em->getRepository(InterlocuteurInterface::class)->find($currentInterlocuteurId);
                   $resCodesEnquetes = $this->apiCoreCommunication->sendGetRequest(
                     '/interlocuteur/'.$interlocuteur->getIdCore().'/patrimoines?token='.$token.'&offset='.$offset.'&limit='.$limit);
                   if ($resCodesEnquetes->getHttpCode() == 200) {
                     $dataDecoded = json_decode($resCodesEnquetes->getData(), true);
-                    $contrats = $this->em->getRepository(ContratInterface::class)->findBy(['codeEnquete' => $dataDecoded['codes_enquetes']]);
-                    $className = $this->em->getRepository(InterlocuteurContratInterface::class)->getClassName();
-                    foreach ($contrats as $contrat) {
-                      $interlocuteurContrat = new $className();
-                      $interlocuteurContrat->setContrat($contrat);
-                      $interlocuteurContrat->setInterlocuteur($interlocuteur);
-                      $this->em->persist($interlocuteurContrat);
+                    $codesEnquetes = $dataDecoded['codes_enquetes'] ?? [];
+                    if (!empty($codesEnquetes)) {
+                      // Récupérer uniquement les IDs des contrats correspondants
+                      $contratClass = $this->em->getRepository(ContratInterface::class)->getClassName();
+                      $query = $this->em->createQuery('SELECT c.id FROM ' . $contratClass . ' c WHERE c.codeEnquete IN (:codes)');
+                      $query->setParameter('codes', $codesEnquetes);
+                      $ids = array_map(function($r){ return (int) $r['id']; }, $query->getScalarResult());
+                      if (!empty($ids)) {
+                        // Insertion rapide via requête préparée
+                        $connection = $this->em->getConnection();
+                        $stmt = $connection->prepare('INSERT INTO interlocuteur_contrat (contrat_id, interlocuteur_id) VALUES (:contrat_id, :interlocuteur_id)');
+                        $interlocuteurId = $interlocuteur->getId();
+                        foreach ($ids as $contratId) {
+                          $stmt->bindValue('contrat_id', $contratId);
+                          $stmt->bindValue('interlocuteur_id', $interlocuteurId);
+                          $stmt->executeStatement();
+                        }
+                      }
                     }
                     $moreCodesEnquete = $dataDecoded['more'];
                   } else {
@@ -745,13 +750,6 @@ class CoreApplication
                   $offset += $limit;
                   $this->em->flush();
                   $this->em->clear();
-                }
-              }
-
-              foreach ($interlocuteursToRemove as $item) {
-                $interlocuteurToRm = $this->em->getRepository(InterlocuteurInterface::class)->find($item);
-                if ($interlocuteurToRm instanceof InterlocuteurInterface){
-                  $this->em->remove($interlocuteurToRm);
                 }
               }
               $this->em->flush();
@@ -1293,9 +1291,9 @@ class CoreApplication
   public function createAction(string $typeSynchronisation)
   {
     $actionEnAttente = $this->em->getRepository(CoreSynchronisationActionInterface::class)->findBy([
-        'typeSynchronisation' => $typeSynchronisation,
-        'statut' => CoreSynchronisationActionInterface::STATUT_EN_ATTENTE
-      ]);
+      'typeSynchronisation' => $typeSynchronisation,
+      'statut' => CoreSynchronisationActionInterface::STATUT_EN_ATTENTE
+    ]);
 
     if (count($actionEnAttente) == 0) {
       $className = $this->em->getRepository(CoreSynchronisationActionInterface::class)->getClassName();
@@ -1316,12 +1314,42 @@ class CoreApplication
     }
   }
 
-  public function getActionEnAttente(string $typeSynchronisation)
+  public function getActionEnAttenteOuEnCours(string $typeSynchronisation)
   {
-    return $this->em->getRepository(CoreSynchronisationActionInterface::class)->findOneBy([
-        'typeSynchronisation' => $typeSynchronisation,
-        'statut' => CoreSynchronisationActionInterface::STATUT_EN_ATTENTE
-      ]);
+    $actions = $this->em->getRepository(CoreSynchronisationActionInterface::class)->findBy([
+      'typeSynchronisation' => $typeSynchronisation,
+      'statut' => [CoreSynchronisationActionInterface::STATUT_EN_ATTENTE, CoreSynchronisationActionInterface::STATUT_EN_COURS]
+    ]);
+
+    $action = null;
+    if (count($actions) > 1) {
+      foreach ($actions as $act) {
+        $act->setStatut(CoreSynchronisationActionInterface::STATUT_EN_ERREUR);
+        $act->setErrorMessage('Annulé automatiquement car délais de 2h dépassé.');
+        $this->em->persist($act);
+      }
+      $this->em->flush();
+    } elseif (count($actions) == 1) {
+      $action = $actions[0];
+    }
+
+    if (!$action) {
+      return null;
+    } elseif ($action->getStatut() == CoreSynchronisationActionInterface::STATUT_EN_COURS) {
+      $now = new \DateTime();
+      $now->modify("-2 hours");
+      if ($now >= $action->getDateCreation()) {
+        $action->setStatut(CoreSynchronisationActionInterface::STATUT_EN_ERREUR);
+        $action->setErrorMessage('Annulé automatiquement car délais de 2h dépassé.');
+        $this->em->persist($action);
+        $this->em->flush();
+        return null;
+      } else {
+        return $action;
+      }
+    } else {
+      return $action;
+    }
   }
 
   public function getContratsIdsByUser(UserInterface $user)
