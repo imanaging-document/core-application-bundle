@@ -41,19 +41,28 @@ class SynchronisationHierarchiePatrimoineCoreCommand extends Command
    */
   protected function execute(InputInterface $input, OutputInterface $output): int
   {
-    $action = $this->coreApplicationService->getActionEnAttente(CoreSynchronisationActionInterface::TYPE_SYNCHRONISATION_HIERARCHIE_PATRIMOINE);
-    if ($action instanceof CoreSynchronisationActionInterface) {
-      $res = $this->coreApplicationService->synchroniserHierarchiePatrimoine($action, $output);
-      $output->writeln('');
-      if ($res['success']){
-        $output->writeln("<fg=green>La synchronisation de la hierarchie patrimoine depuis le CORE a réussi..</>");
+    $action = $this->coreApplicationService->getActionEnAttenteOuEnCours(CoreSynchronisationActionInterface::TYPE_SYNCHRONISATION_HIERARCHIE_PATRIMOINE);
+    if (!$action) {
+      $res = $this->coreApplicationService->createAction(CoreSynchronisationActionInterface::TYPE_SYNCHRONISATION_HIERARCHIE_PATRIMOINE);
+      if ($res['success']) {
+        $action = $res['synchronisation_action'];
       } else {
-        $output->writeln("<fg=red>".$res['error_message']."</>");
+        $output->writeln("<fg=red>Impossible de créer une nouvelle action de synchronisation</>");
+        return Command::FAILURE;
       }
+    } elseif ($action->getStatut() == CoreSynchronisationActionInterface::STATUT_EN_COURS) {
+      $output->writeln("<fg=red>Action déjà en cours de traitement depuis moins de 2 heures.</>");
       return Command::SUCCESS;
-    } else {
-      $output->writeln("<fg=red>Aucune action en attente</>");
-      return Command::FAILURE;
     }
+
+    $res = $this->coreApplicationService->synchroniserHierarchiePatrimoine($action, $output);
+    $output->writeln('');
+    if ($res['success']){
+      $output->writeln("<fg=green>La synchronisation des hierarchies patrimoines depuis le CORE a réussi.</>");
+    } else {
+      $output->writeln("<fg=red>".$res['error_message']."</>");
+    }
+    return Command::SUCCESS;
   }
 }
+
