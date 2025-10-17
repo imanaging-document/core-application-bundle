@@ -722,7 +722,9 @@ class CoreApplication
                       if (!empty($ids)) {
                         // Insertion rapide via requête préparée
                         $connection = $this->em->getConnection();
-                        $stmt = $connection->prepare('INSERT INTO interlocuteur_contrat (contrat_id, interlocuteur_id) VALUES (:contrat_id, :interlocuteur_id)');
+                        $contratInterlocuteurClass = $this->em->getRepository(InterlocuteurContratInterface::class)->getClassName();
+                        $tableName = $this->em->getClassMetadata($contratInterlocuteurClass)->getTableName();
+                        $stmt = $connection->prepare("INSERT INTO {$tableName} (contrat_id, interlocuteur_id) VALUES (:contrat_id, :interlocuteur_id)");
                         $interlocuteurId = $interlocuteur->getId();
                         foreach ($ids as $contratId) {
                           $stmt->bindValue('contrat_id', $contratId);
@@ -1543,4 +1545,5 @@ class CoreApplication
     $interlocuteursTypes = $this->em->getRepository(InterlocuteurInterface::class)->groupByType();
     return $interlocuteursTypes;
   }
+
 }
