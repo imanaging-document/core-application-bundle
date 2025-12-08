@@ -10,11 +10,11 @@
         }
     ],
     "require": {
-        "php": "^8.1",
-        "symfony/config": "^5 | ^6",
-        "symfony/dependency-injection": "^5 | ^6",
-        "symfony/http-kernel": "^5 | ^6",
-        "symfony/yaml": "^5 | ^6",
+        "php": ">=8.3",
+        "symfony/config": "^6.4 || ^7.4 || ^8.0",
+        "symfony/dependency-injection": "^6.4 || ^7.4 || ^8.0",
+        "symfony/http-kernel": "^6.4 || ^7.4 || ^8.0",
+        "symfony/yaml": "^6.4 || ^7.4 || ^8.0",
         "imanaging-document/api-communication-bundle": "dev-master",
         "imanaging-document/check-format-bundle": "dev-master",
         "imanaging-document/zeus-user-bundle": "dev-master"
