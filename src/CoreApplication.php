@@ -636,7 +636,8 @@ class CoreApplication
       $typesToRemove[$type->getIdCore()] = $type;
     }
 
-    $resTypes = $this->apiCoreCommunication->sendGetRequest('/interlocuteur/types/find-all?token='.$token);
+    $resTypes = $this->apiCoreCommunication->sendGetRequest('/interlocuteur/types/find-all?token='.$token
+      .'&clientTraitement='.$this->clientTraitement);
     if ($resTypes->getHttpCode() == 200) {
       $coreTypes = json_decode($resTypes->getData(), true);
       foreach ($coreTypes as $groupeLabel => $coreGroupeType) {
@@ -652,6 +653,7 @@ class CoreApplication
           }
           $typeTmp->setGroupe($groupeLabel);
           $typeTmp->setLibelle($coreType['libelle']);
+          $typeTmp->setVisibleRecherche($coreType['visibleRecherche']);
           $this->em->persist($typeTmp);
         }
       }
