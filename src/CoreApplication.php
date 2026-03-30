@@ -366,6 +366,10 @@ class CoreApplication
         $output->writeln('Etape 2 : On synchronise la hierarchie');
       }
 
+      $className = $this->em->getRepository(ContratInterface::class)->getClassName();
+      $dql = 'UPDATE ' . $className . ' c SET c.hierarchiePatrimoine = null';
+      $this->em->createQuery($dql)->execute();
+      
       $dataType = $dataTypes;
       $indexType = 0;
       while(isset($dataType['libelle'])) {
@@ -503,7 +507,15 @@ class CoreApplication
         $nbRemove = 0;
         // on remove tous les hierarchiepatrimoinetoremove
         foreach ($hierarchiesPatrimoineToRemove as $hierarchieId) {
-          $this->em->remove($this->em->getRepository(HierarchiePatrimoine::class)->find($hierarchieId));
+          $hpToRemove = $this->em->getRepository(HierarchiePatrimoine::class)->find($hierarchieId);
+          if ($hpToRemove instanceof HierarchiePatrimoine) {
+            foreach ($hpToRemove->getEnfants() as $enfant) {
+              if ($enfant instanceof HierarchiePatrimoine) {
+                $this->em->remove($enfant);
+              }
+            }
+            $this->em->remove($hpToRemove);
+          }
           $nbRemove++;
         }
         $this->em->flush();
@@ -520,9 +532,7 @@ class CoreApplication
         $output->writeln('');
         $output->writeln('Etape 3 : Synchronisation des codes enquêtes');
       }
-      $className = $this->em->getRepository(ContratInterface::class)->getClassName();
-      $dql = 'UPDATE ' . $className . ' c SET c.hierarchiePatrimoine = null';
-      $this->em->createQuery($dql)->execute();
+
 
       if (isset($libelleType) && !is_null($libelleType)) {
         $lastType = $this->em->getRepository(HierarchiePatrimoineType::class)->findOneBy(['libelle' => $libelleType]);
@@ -636,8 +646,7 @@ class CoreApplication
       $typesToRemove[$type->getIdCore()] = $type;
     }
 
-    $resTypes = $this->apiCoreCommunication->sendGetRequest('/interlocuteur/types/find-all?token='.$token
-      .'&clientTraitement='.$this->clientTraitement);
+    $resTypes = $this->apiCoreCommunication->sendGetRequest('/interlocuteur/types/find-all?token='.$token);
     if ($resTypes->getHttpCode() == 200) {
       $coreTypes = json_decode($resTypes->getData(), true);
       foreach ($coreTypes as $groupeLabel => $coreGroupeType) {
@@ -653,7 +662,6 @@ class CoreApplication
           }
           $typeTmp->setGroupe($groupeLabel);
           $typeTmp->setLibelle($coreType['libelle']);
-          $typeTmp->setVisibleRecherche($coreType['visibleRecherche']);
           $this->em->persist($typeTmp);
         }
       }
@@ -724,9 +732,7 @@ class CoreApplication
                       if (!empty($ids)) {
                         // Insertion rapide via requête préparée
                         $connection = $this->em->getConnection();
-                        $contratInterlocuteurClass = $this->em->getRepository(InterlocuteurContratInterface::class)->getClassName();
-                        $tableName = $this->em->getClassMetadata($contratInterlocuteurClass)->getTableName();
-                        $stmt = $connection->prepare("INSERT INTO {$tableName} (contrat_id, interlocuteur_id) VALUES (:contrat_id, :interlocuteur_id)");
+                        $stmt = $connection->prepare('INSERT INTO interlocuteur_contrat (contrat_id, interlocuteur_id) VALUES (:contrat_id, :interlocuteur_id)');
                         $interlocuteurId = $interlocuteur->getId();
                         foreach ($ids as $contratId) {
                           $stmt->bindValue('contrat_id', $contratId);
@@ -1547,5 +1553,4 @@ class CoreApplication
     $interlocuteursTypes = $this->em->getRepository(InterlocuteurInterface::class)->groupByType();
     return $interlocuteursTypes;
   }
-
 }
