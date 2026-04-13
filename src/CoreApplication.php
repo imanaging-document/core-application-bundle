@@ -1520,13 +1520,65 @@ class CoreApplication
         $finalFilename = $expectedLocalFilename . '_' . $now->format('YmdHis') . '.' . $extensionFichierDistant;
         $fullFilepath = $projectDir . $expectedLocalFilepath . $finalFilename;
 
-        $res = $sftp->get($pathFichierDistant, $fullFilepath);
-        if (!$res) {
+        if (!$sftp->is_file($pathFichierDistant)) {
           return [
             'success' => false,
             'continue' => false,
             'error_message' => $importAutomatique->getMappingConfiguration()->getLibelle()
-              . ' : Une erreur est survenue lors du téléchargement du fichier (' . $pathFichierDistant . ')'
+              . ' : Le fichier distant est introuvable sur le SFTP (' . $pathFichierDistant . ')'
+          ];
+        }
+
+        $localDirectory = dirname($fullFilepath);
+        if (!is_dir($localDirectory) && !mkdir($localDirectory, 0755, true) && !is_dir($localDirectory)) {
+          return [
+            'success' => false,
+            'continue' => false,
+            'error_message' => $importAutomatique->getMappingConfiguration()->getLibelle()
+              . ' : Impossible de créer le dossier local de téléchargement (' . $localDirectory . ')'
+          ];
+        }
+
+        if (!is_writable($localDirectory)) {
+          return [
+            'success' => false,
+            'continue' => false,
+            'error_message' => $importAutomatique->getMappingConfiguration()->getLibelle()
+              . ' : Le dossier local de téléchargement n\'est pas accessible en écriture (' . $localDirectory . ')'
+          ];
+        }
+
+        // phpseclib4::get() renvoie null quand l'écriture se fait dans un fichier local.
+        $sftp->getErrors(); // reset des erreurs précédentes
+        try {
+          $sftp->get($pathFichierDistant, $fullFilepath);
+        } catch (\Throwable $e) {
+          $sftpErrors = $sftp->getErrors();
+          $errorDetails = ['Exception: ' . $e->getMessage()];
+          if (!empty($sftpErrors)) {
+            $errorDetails[] = 'SFTP: ' . implode(' | ', $sftpErrors);
+          }
+          return [
+            'success' => false,
+            'continue' => false,
+            'error_message' => $importAutomatique->getMappingConfiguration()->getLibelle()
+              . ' : Une erreur est survenue lors du téléchargement du fichier (Téléchargement de '
+              . $pathFichierDistant . ' vers ' . $fullFilepath . ') - ' . implode(' - ', $errorDetails)
+          ];
+        }
+
+        if (!is_file($fullFilepath)) {
+          $sftpErrors = $sftp->getErrors();
+          $errorDetails = ['Le fichier local n\'a pas été créé après le téléchargement'];
+          if (!empty($sftpErrors)) {
+            $errorDetails[] = 'SFTP: ' . implode(' | ', $sftpErrors);
+          }
+          return [
+            'success' => false,
+            'continue' => false,
+            'error_message' => $importAutomatique->getMappingConfiguration()->getLibelle()
+              . ' : Une erreur est survenue lors du téléchargement du fichier (Téléchargement de '
+              . $pathFichierDistant . ' vers ' . $fullFilepath . ') - ' . implode(' - ', $errorDetails)
           ];
         }
         // On archive ce fichier distant
