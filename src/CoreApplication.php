@@ -1610,4 +1610,24 @@ class CoreApplication
     return $interlocuteursTypes;
   }
 
+  /**
+   * @param $idCore
+   * @param $visible
+   * @return array
+   */
+  public function updateVisibiliteInterlocuteurType($idCore, $visible): array
+  {
+    $postData = [
+      'token' => hash('sha256', $this->apiCoreCommunication->getApiCoreToken()),
+      'application_id' => $this->apiCoreCommunication->getApiCoreApplicationId(),
+      'id-type' => $idCore,
+      'visible' => $visible ? 'true' : 'false'
+    ];
+    $response = $this->apiCoreCommunication->sendPostRequest('/interlocuteur/type/save-visibilite', $postData);
+    if ($response->getHttpCode() == 200) {
+      return ['success' => true];
+    } else {
+      return ['success' => false, 'error_message' => 'Erreur lors de la mise à jour sur le Core (code HTTP '.$response->getHttpCode().').'];
+    }
+  }
 }
