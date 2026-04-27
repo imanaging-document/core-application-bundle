@@ -648,8 +648,28 @@ class CoreApplication
       }
       $this->em->flush();
       foreach ($typesToRemove as $typeToRemove) {
+        // 1. On récupère les interlocuteurs liés à ce type
+        $interlocuteurs = $this->em->getRepository(InterlocuteurInterface::class)->findBy(['type' => $typeToRemove]);
+
+        foreach ($interlocuteurs as $inter) {
+          // --- CORRECTIF : Nettoyage de la table de liaison Interlocuteur/Contrat ---
+          $contratInterlocuteurClass = $this->em->getRepository(InterlocuteurContratInterface::class)->getClassName();
+          $joinTableName = $this->em->getClassMetadata($contratInterlocuteurClass)->getTableName();
+
+          // On supprime les relations dans la table de liaison pour cet interlocuteur précis
+          $this->em->getConnection()->executeStatement(
+            "DELETE FROM {$joinTableName} WHERE interlocuteur_id = ?",
+            [$inter->getId()]
+          );
+
+          // Maintenant on peut supprimer l'interlocuteur
+          $this->em->remove($inter);
+        }
+
+        // 2. Enfin, on peut supprimer le type puisque plus aucun interlocuteur n'y est lié
         $this->em->remove($typeToRemove);
       }
+  // Le flush() qui suit dans ton code validera toutes ces suppressions d'un coup
       $this->em->flush();
       $this->em->clear();
 
@@ -812,10 +832,37 @@ class CoreApplication
         $pb->finish();
       }
 
-      foreach ($interlocuteursToDelete as $idCore => $id) {
-        $interlocuteur = $this->em->getReference($interlocuteurClass, $id);
-        $this->em->remove($interlocuteur);
+
+      $idsToDelete = array_values($interlocuteursToDelete);
+
+      if (!empty($idsToDelete)) {
+        $connection = $this->em->getConnection();
+
+        // 1. Récupération dynamique du nom de la table de liaison (InterlocuteurContrat)
+        $contratInterlocuteurClass = $this->em->getRepository(InterlocuteurContratInterface::class)->getClassName();
+        $joinTableName = $this->em->getClassMetadata($contratInterlocuteurClass)->getTableName();
+
+        // 2. Nettoyage des contraintes dans la table de liaison
+        // On utilise PARAM_INT_ARRAY pour gérer proprement le IN (...)
+        $connection->executeStatement(
+          "DELETE FROM {$joinTableName} WHERE interlocuteur_id IN (?)",
+          [$idsToDelete],
+          [\Doctrine\DBAL\ArrayParameterType::INTEGER]
+        );
+
+        // 3. Suppression des interlocuteurs
+        $interlocuteurTableName = $this->em->getClassMetadata($interlocuteurClass)->getTableName();
+        $connection->executeStatement(
+          "DELETE FROM {$interlocuteurTableName} WHERE id IN (?)",
+          [$idsToDelete],
+          [\Doctrine\DBAL\ArrayParameterType::INTEGER]
+        );
+
+        if ($output instanceof OutputInterface) {
+          $output->writeln(count($idsToDelete) . ' interlocuteurs obsolètes supprimés.');
+        }
       }
+
       $this->em->flush();
 
       $duree = microtime(true) - $startTime;
