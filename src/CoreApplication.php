@@ -25,7 +25,7 @@ use Imanaging\ZeusUserBundle\Interfaces\RoleModuleInterface;
 use Imanaging\ZeusUserBundle\Interfaces\RouteInterface;
 use Imanaging\ZeusUserBundle\Interfaces\UserInterface;
 use Imanaging\ZeusUserBundle\Interfaces\ParametrageInterface;
-use phpseclib4\Net\SFTP;
+use phpseclib3\Net\SFTP;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -366,10 +366,6 @@ class CoreApplication
         $output->writeln('Etape 2 : On synchronise la hierarchie');
       }
 
-      $className = $this->em->getRepository(ContratInterface::class)->getClassName();
-      $dql = 'UPDATE ' . $className . ' c SET c.hierarchiePatrimoine = null';
-      $this->em->createQuery($dql)->execute();
-
       $dataType = $dataTypes;
       $indexType = 0;
       while(isset($dataType['libelle'])) {
@@ -507,15 +503,7 @@ class CoreApplication
         $nbRemove = 0;
         // on remove tous les hierarchiepatrimoinetoremove
         foreach ($hierarchiesPatrimoineToRemove as $hierarchieId) {
-          $hpToRemove = $this->em->getRepository(HierarchiePatrimoine::class)->find($hierarchieId);
-          if ($hpToRemove instanceof HierarchiePatrimoine) {
-            foreach ($hpToRemove->getEnfants() as $enfant) {
-              if ($enfant instanceof HierarchiePatrimoine) {
-                $this->em->remove($enfant);
-              }
-            }
-            $this->em->remove($hpToRemove);
-          }
+          $this->em->remove($this->em->getRepository(HierarchiePatrimoine::class)->find($hierarchieId));
           $nbRemove++;
         }
         $this->em->flush();
@@ -532,7 +520,9 @@ class CoreApplication
         $output->writeln('');
         $output->writeln('Etape 3 : Synchronisation des codes enquêtes');
       }
-
+      $className = $this->em->getRepository(ContratInterface::class)->getClassName();
+      $dql = 'UPDATE ' . $className . ' c SET c.hierarchiePatrimoine = null';
+      $this->em->createQuery($dql)->execute();
 
       if (isset($libelleType) && !is_null($libelleType)) {
         $lastType = $this->em->getRepository(HierarchiePatrimoineType::class)->findOneBy(['libelle' => $libelleType]);
@@ -623,20 +613,8 @@ class CoreApplication
     $this->em->persist($synchronisationAction);
     $this->em->flush();
 
-    $className = $this->em->getRepository(InterlocuteurContratInterface::class)->getClassName();
-    $dql = 'DELETE FROM ' . $className;
-    $this->em->createQuery($dql)->execute();
-
-    $className = $this->em->getRepository(InterlocuteurInterface::class)->getClassName();
-    $dql = 'DELETE FROM ' . $className;
-    $this->em->createQuery($dql)->execute();
-
     $className = $this->em->getRepository(InterlocuteurTypeInterface::class)->getClassName();
-    $dql = 'DELETE FROM ' . $className;
-    $this->em->createQuery($dql)->execute();
-
     $token = hash('sha256', $this->apiCoreCommunication->getApiCoreToken());
-
     // Etape 1 : On synchronise les types d'interlocuteurs
     if ($output instanceof OutputInterface) {
       $output->writeln('Etape 1 : On synchronise les types d\'interlocuteurs');
@@ -679,12 +657,19 @@ class CoreApplication
         $output->writeln('Etape 2 : On synchronise les interlocuteurs');
       }
 
+      $interlocuteursToDelete = [];
+      $interlocuteurClass = $this->em->getRepository(InterlocuteurInterface::class)->getClassName();
+      $existingInterlocuteurs = $this->em->getRepository(InterlocuteurInterface::class)->findAll();
+      foreach ($existingInterlocuteurs as $interlocuteur) {
+        $interlocuteursToDelete[$interlocuteur->getIdCore()] = $interlocuteur->getId();
+      }
+
       $nbTypes = $this->em->getRepository(InterlocuteurTypeInterface::class)->count([]);
       if ($output instanceof OutputInterface) {
         $pb = new ProgressBar($output, $nbTypes);
         $pb->start();
       }
-      for ($i = 0; $i <= $nbTypes; $i++) {
+      for ($i = 0; $i < $nbTypes; $i++) {
         $types = $this->em->getRepository(InterlocuteurTypeInterface::class)->findBy([], ['id' => 'ASC'], 1, $i);
         foreach ($types as $type){
           if ($type instanceof InterlocuteurTypeInterface) {
@@ -695,9 +680,16 @@ class CoreApplication
               foreach (json_decode($resTypeDetail->getData(), true)['interlocuteurs'] as $interlocuteurCore){
                 $type = $this->em->getRepository(InterlocuteurTypeInterface::class)->find($typeId);
 
-                $className = $this->em->getRepository(InterlocuteurInterface::class)->getClassName();
-                $interlocuteur = new $className();
-                $interlocuteur->setIdCore($interlocuteurCore['id_core']);
+                $interlocuteur = $this->em->getRepository(InterlocuteurInterface::class)
+                  ->findOneBy(['idCore' => $interlocuteurCore['id_core']]);
+
+                if (!$interlocuteur) {
+                  $className = $this->em->getRepository(InterlocuteurInterface::class)->getClassName();
+                  $interlocuteur = new $className();
+                  $interlocuteur->setIdCore($interlocuteurCore['id_core']);
+                }
+                unset($interlocuteursToDelete[$interlocuteurCore['id_core']]);
+
                 $interlocuteur->setType($type);
                 $interlocuteur->setLibelle($interlocuteurCore['libelle']);
 
@@ -719,6 +711,12 @@ class CoreApplication
                 $moreCodesEnquete = true;
                 $offset = 0;
                 $limit = 10000;
+
+                $connection = $this->em->getConnection();
+                $contratInterlocuteurClass = $this->em->getRepository(InterlocuteurContratInterface::class)->getClassName();
+                $tableName = $this->em->getClassMetadata($contratInterlocuteurClass)->getTableName();
+                $connection->executeStatement("DELETE FROM {$tableName} WHERE interlocuteur_id = ?", [$interlocuteur->getId()]);
+
                 while ($moreCodesEnquete) {
                   $interlocuteur = $this->em->getRepository(InterlocuteurInterface::class)->find($currentInterlocuteurId);
                   $resCodesEnquetes = $this->apiCoreCommunication->sendGetRequest(
@@ -735,7 +733,9 @@ class CoreApplication
                       if (!empty($ids)) {
                         // Insertion rapide via requête préparée
                         $connection = $this->em->getConnection();
-                        $stmt = $connection->prepare('INSERT INTO interlocuteur_contrat (contrat_id, interlocuteur_id) VALUES (:contrat_id, :interlocuteur_id)');
+                        $contratInterlocuteurClass = $this->em->getRepository(InterlocuteurContratInterface::class)->getClassName();
+                        $tableName = $this->em->getClassMetadata($contratInterlocuteurClass)->getTableName();
+                        $stmt = $connection->prepare("INSERT INTO {$tableName} (contrat_id, interlocuteur_id) VALUES (:contrat_id, :interlocuteur_id)");
                         $interlocuteurId = $interlocuteur->getId();
                         foreach ($ids as $contratId) {
                           $stmt->bindValue('contrat_id', $contratId);
@@ -811,6 +811,12 @@ class CoreApplication
       if ($output instanceof OutputInterface) {
         $pb->finish();
       }
+
+      foreach ($interlocuteursToDelete as $idCore => $id) {
+        $interlocuteur = $this->em->getReference($interlocuteurClass, $id);
+        $this->em->remove($interlocuteur);
+      }
+      $this->em->flush();
 
       $duree = microtime(true) - $startTime;
 
@@ -1520,65 +1526,13 @@ class CoreApplication
         $finalFilename = $expectedLocalFilename . '_' . $now->format('YmdHis') . '.' . $extensionFichierDistant;
         $fullFilepath = $projectDir . $expectedLocalFilepath . $finalFilename;
 
-        if (!$sftp->is_file($pathFichierDistant)) {
+        $res = $sftp->get($pathFichierDistant, $fullFilepath);
+        if (!$res) {
           return [
             'success' => false,
             'continue' => false,
             'error_message' => $importAutomatique->getMappingConfiguration()->getLibelle()
-              . ' : Le fichier distant est introuvable sur le SFTP (' . $pathFichierDistant . ')'
-          ];
-        }
-
-        $localDirectory = dirname($fullFilepath);
-        if (!is_dir($localDirectory) && !mkdir($localDirectory, 0755, true) && !is_dir($localDirectory)) {
-          return [
-            'success' => false,
-            'continue' => false,
-            'error_message' => $importAutomatique->getMappingConfiguration()->getLibelle()
-              . ' : Impossible de créer le dossier local de téléchargement (' . $localDirectory . ')'
-          ];
-        }
-
-        if (!is_writable($localDirectory)) {
-          return [
-            'success' => false,
-            'continue' => false,
-            'error_message' => $importAutomatique->getMappingConfiguration()->getLibelle()
-              . ' : Le dossier local de téléchargement n\'est pas accessible en écriture (' . $localDirectory . ')'
-          ];
-        }
-
-        // phpseclib4::get() renvoie null quand l'écriture se fait dans un fichier local.
-        $sftp->getErrors(); // reset des erreurs précédentes
-        try {
-          $sftp->get($pathFichierDistant, $fullFilepath);
-        } catch (\Throwable $e) {
-          $sftpErrors = $sftp->getErrors();
-          $errorDetails = ['Exception: ' . $e->getMessage()];
-          if (!empty($sftpErrors)) {
-            $errorDetails[] = 'SFTP: ' . implode(' | ', $sftpErrors);
-          }
-          return [
-            'success' => false,
-            'continue' => false,
-            'error_message' => $importAutomatique->getMappingConfiguration()->getLibelle()
-              . ' : Une erreur est survenue lors du téléchargement du fichier (Téléchargement de '
-              . $pathFichierDistant . ' vers ' . $fullFilepath . ') - ' . implode(' - ', $errorDetails)
-          ];
-        }
-
-        if (!is_file($fullFilepath)) {
-          $sftpErrors = $sftp->getErrors();
-          $errorDetails = ['Le fichier local n\'a pas été créé après le téléchargement'];
-          if (!empty($sftpErrors)) {
-            $errorDetails[] = 'SFTP: ' . implode(' | ', $sftpErrors);
-          }
-          return [
-            'success' => false,
-            'continue' => false,
-            'error_message' => $importAutomatique->getMappingConfiguration()->getLibelle()
-              . ' : Une erreur est survenue lors du téléchargement du fichier (Téléchargement de '
-              . $pathFichierDistant . ' vers ' . $fullFilepath . ') - ' . implode(' - ', $errorDetails)
+              . ' : Une erreur est survenue lors du téléchargement du fichier (' . $pathFichierDistant . ')'
           ];
         }
         // On archive ce fichier distant
@@ -1608,4 +1562,5 @@ class CoreApplication
     $interlocuteursTypes = $this->em->getRepository(InterlocuteurInterface::class)->groupByType();
     return $interlocuteursTypes;
   }
+
 }
