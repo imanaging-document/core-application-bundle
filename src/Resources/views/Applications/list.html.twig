@@ -3,7 +3,9 @@
     {% if type_app.visible_menu_apps and type_app.apps|length > 0 and type_app.user_access %}
       {% set app_url = '' %}
       {% for app in type_app.apps %}
-        {% set app_url = app.url %}
+        {% if app.traitement_en_cours %}
+          {% set app_url = app.url %}
+        {% endif %}
       {% endfor %}
 
       <a href="{{ app_url }}" class="enabled {% if type_app.application_active %}vous-etes-ici{% endif %}">

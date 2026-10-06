@@ -114,6 +114,9 @@ class InterlocuteursController extends ImanagingController
       $interlocuteurType->setVisibleRecherche($visible);
       $this->em->persist($interlocuteurType);
       $this->em->flush();
+
+      $this->coreApplication->updateVisibiliteInterlocuteurType($interlocuteurType->getIdCore(), $visible);
+
       return $this->json([]);
     } else {
       return $this->json([], 500);

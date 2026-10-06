@@ -396,10 +396,6 @@ class CoreApplication
         $output->writeln('Etape 2 : On synchronise la hierarchie');
       }
 
-      $className = $this->em->getRepository(ContratInterface::class)->getClassName();
-      $dql = 'UPDATE ' . $className . ' c SET c.hierarchiePatrimoine = null';
-      $this->em->createQuery($dql)->execute();
-
       $dataType = $dataTypes;
       $indexType = 0;
       while(isset($dataType['libelle'])) {
@@ -537,15 +533,7 @@ class CoreApplication
         $nbRemove = 0;
         // on remove tous les hierarchiepatrimoinetoremove
         foreach ($hierarchiesPatrimoineToRemove as $hierarchieId) {
-          $hpToRemove = $this->em->getRepository(HierarchiePatrimoine::class)->find($hierarchieId);
-          if ($hpToRemove instanceof HierarchiePatrimoine) {
-            foreach ($hpToRemove->getEnfants() as $enfant) {
-              if ($enfant instanceof HierarchiePatrimoine) {
-                $this->em->remove($enfant);
-              }
-            }
-            $this->em->remove($hpToRemove);
-          }
+          $this->em->remove($this->em->getRepository(HierarchiePatrimoine::class)->find($hierarchieId));
           $nbRemove++;
         }
         $this->em->flush();
@@ -562,7 +550,9 @@ class CoreApplication
         $output->writeln('');
         $output->writeln('Etape 3 : Synchronisation des codes enquêtes');
       }
-
+      $className = $this->em->getRepository(ContratInterface::class)->getClassName();
+      $dql = 'UPDATE ' . $className . ' c SET c.hierarchiePatrimoine = null';
+      $this->em->createQuery($dql)->execute();
 
       if (isset($libelleType) && !is_null($libelleType)) {
         $lastType = $this->em->getRepository(HierarchiePatrimoineType::class)->findOneBy(['libelle' => $libelleType]);
@@ -653,20 +643,8 @@ class CoreApplication
     $this->em->persist($synchronisationAction);
     $this->em->flush();
 
-    $className = $this->em->getRepository(InterlocuteurContratInterface::class)->getClassName();
-    $dql = 'DELETE FROM ' . $className;
-    $this->em->createQuery($dql)->execute();
-
-    $className = $this->em->getRepository(InterlocuteurInterface::class)->getClassName();
-    $dql = 'DELETE FROM ' . $className;
-    $this->em->createQuery($dql)->execute();
-
     $className = $this->em->getRepository(InterlocuteurTypeInterface::class)->getClassName();
-    $dql = 'DELETE FROM ' . $className;
-    $this->em->createQuery($dql)->execute();
-
     $token = hash('sha256', $this->apiCoreCommunication->getApiCoreToken());
-
     // Etape 1 : On synchronise les types d'interlocuteurs
     if ($output instanceof OutputInterface) {
       $output->writeln('Etape 1 : On synchronise les types d\'interlocuteurs');
@@ -700,8 +678,28 @@ class CoreApplication
       }
       $this->em->flush();
       foreach ($typesToRemove as $typeToRemove) {
+        // 1. On récupère les interlocuteurs liés à ce type
+        $interlocuteurs = $this->em->getRepository(InterlocuteurInterface::class)->findBy(['type' => $typeToRemove]);
+
+        foreach ($interlocuteurs as $inter) {
+          // --- CORRECTIF : Nettoyage de la table de liaison Interlocuteur/Contrat ---
+          $contratInterlocuteurClass = $this->em->getRepository(InterlocuteurContratInterface::class)->getClassName();
+          $joinTableName = $this->em->getClassMetadata($contratInterlocuteurClass)->getTableName();
+
+          // On supprime les relations dans la table de liaison pour cet interlocuteur précis
+          $this->em->getConnection()->executeStatement(
+            "DELETE FROM {$joinTableName} WHERE interlocuteur_id = ?",
+            [$inter->getId()]
+          );
+
+          // Maintenant on peut supprimer l'interlocuteur
+          $this->em->remove($inter);
+        }
+
+        // 2. Enfin, on peut supprimer le type puisque plus aucun interlocuteur n'y est lié
         $this->em->remove($typeToRemove);
       }
+  // Le flush() qui suit dans ton code validera toutes ces suppressions d'un coup
       $this->em->flush();
       $this->em->clear();
 
@@ -709,12 +707,19 @@ class CoreApplication
         $output->writeln('Etape 2 : On synchronise les interlocuteurs');
       }
 
+      $interlocuteursToDelete = [];
+      $interlocuteurClass = $this->em->getRepository(InterlocuteurInterface::class)->getClassName();
+      $existingInterlocuteurs = $this->em->getRepository(InterlocuteurInterface::class)->findAll();
+      foreach ($existingInterlocuteurs as $interlocuteur) {
+        $interlocuteursToDelete[$interlocuteur->getIdCore()] = $interlocuteur->getId();
+      }
+
       $nbTypes = $this->em->getRepository(InterlocuteurTypeInterface::class)->count([]);
       if ($output instanceof OutputInterface) {
         $pb = new ProgressBar($output, $nbTypes);
         $pb->start();
       }
-      for ($i = 0; $i <= $nbTypes; $i++) {
+      for ($i = 0; $i < $nbTypes; $i++) {
         $types = $this->em->getRepository(InterlocuteurTypeInterface::class)->findBy([], ['id' => 'ASC'], 1, $i);
         foreach ($types as $type){
           if ($type instanceof InterlocuteurTypeInterface) {
@@ -725,9 +730,16 @@ class CoreApplication
               foreach (json_decode($resTypeDetail->getData(), true)['interlocuteurs'] as $interlocuteurCore){
                 $type = $this->em->getRepository(InterlocuteurTypeInterface::class)->find($typeId);
 
-                $className = $this->em->getRepository(InterlocuteurInterface::class)->getClassName();
-                $interlocuteur = new $className();
-                $interlocuteur->setIdCore($interlocuteurCore['id_core']);
+                $interlocuteur = $this->em->getRepository(InterlocuteurInterface::class)
+                  ->findOneBy(['idCore' => $interlocuteurCore['id_core']]);
+
+                if (!$interlocuteur) {
+                  $className = $this->em->getRepository(InterlocuteurInterface::class)->getClassName();
+                  $interlocuteur = new $className();
+                  $interlocuteur->setIdCore($interlocuteurCore['id_core']);
+                }
+                unset($interlocuteursToDelete[$interlocuteurCore['id_core']]);
+
                 $interlocuteur->setType($type);
                 $interlocuteur->setLibelle($interlocuteurCore['libelle']);
 
@@ -749,6 +761,12 @@ class CoreApplication
                 $moreCodesEnquete = true;
                 $offset = 0;
                 $limit = 10000;
+
+                $connection = $this->em->getConnection();
+                $contratInterlocuteurClass = $this->em->getRepository(InterlocuteurContratInterface::class)->getClassName();
+                $tableName = $this->em->getClassMetadata($contratInterlocuteurClass)->getTableName();
+                $connection->executeStatement("DELETE FROM {$tableName} WHERE interlocuteur_id = ?", [$interlocuteur->getId()]);
+
                 while ($moreCodesEnquete) {
                   $interlocuteur = $this->em->getRepository(InterlocuteurInterface::class)->find($currentInterlocuteurId);
                   $resCodesEnquetes = $this->apiCoreCommunication->sendGetRequest(
@@ -765,7 +783,9 @@ class CoreApplication
                       if (!empty($ids)) {
                         // Insertion rapide via requête préparée
                         $connection = $this->em->getConnection();
-                        $stmt = $connection->prepare('INSERT INTO interlocuteur_contrat (contrat_id, interlocuteur_id) VALUES (:contrat_id, :interlocuteur_id)');
+                        $contratInterlocuteurClass = $this->em->getRepository(InterlocuteurContratInterface::class)->getClassName();
+                        $tableName = $this->em->getClassMetadata($contratInterlocuteurClass)->getTableName();
+                        $stmt = $connection->prepare("INSERT INTO {$tableName} (contrat_id, interlocuteur_id) VALUES (:contrat_id, :interlocuteur_id)");
                         $interlocuteurId = $interlocuteur->getId();
                         foreach ($ids as $contratId) {
                           $stmt->bindValue('contrat_id', $contratId);
@@ -841,6 +861,39 @@ class CoreApplication
       if ($output instanceof OutputInterface) {
         $pb->finish();
       }
+
+
+      $idsToDelete = array_values($interlocuteursToDelete);
+
+      if (!empty($idsToDelete)) {
+        $connection = $this->em->getConnection();
+
+        // 1. Récupération dynamique du nom de la table de liaison (InterlocuteurContrat)
+        $contratInterlocuteurClass = $this->em->getRepository(InterlocuteurContratInterface::class)->getClassName();
+        $joinTableName = $this->em->getClassMetadata($contratInterlocuteurClass)->getTableName();
+
+        // 2. Nettoyage des contraintes dans la table de liaison
+        // On utilise PARAM_INT_ARRAY pour gérer proprement le IN (...)
+        $connection->executeStatement(
+          "DELETE FROM {$joinTableName} WHERE interlocuteur_id IN (?)",
+          [$idsToDelete],
+          [\Doctrine\DBAL\ArrayParameterType::INTEGER]
+        );
+
+        // 3. Suppression des interlocuteurs
+        $interlocuteurTableName = $this->em->getClassMetadata($interlocuteurClass)->getTableName();
+        $connection->executeStatement(
+          "DELETE FROM {$interlocuteurTableName} WHERE id IN (?)",
+          [$idsToDelete],
+          [\Doctrine\DBAL\ArrayParameterType::INTEGER]
+        );
+
+        if ($output instanceof OutputInterface) {
+          $output->writeln(count($idsToDelete) . ' interlocuteurs obsolètes supprimés.');
+        }
+      }
+
+      $this->em->flush();
 
       $duree = microtime(true) - $startTime;
 
@@ -1637,5 +1690,26 @@ class CoreApplication
   {
     $interlocuteursTypes = $this->em->getRepository(InterlocuteurInterface::class)->groupByType();
     return $interlocuteursTypes;
+  }
+
+  /**
+   * @param $idCore
+   * @param $visible
+   * @return array
+   */
+  public function updateVisibiliteInterlocuteurType($idCore, $visible): array
+  {
+    $postData = [
+      'token' => hash('sha256', $this->apiCoreCommunication->getApiCoreToken()),
+      'application_id' => $this->apiCoreCommunication->getApiCoreApplicationId(),
+      'id-type' => $idCore,
+      'visible' => $visible ? 'true' : 'false'
+    ];
+    $response = $this->apiCoreCommunication->sendPostRequest('/interlocuteur/type/save-visibilite', $postData);
+    if ($response->getHttpCode() == 200) {
+      return ['success' => true];
+    } else {
+      return ['success' => false, 'error_message' => 'Erreur lors de la mise à jour sur le Core (code HTTP '.$response->getHttpCode().').'];
+    }
   }
 }
