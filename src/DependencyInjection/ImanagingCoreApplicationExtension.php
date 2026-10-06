@@ -22,6 +22,8 @@ class ImanagingCoreApplicationExtension extends Extension
     $configuration = $this->getConfiguration($configs, $container);
     $config = $this->processConfiguration($configuration, $configs);
 
+    $container->getDefinition('imanaging_core_application.user_api_controller')->setArgument(1, $config['app_secret']);
+
     $definition = $container->getDefinition('imanaging_core_application.core_application');
     $definition->setArgument(3, $config['base_path']);
     $definition->setArgument(4, $config['url_logout']);

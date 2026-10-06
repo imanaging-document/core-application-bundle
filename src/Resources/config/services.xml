@@ -5,6 +5,17 @@
         http://symfony.com/schema/dic/services/services-1.0.xsd">
 
   <services>
+    <service id="imanaging_core_application.user_lock" class="Imanaging\CoreApplicationBundle\Service\CoreUserLock">
+      <argument type="service" id="doctrine.dbal.default_connection" />
+    </service>
+    <service id="imanaging_core_application.user_provisioner" class="Imanaging\CoreApplicationBundle\Service\CoreUserProvisioner">
+      <argument type="service" id="doctrine.orm.default_entity_manager" />
+      <argument type="service" id="imanaging_core_application.user_lock" />
+    </service>
+    <service id="imanaging_core_application.user_api_controller" class="Imanaging\CoreApplicationBundle\Controller\UserApiController" public="true">
+      <argument type="service" id="imanaging_core_application.user_provisioner" />
+      <argument />
+    </service>
     <service id="imanaging_core_application.core_application" class="Imanaging\CoreApplicationBundle\CoreApplication">
       <argument type="service" id="doctrine.orm.default_entity_manager" />
       <argument type="service" id="imanaging_api_communication.api_core_communication" />

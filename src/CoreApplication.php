@@ -257,6 +257,16 @@ class CoreApplication
    */
   public function synchroniserUsers(): array
   {
+    try {
+      $lock = new \Imanaging\CoreApplicationBundle\Service\CoreUserLock($this->em->getConnection());
+      return $lock->run(fn() => $this->synchroniserUsersLocked());
+    } catch (\Throwable) {
+      return ['success' => false, 'error_message' => 'La synchronisation utilisateurs a échoué ou une opération est déjà en cours.'];
+    }
+  }
+
+  private function synchroniserUsersLocked(): array
+  {
     $tokenAndDate = $this->getCoreTokenAndDate();
     $tokenCoreHashed = $tokenAndDate['token'];
     $tokenCoreDate = $tokenAndDate['date'];
@@ -271,46 +281,66 @@ class CoreApplication
       $response = $this->apiCoreCommunication->sendGetRequest($url);
 
       if ($response->getHttpCode() == 200){
-        $utilisateursLocauxCore = $this->em->getRepository(User::class)->findBy(['utilisateurCore' => true]);
-        foreach ($utilisateursLocauxCore as $user) {
-          $user->setActif(false);
-          $this->em->persist($user);
-        }
         $utilisateurs = json_decode($response->getData());
-        foreach ($utilisateurs as $utilisateur) {
-          $utilisateurLocalCore = $this->em->getRepository(User::class)->findOneBy(['utilisateurCore' => true, 'login' => $utilisateur->login]);
-          if (!($utilisateurLocalCore instanceof User)) {
-            $userAlreadyExist = $this->em->getRepository(User::class)->findOneBy(['login' => $utilisateur->login]);
-            if ($userAlreadyExist instanceof User) {
-              return ['success' => false, 'error_message' => "Un utilisateur local existe déjà pour ce login (" . $utilisateur->login . ")"];
-            } else {
-              $utilisateurLocalCore = new User();
-              $utilisateurLocalCore->setUtilisateurCore(true);
-              $utilisateurLocalCore->setUtilisateurZeus(false);
-              $utilisateurLocalCore->setLogin($utilisateur->login);
-            }
-          }
-
-          // Mise à jour du role
-          $role = $this->em->getRepository(RoleInterface::class)->find($utilisateur->role_id);
-          $utilisateurLocalCore->setRole($role);
-
-          $utilisateurLocalCore->setActif(true);
-          $utilisateurLocalCore->setPrenom($utilisateur->prenom);
-          $utilisateurLocalCore->setNom($utilisateur->nom);
-          $utilisateurLocalCore->setUsername($utilisateur->username);
-          $utilisateurLocalCore->setMail($utilisateur->mail);
-          $this->em->persist($utilisateurLocalCore);
+        if (!is_array($utilisateurs)) {
+          return ['success' => false, 'error_message' => 'La liste des utilisateurs Core est invalide.'];
         }
-
-        $this->em->flush();
-        return ['success' => true];
+        return $this->em->wrapInTransaction(function () use ($utilisateurs) {
+          return $this->applySynchronizedUsers($utilisateurs);
+        });
       } else {
         return ['success' => false, 'error_message' => "Une erreur est survenue lors de la récupération des utilisateurs. (Code HTTP : "  . $response->getHttpCode() . ')'];
       }
     } else {
       return ['success' => false, 'error_message' => "Une erreur est survenue lors de la récupération de l'application."];
     }
+  }
+
+
+  private function applySynchronizedUsers(array $utilisateurs): array
+  {
+    $utilisateursLocauxCore = $this->em->getRepository(User::class)->findBy(['utilisateurCore' => true]);
+    foreach ($utilisateursLocauxCore as $user) {
+      $user->setActif(false);
+      $this->em->persist($user);
+    }
+    $seenLogins = [];
+    foreach ($utilisateurs as $utilisateur) {
+      if (!isset($utilisateur->login) || isset($seenLogins[$utilisateur->login])) {
+        throw new \RuntimeException('La liste des utilisateurs contient des logins ambigus.');
+      }
+      $seenLogins[$utilisateur->login] = true;
+      $matches = $this->em->getRepository(User::class)->findBy(['login' => $utilisateur->login], null, 2);
+      if (count($matches) > 1 || (isset($matches[0]) && (!$matches[0]->isUtilisateurCore() || $matches[0]->isUtilisateurZeus() || $matches[0]->getLogin() !== $utilisateur->login))) {
+        throw new \RuntimeException('Le login correspond à des comptes ambigus ou à un compte local.');
+      }
+      $utilisateurLocalCore = $matches[0] ?? null;
+      if (!($utilisateurLocalCore instanceof User)) {
+        $userAlreadyExist = $this->em->getRepository(User::class)->findOneBy(['login' => $utilisateur->login]);
+        if ($userAlreadyExist instanceof User) {
+          throw new \RuntimeException('Un compte local existe déjà pour ce login.');
+        } else {
+          $utilisateurLocalCore = new User();
+          $utilisateurLocalCore->setUtilisateurCore(true);
+          $utilisateurLocalCore->setUtilisateurZeus(false);
+          $utilisateurLocalCore->setLogin($utilisateur->login);
+        }
+      }
+
+      // Mise à jour du role
+      $role = $this->em->getRepository(RoleInterface::class)->find($utilisateur->role_id);
+      $utilisateurLocalCore->setRole($role);
+
+      $utilisateurLocalCore->setActif(true);
+      $utilisateurLocalCore->setPrenom($utilisateur->prenom);
+      $utilisateurLocalCore->setNom($utilisateur->nom);
+      $utilisateurLocalCore->setUsername($utilisateur->username);
+      $utilisateurLocalCore->setMail($utilisateur->mail);
+      $this->em->persist($utilisateurLocalCore);
+    }
+
+    $this->em->flush();
+    return ['success' => true];
   }
 
   /**
