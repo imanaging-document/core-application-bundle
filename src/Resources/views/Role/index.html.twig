@@ -1,102 +1,140 @@
 {% extends basePath %}
 
 {% block body %}
-  <div class="container mt-4 mb-4">
-    <h2 class="text-center">Liste des rôles</h2>
+  {% set visibleRoles = roles|filter(role => app.user.role.zeusOnly or not role.zeusOnly) %}
+  <div class="home-container core-role-management">
+    <header class="core-role-heading">
+      <h1>Gestion des rôles</h1>
+      <p>Gérez les rôles et les droits d’accès aux modules de la plateforme</p>
+    </header>
 
-    <div class="card mt-2">
-      <div class="card-body">
-        <div class="mb-2 d-flex justify-content-end">
-          <a href="{{ path('core_application_role_mass_edit') }}"><i class="fa fa-table fa-fw"></i>Edition des rôles en masse</a>
-        </div>
+    <div class="cn-table-header core-role-toolbar">
+      <span class="core-role-count">{{ visibleRoles|length }} rôle{% if visibleRoles|length != 1 %}s{% endif %}</span>
+      <div class="cn-buttons">
+        <a href="{{ path('core_application_role_mass_edit') }}" class="btn-table btn-white">
+          <i class="fa fa-table" aria-hidden="true"></i>Édition en masse
+        </a>
+        <button type="button" class="btn-table btn-blue" data-bs-toggle="modal" data-bs-target="#addRoleModal">
+          <i class="fa fa-plus-circle" aria-hidden="true"></i>Ajouter un rôle
+        </button>
+      </div>
+    </div>
 
-        <table class="table table-striped table-bordered text-center" id="table-roles">
-          <thead>
+    <div class="core-role-table-wrap">
+      <table class="table-white-light core-role-table" id="table-roles">
+        <thead>
           <tr>
-            <th>#</th>
-            <th>Nom</th>
+            <th scope="col">#</th>
+            <th scope="col">Nom du rôle</th>
             {% if app.user.role.zeusOnly %}
-              <th>Code</th>
-              <th>Type de rôle</th>
+              <th scope="col">Code</th>
+              <th scope="col">Type de rôle</th>
             {% endif %}
-            <th>Rôle par défaut</th>
-            <th><i class="fa fa-pen"></i></th>
-            <th><i class="fa fa-trash"></i></th>
+            <th scope="col">Rôle par défaut</th>
+            <th scope="col" class="core-role-actions-heading">Actions</th>
           </tr>
-          </thead>
-          <tbody>
-          {% for role in roles %}
-            {% if app.user.role.zeusOnly or not role.zeusOnly %}
-              <tr>
-                <td>{{ role.id }}</td>
-                <td>{{ role.libelle }}</td>
-                {% if app.user.role.zeusOnly %}
-                  <td>{{ role.code }}</td>
-                  <td>
-                    {% if role.zeusOnly %}
-                      <b><i class="fa fa-bolt fa-fw text-warning"></i>Rôle zeus</b>
-                    {% else %}
-                      <b>Rôle non zeus</b>
-                    {% endif %}
-                  </td>
-                {% endif %}
+        </thead>
+        <tbody>
+          {% for role in visibleRoles %}
+            <tr>
+              <td class="core-role-id">{{ role.id }}</td>
+              <td>
+                <div class="core-role-name">
+                  <span class="core-role-avatar"><i class="fa fa-user-shield" aria-hidden="true"></i></span>
+                  <a href="{{ path('core_application_role_edit', {id: role.id}) }}">{{ role.libelle }}</a>
+                </div>
+              </td>
+              {% if app.user.role.zeusOnly %}
+                <td class="core-role-code">{{ role.code ?: '—' }}</td>
                 <td>
-                  {% if role.parDefaut %}
-                    <i class="fa fa-check fa-fw text-success"></i>Oui
+                  {% if role.zeusOnly %}
+                    <span class="badge core-role-badge core-role-badge-zeus"><i class="fa fa-bolt" aria-hidden="true"></i>Zeus</span>
                   {% else %}
-                    -
+                    <span class="badge core-role-badge core-role-badge-local">Plateforme</span>
                   {% endif %}
                 </td>
-                <td>
-                  <a href="{{ path('core_application_role_edit', {id: role.id}) }}" class="text-primary">
-                    <i class="fa fa-pen fa-fw"></i>Editer
-                  </a>
-                </td>
-                {% if not role.zeusOnly %}
-                  <td>
-                    <a href="{{ path('core_application_role_remove', {id: role.id}) }}" class="text-danger">
-                      <i class="fa fa-trash- fa-fw"></i>Supprimer
-                    </a>
-                  </td>
+              {% endif %}
+              <td data-order="{{ role.parDefaut ? 1 : 0 }}">
+                {% if role.parDefaut %}
+                  <span class="badge core-role-badge core-role-badge-default"><i class="fa fa-check" aria-hidden="true"></i>Par défaut</span>
                 {% else %}
-                  <td></td>
+                  <span class="core-role-muted">—</span>
                 {% endif %}
-
-              </tr>
-            {% endif %}
+              </td>
+              <td>
+                <div class="core-role-actions">
+                  <a href="{{ path('core_application_role_edit', {id: role.id}) }}" class="core-role-action"
+                     title="Modifier {{ role.libelle }}" aria-label="Modifier le rôle {{ role.libelle }}">
+                    <i class="fa fa-pencil" aria-hidden="true"></i>
+                  </a>
+                  {% if not role.zeusOnly %}
+                    <a href="{{ path('core_application_role_remove', {id: role.id}) }}" class="core-role-action core-role-action-danger"
+                       title="Supprimer {{ role.libelle }}" aria-label="Supprimer le rôle {{ role.libelle }}">
+                      <i class="fa fa-trash" aria-hidden="true"></i>
+                    </a>
+                  {% else %}
+                    <span class="core-role-action core-role-action-locked" title="Rôle Zeus protégé" aria-label="Rôle Zeus protégé">
+                      <i class="fa fa-lock" aria-hidden="true"></i>
+                    </span>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
           {% endfor %}
-          </tbody>
-        </table>
+        </tbody>
+      </table>
+    </div>
 
-        <hr>
-
-        <h5>Ajouter un rôle</h5>
-        <form action="{{ path('core_application_role_add') }}" method="post">
-          <input type="hidden" name="basePath" value="{{ basePath }}">
-
-          <div class="form-group">
-            <label for="libelle">Nom du rôle</label>
-            <input type="text" class="form-control" name="libelle" id="libelle">
+    <div class="modal fade core-role-management" id="addRoleModal" tabindex="-1" aria-labelledby="addRoleTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 class="modal-title" id="addRoleTitle">Ajouter un rôle</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
           </div>
-
-          <div class="form-check">
-            <input type="checkbox" class="form-check-input" id="par-defaut" name="par-defaut">
-            <label class="form-check-label" for="par-defaut">Définir ce rôle par défaut aux nouveaux utilisateurs</label>
-          </div>
-
-          <div class="text-center">
-            <button type="submit" class="btn btn-primary">
-              <i class="fa fa-plus-circle fa-fw"></i>Ajouter un nouveau rôle
-            </button>
-          </div>
-        </form>
+          <form action="{{ path('core_application_role_add') }}" method="post">
+            <input type="hidden" name="basePath" value="{{ basePath }}">
+            <div class="modal-body">
+              <div class="form-group">
+                <label for="libelle">Nom du rôle <span aria-hidden="true">*</span></label>
+                <input type="text" class="form-control" name="libelle" id="libelle" placeholder="Ex. Gestionnaire" required>
+              </div>
+              <div class="form-check core-role-default-option">
+                <input type="checkbox" class="form-check-input" id="par-defaut" name="par-defaut" aria-describedby="defaultRoleHelp">
+                <label class="form-check-label" for="par-defaut">Utiliser ce rôle par défaut</label>
+                <small id="defaultRoleHelp">Ce rôle sera proposé aux nouveaux utilisateurs.</small>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn-table btn-white" data-bs-dismiss="modal">Annuler</button>
+              <button type="submit" class="btn-table btn-blue"><i class="fa fa-plus-circle" aria-hidden="true"></i>Ajouter le rôle</button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
     $(document).ready(function () {
-      $("#table-roles").dataTable({})
-    })
+      $('#table-roles').dataTable({
+        order: [[1, 'asc']],
+        columnDefs: [{orderable: false, searchable: false, targets: -1}],
+        language: {
+          search: 'Rechercher :',
+          lengthMenu: 'Afficher _MENU_ rôles',
+          info: 'Affichage de _START_ à _END_ sur _TOTAL_ rôles',
+          infoEmpty: 'Aucun rôle à afficher',
+          infoFiltered: '(filtrés parmi _MAX_ rôles)',
+          zeroRecords: 'Aucun rôle ne correspond à votre recherche',
+          emptyTable: 'Aucun rôle disponible. Ajoutez votre premier rôle.',
+          paginate: {first: 'Premier', last: 'Dernier', next: 'Suivant', previous: 'Précédent'},
+          aria: {sortAscending: ': trier par ordre croissant', sortDescending: ': trier par ordre décroissant'}
+        }
+      });
+      $('#addRoleModal').on('shown.bs.modal', function () {
+        $('#libelle').trigger('focus');
+      });
+    });
   </script>
 {% endblock %}

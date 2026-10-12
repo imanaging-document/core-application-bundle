@@ -1,17 +1,15 @@
-<div class="modal fade" id="modalEditRoleModule" tabindex="-1" role="dialog">
+<div class="modal fade core-role-management" aria-labelledby="roleModuleTitle" id="modalEditRoleModule" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Modifier le module</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
+        <h5 class="modal-title" id="roleModuleTitle">Modifier le module</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
       </div>
       <div class="modal-body">
         <form action="{{ path('core_application_role_save_role_module', {id: role_module.id}) }}" method="post">
           <div class="form-group">
-            <label for="libelle">Nom du module</label>
-            <input type="text" class="form-control" value="{{ role_module.libelle }}" id="libelle" name="libelle">
+            <label for="module-libelle">Nom du module</label>
+            <input type="text" class="form-control" value="{{ role_module.libelle }}" id="module-libelle" name="libelle">
           </div>
 
           <div class="form-group">
@@ -27,7 +25,7 @@
           </div>
 
           {% if role_module.apps|length > 0 %}
-            <table class="table table-bordered table-striped text-center">
+            <table class="core-role-table">
               <thead>
                 <tr>
                   <th>URL</th>
@@ -47,7 +45,7 @@
                            id="app_libelle_{{ app.client_traitement }}" name="app_libelle_{{ app.client_traitement }}" value="{{ app.libelle }}">
                   </td>
                   <td>
-                    <label for="acces">
+                    <label for="app_acces_{{ app.client_traitement }}">
                       <input id="app_acces_{{ app.client_traitement }}" name="app_acces_{{ app.client_traitement }}" type="checkbox" {% if app.acces %}checked{% endif %}>
                       Accessible
                     </label>
@@ -60,8 +58,8 @@
             {% endfor %}
           {% endif %}
 
-          <div class="text-center">
-            <button type="submit" class="btn btn-primary">Enregistrer</button>
+          <div class="core-role-form-actions">
+            <button type="submit" class="btn-table btn-blue">Enregistrer</button>
           </div>
         </form>
       </div>

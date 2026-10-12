@@ -211,6 +211,7 @@
       </ul>
       <ul>
         {% for module in modulesLvl2 %}
+          {% if module.route == '' or isRouteExiste(module.route) %}
           <li class="{% if module.route == app.request.get('_route') %}current-item{% endif %} {% if not module.acces %}disabled-module{% endif %}">
             {% if module.children|length > 0 %}
               <span {% if module.route == app.request.get('_route') %}class="current-item"{% endif %}>
@@ -255,6 +256,7 @@
               </ul>
             {% endif %}
           </li>
+          {% endif %}
         {% endfor %}
       </ul>
     </div>

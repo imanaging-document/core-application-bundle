@@ -3,10 +3,16 @@
 {% block body %}
   {% import _self as macros %}
 
-  <div class="container container-90 mt-4 mb-4">
-    <h2 class="text-center">Edition d'un rôle - {{ role.libelle }}</h2>
+  <div class="home-container core-role-management">
+    <header class="core-role-heading">
+      <h1>{{ role.libelle }}</h1>
+      <p>Configurez les droits et la visibilité des modules pour ce rôle</p>
+    </header>
+    <div class="core-role-toolbar">
+      <a href="{{ path('core_application_role') }}" class="btn-table btn-white"><i class="fa fa-chevron-left" aria-hidden="true"></i>Retour aux rôles</a>
+    </div>
 
-    <div class="card mt-2">
+    <div class="card core-role-editor">
       <div class="card-body">
         <div class="form-check">
           <input type="checkbox" class="form-check-input" id="par-defaut" name="par-defaut" {% if role.parDefaut %}checked{% endif %} disabled>
@@ -15,10 +21,10 @@
         <hr>
 
         <form action="{{ path('core_application_role_save', {id: role.id}) }}" method="post">
-          <div class="row">
+          <div class="row core-role-permissions">
             <div class="col">
-              <h4 class="text-center">Modules / Fonctions</h4>
-              <h5 class="text-danger"><i class="fa fa-warning fa-2x"></i>Vous pouvez seulement modifier les applications SSO</h5>
+              <h4 class="text-center">Modules et fonctions</h4>
+              <div class="alert alert-warning text-sm"><i class="fa fa-lock fa-fw" aria-hidden="true"></i>Ce rôle Zeus est protégé. Seuls les accès aux applications SSO sont modifiables.</div>
 
               {% if fonctions_without_module|length > 0 %}
                 <h5 class="text-primary">
@@ -50,12 +56,12 @@
                         <div class="checkbox">
                           <label>
                             <input type="checkbox" class="cbx-module" name="modules[]" data-id="{{ module.id }}" value="{{ module.id }}" {% if role.canSee(module.id) %}checked{% endif %} disabled>
-                            <b {% if not role.canAccess(module.id) and role.canSee(module.id) %}style="color: lightgray;"{% endif %}>{{ module.libelle }}</b> {% if module.typeApplication != 'module' %} <i>(Redirection SSO vers une autre application)</i> {% endif %}
+                            <b {% if not role.canAccess(module.id) and role.canSee(module.id) %}class="core-role-inaccessible"{% endif %}>{{ module.libelle }}</b> {% if module.typeApplication != 'module' %} <i>(Redirection SSO vers une autre application)</i> {% endif %}
                           </label>
 
                           {% if module.typeApplication != 'module' %}
                             <i class="fa fa-pencil-square-o fa-fw text-primary edit-role-module"
-                               data-role-id="{{ role.id }}" data-module-id="{{ module.id }}" style="cursor: pointer;"></i>
+                               data-role-id="{{ role.id }}" data-module-id="{{ module.id }}"></i>
                           {% endif %}
 
                         </div>
@@ -73,8 +79,8 @@
                   {% endif %}
               {% endfor %}
             </div>
-            <div class="col border-left border-dark">
-              <h4 class="text-center">Notifications (messages oranges)</h4>
+            <div class="col">
+              <h4 class="text-center">Notifications</h4>
               <p><i class="fa fa-info-circle fa-fw"></i>Gestion de la visibilité des notifications</p>
 
               <h5 class="text-primary">
@@ -98,8 +104,8 @@
             </div>
           </div>
 
-          <div class="text-center mt-4">
-            <button type="submit" class="btn btn-primary">
+          <div class="core-role-form-actions">
+            <button type="submit" class="btn-table btn-blue">
               <i class="fa fa-save fa-fw"></i>Enregistrer
             </button>
           </div>
@@ -114,12 +120,12 @@
         <div class="checkbox">
           <label>
             <input type="checkbox" class="cbx-module" name="modules[]" data-id="{{ module.id }}" data-parent-id="{{ module.parent.id }}" value="{{ module.id }}" {% if role.canSee(module.id) %}checked{% endif %} disabled>
-            <b {% if not role.canAccess(module.id) and role.canSee(module.id) %}style="color: lightgray;"{% endif %}>{{ module.libelle }}</b>
+            <b {% if not role.canAccess(module.id) and role.canSee(module.id) %}class="core-role-inaccessible"{% endif %}>{{ module.libelle }}</b>
           </label>
 
           {% if module.typeApplication != 'module' %}
             <i class="fa fa-pencil-square-o fa-fw text-primary edit-role-module"
-               data-role-id="{{ role.id }}" data-module-id="{{ module.id }}" style="cursor: pointer;"></i>
+               data-role-id="{{ role.id }}" data-module-id="{{ module.id }}"></i>
           {% endif %}
         </div>
       </li>
@@ -153,11 +159,6 @@
 
   <div id="divModalEditRoleModule"></div>
 
-  <style>
-      .list-style-none{
-          list-style-type: none;
-      }
-  </style>
 
   <script>
     $(".edit-role-module").click(function(){
@@ -171,7 +172,7 @@
         data: data,
         success: function(data){
           $("#divModalEditRoleModule").html(data);
-          $("#modalEditRoleModule").modal();
+          $("#modalEditRoleModule").modal("show");
         },
         error: function(){
           alert('Une erreur est survenue. Veuillez réessayer plus tard.');

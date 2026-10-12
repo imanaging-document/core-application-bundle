@@ -6,7 +6,7 @@
 {% endfor %}
 
 {% macro showModule(module, depth) %}
-  {% if module.type == 'module' %}
+  {% if module.type == 'module' and (module.route == '' or isRouteExiste(module.route)) %}
     {% if module.children|length > 0 %}
       <div class="accordion accordion-flush" id="{{ 'accordion-menu-'~module.id }}">
         <div class="accordion-item">

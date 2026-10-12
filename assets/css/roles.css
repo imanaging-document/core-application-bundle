@@ -1,0 +1,98 @@
+/* Shared role administration styles, scoped to the bundle's role views. */
+.home-container.core-role-management {
+  width: 100%;
+  max-width: 1400px;
+  margin: auto;
+  padding: 2rem 1rem;
+}
+
+.core-role-management .core-role-heading { text-align: center; margin-bottom: 1.5rem; }
+.core-role-management .core-role-heading h1 { font-size: 1.5rem; font-weight: 700; margin: 0 0 .35rem; }
+.core-role-management .core-role-heading p { color: #6b7280; margin: 0; }
+.core-role-management .core-role-muted,
+.core-role-management .core-role-count,
+.core-role-management .core-role-id,
+.core-role-management .core-role-code { color: #6b7280; }
+.core-role-management .core-role-count { font-size: .875rem; font-weight: 500; }
+.core-role-management .core-role-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 0; }
+.core-role-management .cn-buttons { display: flex; flex-wrap: wrap; gap: .5rem; }
+.core-role-management .btn-table { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; padding: .5rem 1rem; border: 1px solid #e2e8f0; border-radius: .5rem; font-size: .875rem; font-weight: 500; text-decoration: none; line-height: 1.25rem; transition: background-color .2s; }
+.core-role-management .btn-white { color: #111827; background: #fff; }
+.core-role-management .btn-white:hover { background: #f3f4f6; }
+.core-role-management .btn-blue { color: #fff; background: #00a8e6; }
+.core-role-management .btn-blue:hover { background: #0097cf; }
+.core-role-management a:focus-visible,
+.core-role-management button:focus-visible { outline: 2px solid #075e7e; outline-offset: 3px; }
+.core-role-management .core-role-table-wrap { overflow-x: auto; padding-bottom: .5rem; }
+.core-role-management .dataTables_wrapper,
+.core-role-management .core-role-panel { background: #fff; padding: 1rem; border-radius: .5rem; box-shadow: 0 20px 45px -25px rgba(50, 50, 93, .3); }
+.core-role-management .dataTables_wrapper { min-width: 680px; }
+.core-role-management .core-role-table { width: 100%; border-collapse: collapse; border: 0; font-size: .9rem; }
+.core-role-management .core-role-table thead th { padding: 1rem; background: #f9fafb; border-bottom: 0; text-align: left; font-size: .8rem; font-weight: 500; text-transform: uppercase; }
+.core-role-management .core-role-table tbody td { padding: .75rem 1rem; border-bottom: 1px solid #e5e7eb; background: #fff; vertical-align: middle; font-weight: 500; }
+.core-role-management .core-role-table tbody tr:hover td { background: #fafbfc; }
+.core-role-management .core-role-table.no-footer { border-bottom: 0; }
+.core-role-management .core-role-name { display: flex; align-items: center; gap: .65rem; }
+.core-role-management .core-role-name a { color: #111827; text-decoration: none; }
+.core-role-management .core-role-name a:hover { color: #075e7e; }
+.core-role-management .core-role-avatar { display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; flex-shrink: 0; border-radius: 50%; background: #f3f4f6; color: #6b7280; }
+.core-role-management .core-role-badge { display: inline-flex; align-items: center; gap: .3rem; padding: .3rem .55rem; border-radius: 9999px; font-size: .75rem; font-weight: 600; white-space: nowrap; }
+.core-role-management .core-role-badge-local { color: #6b21a8; background: #f3e8ff; }
+.core-role-management .core-role-badge-zeus { color: #92400e; background: #fef3c7; }
+.core-role-management .core-role-badge-default { color: #166534; background: #dcfce7; }
+.core-role-management .core-role-actions { display: flex; justify-content: flex-end; gap: .35rem; }
+.core-role-management .core-role-table .core-role-actions-heading { text-align: right; }
+.core-role-management .core-role-action { display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; border-radius: .4rem; color: #6b7280; text-decoration: none; }
+.core-role-management .core-role-action:hover { background: #eaf6fc; color: #075e7e; }
+.core-role-management .core-role-action-danger:hover { background: #fee2e2; color: #b91c1c; }
+.core-role-management .core-role-action-locked { color: #9ca3af; }
+.core-role-management .dataTables_filter input { padding: .35rem .5rem; border: 1px solid #e2e8f0; border-radius: .5rem; }
+.core-role-management .dataTables_length,
+.core-role-management .dataTables_filter,
+.core-role-management .dataTables_info,
+.core-role-management .dataTables_paginate { font-size: .8rem; color: #6b7280; }
+.core-role-management .dataTables_length,
+.core-role-management .dataTables_filter { margin-bottom: 1rem; }
+.core-role-management .dataTables_info,
+.core-role-management .dataTables_paginate { margin-top: .75rem; }
+.core-role-management .modal-content { border: 1px solid #e2e8f0; border-radius: .75rem; }
+.core-role-management .modal-header,
+.core-role-management .modal-body,
+.core-role-management .modal-footer { padding: 1.25rem; }
+.core-role-management .modal-title { font-size: 1.125rem; font-weight: 600; }
+.core-role-management .form-group { margin-bottom: 1.25rem; }
+.core-role-management .form-group > label { display: block; font-size: .875rem; font-weight: 500; margin-bottom: .5rem; }
+.core-role-management .form-control { border-color: #e2e8f0; border-radius: .5rem; }
+.core-role-management .form-control:focus { border-color: #00a8e6; box-shadow: 0 0 0 .2rem rgba(0, 168, 230, .12); }
+.core-role-management input[type="checkbox"] { accent-color: #00a8e6; }
+.core-role-management .core-role-default-option { padding-top: .75rem; padding-bottom: .75rem; }
+.core-role-management .core-role-default-option small { display: block; color: #6b7280; margin-top: .3rem; }
+.core-role-management .core-role-editor { border: 0; border-radius: .5rem; box-shadow: 0 20px 45px -25px rgba(50, 50, 93, .3); }
+.core-role-management .core-role-editor > .card-body { padding: 1.5rem; }
+.core-role-management .core-role-form-actions { display: flex; justify-content: flex-end; gap: .5rem; margin-top: 1.25rem; }
+.core-role-management .core-role-permissions { row-gap: 1.5rem; }
+.core-role-management .core-role-permissions > .col { flex: 1 1 340px; min-width: 0; }
+.core-role-management .core-role-permissions h4 { text-align: left !important; font-size: 1.125rem; font-weight: 600; }
+.core-role-management .core-role-permissions h5 { font-size: .95rem; margin-top: 1.5rem; }
+.core-role-management .core-role-permissions p { color: #6b7280; font-size: .875rem; }
+.core-role-management .core-role-permissions .checkbox { padding: .5rem 0; }
+.core-role-management .list-style-none { list-style: none; }
+.core-role-management .edit-role-module { cursor: pointer; }
+.core-role-management .core-role-legend { display: flex; flex-wrap: wrap; gap: .5rem 1rem; color: #6b7280; font-size: .8rem; margin: 1rem 0; }
+.core-role-management .core-role-legend label { display: inline-flex; align-items: center; gap: .4rem; }
+.core-role-management .core-role-inaccessible { color: #9ca3af; }
+.core-role-management .core-role-mass-wrap { max-height: 70vh; overflow: auto; padding: 0; }
+.core-role-management .core-role-mass-table thead th { position: sticky; top: 0; z-index: 1; min-width: 130px; }
+.core-role-management .core-role-mass-table thead th:first-child { min-width: 280px; }
+.core-role-management .core-role-mass-table th.role-libelle { font-size: .8rem; max-width: 180px; }
+.core-role-management .core-role-mass-table td.module-niveau-2 { padding-left: 3rem; font-weight: 500; }
+.core-role-management .core-role-mass-table td.module-niveau-3 { padding-left: 5rem; font-weight: 400; }
+
+@media (max-width: 767px) {
+  .home-container.core-role-management { padding: 1.25rem .75rem; }
+  .core-role-management .core-role-toolbar { align-items: flex-start; flex-direction: column; gap: .75rem; }
+  .core-role-management .cn-buttons { width: 100%; }
+  .core-role-management .core-role-editor > .card-body { padding: 1rem; }
+  .core-role-management .core-role-permissions > .col { flex-basis: 100%; }
+  .core-role-management .core-role-form-actions { flex-wrap: wrap; }
+}

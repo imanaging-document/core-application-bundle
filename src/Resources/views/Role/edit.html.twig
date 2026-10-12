@@ -3,15 +3,21 @@
 {% block body %}
   {% import _self as macros %}
 
-  <div class="container container-90 mt-4 mb-4">
-    <h2 class="text-center">Edition d'un rôle - {{ role.libelle }}</h2>
+  <div class="home-container core-role-management">
+    <header class="core-role-heading">
+      <h1>{{ role.libelle }}</h1>
+      <p>Configurez les droits et la visibilité des modules pour ce rôle</p>
+    </header>
+    <div class="core-role-toolbar">
+      <a href="{{ path('core_application_role') }}" class="btn-table btn-white"><i class="fa fa-chevron-left" aria-hidden="true"></i>Retour aux rôles</a>
+    </div>
 
-    <div class="card mt-2">
+    <div class="card core-role-editor">
       <div class="card-body">
         <form action="{{ path('core_application_role_save_libelle', {id: role.id}) }}" method="post">
           <div class="form-group">
             <label for="libelle">Nom du rôle</label>
-            <input type="text" class="form-control" id="libelle" name="libelle" value="{{ role.libelle }}">
+            <input type="text" class="form-control" id="libelle" name="libelle" value="{{ role.libelle }}" required>
           </div>
 
           <div class="form-check">
@@ -19,44 +25,30 @@
             <label class="form-check-label" for="par-defaut">Définir ce rôle par défaut aux nouveaux utilisateurs</label>
           </div>
 
-          <div class="text-center">
-            <button type="submit" class="btn btn-primary">Enregistrer</button>
+          <div class="core-role-form-actions">
+            <button type="submit" class="btn-table btn-blue">Enregistrer</button>
           </div>
         </form>
 
         <hr>
 
         <form action="{{ path('core_application_role_save', {id: role.id}) }}" method="post">
-          <div class="row">
+          <div class="row core-role-permissions">
             <div class="col">
-              <h4 class="text-center">Modules / Fonctions</h4>
+              <h4 class="text-center">Modules et fonctions</h4>
               <p><i class="fa fa-info-circle fa-fw"></i>Gestion de la visibilité des modules, sous modules et fonctions associées.</p>
 
-              <h5>Légende :</h5>
-              <div class="form-group">
-                <label>
-                  <input type="checkbox" checked disabled>
-                  <b>Module visible et accessible</b>
-                </label>
-              </div>
-              <div class="form-group">
-                <label>
-                  <input type="checkbox" disabled>
-                  <b>Module non visible</b>
-                </label>
-              </div>
-              <div class="form-group">
-                <label>
-                  <input type="checkbox" checked disabled>
-                  <b style="color: lightgray">Module visible mais non accessible</b>
-                </label>
+              <div class="core-role-legend">
+                <label><input type="checkbox" checked disabled>Visible et accessible</label>
+                <label><input type="checkbox" disabled>Non visible</label>
+                <label class="core-role-inaccessible"><input type="checkbox" checked disabled>Visible sans accès</label>
               </div>
 
-              <div class="btn-group w-100 mb-4" role="group">
-                <button id="toutCocherModules" class="btn btn-success btn-sm" type="button">
+              <div class="cn-buttons mb-4" role="group">
+                <button id="toutCocherModules" class="btn-table btn-white" type="button">
                   <i class="fa fa-check-circle fa-fw"></i>Tout cocher
                 </button>
-                <button id="toutDecocherModules" class="btn btn-warning btn-sm" type="button">
+                <button id="toutDecocherModules" class="btn-table btn-white" type="button">
                   <i class="fa fa-times-circle fa-fw"></i>Tout décocher
                 </button>
               </div>
@@ -92,14 +84,14 @@
                         <div class="checkbox">
                           <label>
                             <input type="checkbox" class="cbx-module" name="modules[]" data-id="{{ module.id }}" value="{{ module.id }}" {% if role.canSee(module.id) %}checked{% endif %}>
-                            <b {% if not role.canAccess(module.id) and role.canSee(module.id) %}style="color: lightgray;"{% endif %}>{{ module.libelle }}</b> {% if module.typeApplication != 'module' %} <i>(Redirection SSO vers une autre application)</i> {% endif %}
+                            <b {% if not role.canAccess(module.id) and role.canSee(module.id) %}class="core-role-inaccessible"{% endif %}>{{ module.libelle }}</b> {% if module.typeApplication != 'module' %} <i>(Redirection SSO vers une autre application)</i> {% endif %}
                           </label>
 
                           {% if role.canSee(module.id) %}
                             <small>Traduction : <b class="text-primary">{{ role.getLibelleForModule(module.id) }}</b> (n°{{ role.getOrdreForModule(module.id) }})</small>
                           {% endif %}
                           <i class="fa fa-edit fa-fw text-primary edit-role-module"
-                             data-role-id="{{ role.id }}" data-module-id="{{ module.id }}" style="cursor: pointer;"></i>
+                             data-role-id="{{ role.id }}" data-module-id="{{ module.id }}"></i>
                         </div>
 
                       </li>
@@ -133,15 +125,15 @@
                 {% endif %}
               {% endfor %}
             </div>
-            <div class="col border-left border-dark">
-              <h4 class="text-center">Notifications (messages oranges)</h4>
+            <div class="col">
+              <h4 class="text-center">Notifications</h4>
               <p><i class="fa fa-info-circle fa-fw"></i>Gestion de la visibilité des notifications</p>
 
-              <div class="btn-group w-100 mb-4" role="group">
-                <button id="toutCocherNotifications" class="btn btn-success btn-sm" type="button">
+              <div class="cn-buttons mb-4" role="group">
+                <button id="toutCocherNotifications" class="btn-table btn-white" type="button">
                   <i class="fa fa-check-circle fa-fw"></i>Tout cocher
                 </button>
-                <button id="toutDecocherNotifications" class="btn btn-warning btn-sm" type="button">
+                <button id="toutDecocherNotifications" class="btn-table btn-white" type="button">
                   <i class="fa fa-times-circle fa-fw"></i>Tout décocher
                 </button>
               </div>
@@ -167,8 +159,8 @@
             </div>
           </div>
 
-          <div class="text-center mt-4">
-            <button type="submit" class="btn btn-primary">
+          <div class="core-role-form-actions">
+            <button type="submit" class="btn-table btn-blue">
               <i class="fa fa-save fa-fw"></i>Enregistrer
             </button>
           </div>
@@ -183,14 +175,14 @@
         <div class="checkbox">
           <label>
             <input type="checkbox" class="cbx-module" name="modules[]" data-id="{{ module.id }}" data-parent-id="{{ module.parent.id }}" value="{{ module.id }}" {% if role.canSee(module.id) %}checked{% endif %}>
-            <b {% if not role.canAccess(module.id) and role.canSee(module.id) %}style="color: lightgray;"{% endif %}>{{ module.libelle }}</b>
+            <b {% if not role.canAccess(module.id) and role.canSee(module.id) %}class="core-role-inaccessible"{% endif %}>{{ module.libelle }}</b>
           </label>
 
           {% if role.canSee(module.id) %}
             <small>Traduction : <b class="text-primary">{{ role.getLibelleForModule(module.id) }}</b> (n°{{ role.getOrdreForModule(module.id) }})</small>
           {% endif %}
           <i class="fa fa-edit fa-fw text-primary edit-role-module"
-             data-role-id="{{ role.id }}" data-module-id="{{ module.id }}" style="cursor: pointer;"></i>
+             data-role-id="{{ role.id }}" data-module-id="{{ module.id }}"></i>
         </div>
       </li>
 
@@ -223,11 +215,6 @@
 
   <div id="divModalEditRoleModule"></div>
 
-  <style>
-      .list-style-none{
-          list-style-type: none;
-      }
-  </style>
 
   <script>
     $(".edit-role-module").click(function(){
@@ -241,7 +228,7 @@
         data: data,
         success: function(data){
           $("#divModalEditRoleModule").html(data);
-          $("#modalEditRoleModule").modal();
+          $("#modalEditRoleModule").modal("show");
         },
         error: function(){
           alert('Une erreur est survenue. Veuillez réessayer plus tard.');

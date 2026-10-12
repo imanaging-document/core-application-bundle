@@ -41,6 +41,7 @@
         {% endif %}
 
         {% for module in modules %}
+          {% if module.route == '' or isRouteExiste(module.route) %}
           <li class="nav-item {% if module.children|length > 0 %} dropdown {% endif %} {% if module.route == app.request.get('_route') %} active {% endif %}">
             <a {% if module.children|length > 0 %}href="#" class="nav-link main-menu-nav-link dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside"{% else %} class="nav-link main-menu-nav-link" href="{% if module.route != "" %}{{ path(module.route) }}{% else %}#{% endif %}"{% endif %}>
               {{ module.libelle }}
@@ -86,11 +87,13 @@
               </div>
             {% endif %}
           </li>
+          {% endif %}
         {% endfor %}
 
         {# Récuperation de tous les modules de niveau 1 côté droit #}
         {% set modules = getTopLevelModules(app.user, true) %}
         {% for module in modules %}
+          {% if module.route == '' or isRouteExiste(module.route) %}
           <li class="nav-item {% if module.children|length > 0 %} dropdown {% endif %} {% if module.route == app.request.get('_route') %} active {% endif %}">
             <a {% if module.children|length > 0 %}href="#" class="nav-link main-menu-nav-link dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside"{% else %} href="{% if module.route != "" %}{{ path(module.route) }}{% else %}#{% endif %}"{% endif %}>
               {{ module.libelle }}
@@ -136,6 +139,7 @@
               </div>
             {% endif %}
           </li>
+          {% endif %}
         {% endfor %}
       </ul>
 
